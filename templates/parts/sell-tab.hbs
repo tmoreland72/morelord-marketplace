@@ -1,0 +1,50 @@
+<section class="mlm-tab mlm-sell-tab">
+    <h3>Available Inventory</h3>
+
+    <div class="mlm-table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>Item</th>
+                <th>Type</th>
+                <th>Qty</th>
+                <th>List Price</th>
+                <th>Sell Price</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {{#each sellItems}}
+            <tr>
+                <td>
+                    <div class="mlm-item-cell">
+                        <img src="{{img}}" alt="{{name}}" />
+                        <a class="content-link"
+                            data-link
+                            data-uuid="{{uuid}}">
+                            {{name}}
+                        </a>
+                    </div>
+                </td>
+                <td>{{type}}</td>
+                <td>{{quantity}}</td>
+                <td>{{listPrice}}</td>
+                <td>{{sellPrice}}</td>
+                <td>
+                    <div class="mlm-actions">
+                        <button type="button" data-action="sellOne" data-item-id="{{ownedItemId}}" title="Sell One">
+                        <i class="fa-solid fa-coin"></i>
+                        </button>
+
+                        <button type="button" data-action="sellAll" data-item-id="{{ownedItemId}}" title="Sell All">
+                        <i class="fa-solid fa-sack-dollar"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            {{/each}}
+        </tbody>
+    </table>
+    </div>
+</section>

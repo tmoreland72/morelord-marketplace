@@ -1,0 +1,95 @@
+<section class="mlm-tab mlm-buy-tab">
+    <h3>Buy Items</h3>
+
+    <section class="mlm-filters">
+
+        <div class="mlm-search">
+            <input type="text" name="search" value="{{filters.search}}" placeholder="Search items..."
+                data-action="search">
+
+            <button type="button" class="mlm-clear-search" title="Clear Search" data-action="clearSearch">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <select name="type">
+            {{#each typeOptions}}
+            <option value="{{value}}" {{#if selected}}selected{{/if}}>
+                {{label}}
+            </option>
+            {{/each}}
+        </select>
+
+        <select name="rarity">
+            {{#each rarityOptions}}
+            <option value="{{value}}" {{#if selected}}selected{{/if}}>
+                {{label}}
+            </option>
+            {{/each}}
+        </select>
+        
+    </section>
+    {{!-- <div class="mlm-filters">
+        <input type="text" name="search" value="{{filters.search}}" placeholder="Search items">
+
+        <select name="type">
+            <option value="">All Types</option>
+            <option value="weapon">Weapons</option>
+            <option value="equipment">Equipment</option>
+            <option value="consumable">Consumables</option>
+            <option value="tool">Tools</option>
+            <option value="loot">Loot</option>
+        </select>
+
+        <select name="rarity">
+            <option value="">All Rarities</option>
+            <option value="common">Common</option>
+            <option value="uncommon">Uncommon</option>
+            <option value="rare">Rare</option>
+            <option value="veryRare">Very Rare</option>
+            <option value="legendary">Legendary</option>
+        </select>
+
+        <button type="button" data-action="applyFilters">Apply</button>
+    </div> --}}
+
+    <div class="mlm-table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Type</th>
+                    <th>Rarity</th>
+                    <th>Price</th>
+                    <th>Source</th>
+                    <th></th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {{#each buyItems}}
+                <tr>
+                    <td>
+                        <div class="mlm-item-cell">
+                            <img src="{{img}}" alt="{{name}}" />
+                            <a class="content-link" data-link data-uuid="Compendium.{{packId}}.Item.{{documentId}}">
+                                {{name}}
+                            </a>
+                        </div>
+                    </td>
+                    <td>{{type}}</td>
+                    <td>{{rarity}}</td>
+                    <td>{{buyPrice}}</td>
+                    <td title="{{packId}}">{{source}}</td>
+                    <td>
+                        <button type="button" data-action="buyItem" data-pack-id="{{packId}}"
+                            data-document-id="{{documentId}}">
+                            Buy
+                        </button>
+                    </td>
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
+    </div>
+</section>

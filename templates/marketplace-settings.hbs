@@ -1,0 +1,37 @@
+<section class="mlm-settings">
+  <header class="mlm-settings-header">
+    <h2>Marketplace Compendiums</h2>
+    <p>Select which Item compendiums players can buy from.</p>
+  </header>
+
+  <div class="mlm-settings-toolbar">
+    <button type="button" data-action="selectAll">
+      <i class="fa-solid fa-check-double"></i> Select All
+    </button>
+
+    <button type="button" data-action="selectNone">
+      <i class="fa-solid fa-xmark"></i> Select None
+    </button>
+
+    <button type="button" data-action="save" class="mlm-save-button">
+      <i class="fa-solid fa-floppy-disk"></i> Save
+    </button>
+  </div>
+
+  <div class="mlm-compendium-list">
+    {{#each packs}}
+      <label class="mlm-compendium-row">
+        <input
+          type="checkbox"
+          name="compendium"
+          value="{{collection}}"
+          {{#if selected}}checked{{/if}}>
+
+        <span class="mlm-compendium-text">
+          <strong>{{label}}</strong>
+          <small>{{collection}}</small>
+        </span>
+      </label>
+    {{/each}}
+  </div>
+</section>
