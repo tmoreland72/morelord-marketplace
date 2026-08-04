@@ -22,3 +22,16 @@ export const FLAGS = {
   SHOP_ID: "shopId",
   WISHLIST: "wishlist"
 };
+
+export const RARITY_OPTIONS = [
+  { value: "common", label: "Common", order: 0 },
+  { value: "uncommon", label: "Uncommon", order: 1 },
+  { value: "rare", label: "Rare", order: 2 },
+  { value: "veryRare", label: "Very Rare", order: 3 },
+  { value: "legendary", label: "Legendary", order: 4 },
+  { value: "artifact", label: "Artifact", order: 5 }
+];
+
+export const RARITY_ORDER = Object.fromEntries(
+  RARITY_OPTIONS.map(({ value, order }) => [value, order])
+);

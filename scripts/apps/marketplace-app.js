@@ -1,10 +1,7 @@
 import { MODULE_ID } from "../constants.js";
 import { ActorService } from "../services/actor-service.js";
-import { PricingService } from "../services/pricing-service.js";
 import { CurrencyService } from "../services/currency-service.js";
 import { CompendiumService } from "../services/compendium-service.js";
-import { TransactionService } from "../services/transaction-service.js";
-import { MorelordMarketplaceSettingsApp } from "./marketplace-settings-app.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -19,19 +16,18 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       resizable: true
     },
     position: {
-      width: 900,
-      height: 650
+      width: 1100,
+      height: 700
     },
     actions: {
       switchTab: MorelordMarketplaceApp.switchTab,
       sellOne: MorelordMarketplaceApp.sellOne,
       sellAll: MorelordMarketplaceApp.sellAll,
       buyItem: MorelordMarketplaceApp.buyItem,
-      applyFilters: MorelordMarketplaceApp.applyFilters,
-      search: MorelordMarketplaceApp.search,
       clearSearch: MorelordMarketplaceApp.clearSearch,
-      // openSettings: MorelordMarketplaceApp.openSettings,
-      // refreshMarketplace: MorelordMarketplaceApp.refreshMarketplace
+      clearBuyFilters: MorelordMarketplaceApp.clearBuyFilters,
+      cycleFacetFilter: MorelordMarketplaceApp.cycleFacetFilter,
+      toggleAffordable: MorelordMarketplaceApp.toggleAffordable
     }
   };
 
@@ -47,14 +43,27 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
     super(options);
     this.actor = ActorService.getMarketplaceActor();
     this.activeTab = "sell";
-    this.filters = {
+    this.filters = this.getEmptyFilters();
+    MorelordMarketplaceApp.instances.add(this);
+  }
+
+  getEmptyFacet() {
+    return { include: [], exclude: [] };
+  }
+
+  getEmptyFilters() {
+    return {
       search: "",
-      type: "",
-      rarity: "",
+      types: this.getEmptyFacet(),
+      rarities: this.getEmptyFacet(),
+      sources: this.getEmptyFacet(),
+      subtypes: this.getEmptyFacet(),
+      properties: this.getEmptyFacet(),
+      attunement: "",
+      affordableOnly: false,
       minPrice: "",
       maxPrice: ""
     };
-    MorelordMarketplaceApp.instances.add(this);
   }
 
   async close(options = {}) {
@@ -64,9 +73,7 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
 
   static refreshForActor(actor) {
     for (const app of MorelordMarketplaceApp.instances) {
-      if (actor?.id === game.user.character?.id) {
-        app.render();
-      }
+      if (app.actor?.id === actor?.id) app.render();
     }
   }
 
@@ -84,27 +91,11 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       canBuy: game.settings.get(MODULE_ID, "enableBuying"),
       sellItems: [],
       buyItems: [],
-      currency: null,
-      isGM: game.user.isGM,
+      buyFacets: null,
+      buyResultCount: 0,
+      hasBuyFilters: this.hasActiveBuyFilters(),
+      currency: null
     };
-
-    context.typeOptions = [
-      { value: "", label: "All Types", selected: this.filters.type === "" },
-      { value: "weapon", label: "Weapons", selected: this.filters.type === "weapon" },
-      { value: "equipment", label: "Equipment", selected: this.filters.type === "equipment" },
-      { value: "consumable", label: "Consumables", selected: this.filters.type === "consumable" },
-      { value: "tool", label: "Tools", selected: this.filters.type === "tool" },
-      { value: "loot", label: "Loot", selected: this.filters.type === "loot" }
-    ];
-
-    context.rarityOptions = [
-      { value: "", label: "All Rarities", selected: this.filters.rarity === "" },
-      { value: "common", label: "Common", selected: this.filters.rarity === "common" },
-      { value: "uncommon", label: "Uncommon", selected: this.filters.rarity === "uncommon" },
-      { value: "rare", label: "Rare", selected: this.filters.rarity === "rare" },
-      { value: "veryRare", label: "Very Rare", selected: this.filters.rarity === "veryRare" },
-      { value: "legendary", label: "Legendary", selected: this.filters.rarity === "legendary" }
-    ];
 
     if (!actor) {
       context.error = game.user.isGM
@@ -120,7 +111,29 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
     }
 
     if (context.isBuyTab) {
-      context.buyItems = await CompendiumService.getBuyableItems(this.filters);
+      const catalog = await CompendiumService.getBuyableCatalog();
+      const availableCurrencyCp = CurrencyService.currencyToCp(
+        CurrencyService.getCurrency(actor)
+      );
+      const runtimeFilters = {
+        ...this.filters,
+        availableCurrencyCp
+      };
+
+      context.buyItems = CompendiumService.filterRows(catalog, runtimeFilters);
+      context.buyFacets = CompendiumService.buildFacets(catalog, this.filters);
+      context.buyResultCount = context.buyItems.length;
+
+      const includedTypes = new Set(this.filters.types.include);
+      context.showSubtypeFilters = Boolean(
+        includedTypes.size && context.buyFacets.subtypes.length
+      );
+      context.showPropertyFilters = Boolean(
+        includedTypes.has("weapon") && context.buyFacets.properties.length
+      );
+      context.attunementAny = !this.filters.attunement;
+      context.attunementRequired = this.filters.attunement === "required";
+      context.attunementNotRequired = this.filters.attunement === "not-required";
     }
 
     return context;
@@ -129,31 +142,80 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
   _onRender(context, options) {
     super._onRender(context, options);
 
-    const searchInput = this.element.querySelector("input[name='search']");
-    if (searchInput) {
-      searchInput.addEventListener("keydown", async event => {
-        if (event.key !== "Enter") return;
+    const buyLayout = this.element.querySelector(".mlm-buy-layout");
+    if (!buyLayout) return;
 
+    const searchInput = buyLayout.querySelector("input[name='search']");
+    searchInput?.addEventListener("keydown", async event => {
+      if (event.key !== "Enter") return;
+      event.preventDefault();
+      event.stopPropagation();
+      this.filters.search = searchInput.value ?? "";
+      await this.render();
+    });
+
+    for (const input of buyLayout.querySelectorAll("[data-filter-control]")) {
+      input.addEventListener("change", async event => {
         event.preventDefault();
         event.stopPropagation();
-
-        const filters = searchInput.closest(".mlm-filters");
-        this.readFilters(filters);
-
+        this.readSimpleBuyFilters(buyLayout);
         await this.render();
       });
     }
+  }
 
-    for (const select of this.element.querySelectorAll(".mlm-filters select")) {
-      select.addEventListener("change", async event => {
-        event.preventDefault();
-        event.stopPropagation();
+  hasActiveBuyFilters() {
+    const facetActive = facet =>
+      facet.include.length > 0 || facet.exclude.length > 0;
 
-        const filters = select.closest(".mlm-filters");
-        this.readFilters(filters);
+    return Boolean(
+      this.filters.search
+      || facetActive(this.filters.types)
+      || facetActive(this.filters.rarities)
+      || facetActive(this.filters.sources)
+      || facetActive(this.filters.subtypes)
+      || facetActive(this.filters.properties)
+      || this.filters.attunement
+      || this.filters.affordableOnly
+      || this.filters.minPrice !== ""
+      || this.filters.maxPrice !== ""
+    );
+  }
 
-        await this.render();
-      });
+  readSimpleBuyFilters(container) {
+    this.filters = {
+      ...this.filters,
+      search: container.querySelector("[name='search']")?.value ?? "",
+      attunement: container.querySelector("[name='attunement']:checked")?.value ?? "",
+      minPrice: container.querySelector("[name='minPrice']")?.value ?? "",
+      maxPrice: container.querySelector("[name='maxPrice']")?.value ?? ""
+    };
+  }
+
+  cycleFacet(group, value) {
+    const facet = this.filters[group];
+    if (!facet || !value) return;
+
+    const include = new Set(facet.include);
+    const exclude = new Set(facet.exclude);
+
+    if (!include.has(value) && !exclude.has(value)) {
+      include.add(value);
+    } else if (include.has(value)) {
+      include.delete(value);
+      exclude.add(value);
+    } else {
+      exclude.delete(value);
+    }
+
+    this.filters[group] = {
+      include: [...include],
+      exclude: [...exclude]
+    };
+
+    if (group === "types") {
+      this.filters.subtypes = this.getEmptyFacet();
+      this.filters.properties = this.getEmptyFacet();
     }
   }
 
@@ -163,26 +225,22 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
   }
 
   static async sellOne(event, target) {
-    const actor = this.actor;
     const itemId = target.dataset.itemId;
-    await ActorService.sellItem(actor, itemId, 1);
+    await ActorService.sellItem(this.actor, itemId, 1);
     await this.render();
   }
 
   static async sellAll(event, target) {
-    const actor = this.actor;
     const itemId = target.dataset.itemId;
-    const item = actor.items.get(itemId);
-    const quantity = item.system.quantity ?? 1;
-    await ActorService.sellItem(actor, itemId, quantity);
+    const item = this.actor.items.get(itemId);
+    const quantity = item?.system.quantity ?? 1;
+    await ActorService.sellItem(this.actor, itemId, quantity);
     await this.render();
   }
 
   static async buyItem(event, target) {
-    const actor = this.actor;
-
     await CompendiumService.buyCompendiumItem({
-      actor,
+      actor: this.actor,
       packId: target.dataset.packId,
       documentId: target.dataset.documentId
     });
@@ -190,61 +248,29 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
     await this.render();
   }
 
-  readFilters(container) {
-    this.filters = {
-      search: container.querySelector("[name='search']")?.value ?? "",
-      type: container.querySelector("[name='type']")?.value ?? "",
-      rarity: container.querySelector("[name='rarity']")?.value ?? "",
-      minPrice: container.querySelector("[name='minPrice']")?.value ?? "",
-      maxPrice: container.querySelector("[name='maxPrice']")?.value ?? ""
-    };
-  }
-
-  static async search(event, target) {
-    if (event.key !== "Enter") return;
-
+  static async cycleFacetFilter(event, target) {
     event.preventDefault();
-    event.stopPropagation();
-
-    const form = target.closest(".mlm-filters");
-    this.readFilters(form);
-
+    const group = target.dataset.filterGroup;
+    const value = target.dataset.filterValue;
+    this.cycleFacet(group, value);
     await this.render();
   }
 
-  static async clearSearch(event, target) {
+  static async toggleAffordable(event) {
     event.preventDefault();
+    this.filters.affordableOnly = !this.filters.affordableOnly;
+    await this.render();
+  }
 
-    const form = target.closest(".mlm-filters");
-    const input = form.querySelector("input[name='search']");
-
-    if (input) input.value = "";
-
+  static async clearSearch(event) {
+    event.preventDefault();
     this.filters.search = "";
-
     await this.render();
   }
 
-  static async applyFilters(event, target) {
+  static async clearBuyFilters(event) {
     event.preventDefault();
-    event.stopPropagation();
-
-    const form = target.closest(".mlm-filters");
-    this.readFilters(form);
-
+    this.filters = this.getEmptyFilters();
     await this.render();
   }
-
-  // static async openSettings(event, target) {
-  //   event.preventDefault();
-  //   if (!game.user.isGM) return;
-
-  //   new MorelordMarketplaceSettingsApp().render(true);
-  // }
-
-  // static async refreshMarketplace(event, target) {
-  //   event.preventDefault();
-  //   await this.render();
-  // }
-
 }
