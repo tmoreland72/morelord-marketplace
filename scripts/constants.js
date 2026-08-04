@@ -1,8 +1,8 @@
 export const MODULE_ID = "morelord-marketplace";
 
 export const ITEM_TYPES = {
-  SELLABLE: ["weapon", "equipment", "consumable", "tool", "loot"],
-  BUYABLE: ["weapon", "equipment", "consumable", "tool", "loot"]
+  SELLABLE: ["weapon", "equipment", "consumable", "tool", "loot", "container"],
+  BUYABLE: ["weapon", "equipment", "consumable", "tool", "loot", "container"]
 };
 
 export const DENOMINATION_TO_CP = {
@@ -13,7 +13,7 @@ export const DENOMINATION_TO_CP = {
   pp: 1000
 };
 
-export const DEFAULT_SELL_RATE = 0.5;
+export const DEFAULT_SELL_RATE = 1;
 
 export const FLAGS = {
   UNSELLABLE: "unsellable",

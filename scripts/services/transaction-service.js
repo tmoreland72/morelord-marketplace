@@ -13,7 +13,7 @@ export class TransactionService {
       speaker: ChatMessage.getSpeaker({ actor }),
       content: `
         <div class="morelord-marketplace-card">
-          <h3>Morelord Marketplace</h3>
+          <div class="mlm-transaction-source">Morelord Marketplace</div>
           <p><strong>${actor.name}</strong> ${verb} <strong>${quantity} × ${itemName}</strong>.</p>
           <p><strong>Total:</strong> ${price}</p>
         </div>

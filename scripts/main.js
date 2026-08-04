@@ -1,7 +1,9 @@
 import { MODULE_ID } from "./constants.js";
-import { registerSettings } from "./settings.js";
+import {
+  registerSettings,
+  initializeDefaultCompendiums
+} from "./settings.js";
 import { MorelordMarketplaceApp } from "./apps/marketplace-app.js";
-// import { MorelordMarketplaceSettingsApp } from "./apps/marketplace-settings-app.js";
 import { Logger } from "./logger.js";
 
 Logger.log("main.js loaded");
@@ -20,15 +22,13 @@ Hooks.once("init", async () => {
   Logger.log("Templates loaded");
 });
 
-Hooks.once("ready", () => {
+Hooks.once("ready", async () => {
   Logger.log("Ready");
 
+  await initializeDefaultCompendiums();
+
   game.modules.get(MODULE_ID).api = {
-    openMarketplace: () => new MorelordMarketplaceApp().render(true),
-    openSettings: () => {
-      if (!game.user.isGM) return;
-      new MorelordMarketplaceSettingsApp().render(true);
-    }
+    openMarketplace: () => new MorelordMarketplaceApp().render(true)
   };
 
   Logger.log("API registered");
@@ -50,28 +50,23 @@ Hooks.on("getSceneControlButtons", controls => {
 });
 
 Hooks.on("updateActor", actor => {
-  if (actor.id === game.user.character?.id) {
-    MorelordMarketplaceApp.refreshForActor(actor);
-  }
+  MorelordMarketplaceApp.refreshForActor(actor);
 });
 
 Hooks.on("createItem", item => {
-  const actor = item.parent;
-  if (actor?.id === game.user.character?.id) {
-    MorelordMarketplaceApp.refreshForActor(actor);
+  if (item.parent) {
+    MorelordMarketplaceApp.refreshForActor(item.parent);
   }
 });
 
 Hooks.on("updateItem", item => {
-  const actor = item.parent;
-  if (actor?.id === game.user.character?.id) {
-    MorelordMarketplaceApp.refreshForActor(actor);
+  if (item.parent) {
+    MorelordMarketplaceApp.refreshForActor(item.parent);
   }
 });
 
 Hooks.on("deleteItem", item => {
-  const actor = item.parent;
-  if (actor?.id === game.user.character?.id) {
-    MorelordMarketplaceApp.refreshForActor(actor);
+  if (item.parent) {
+    MorelordMarketplaceApp.refreshForActor(item.parent);
   }
 });

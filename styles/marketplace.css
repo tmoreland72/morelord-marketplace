@@ -22,69 +22,204 @@
 
 
 /* =========================================================
-   Header
+   Marketplace Header
    ========================================================= */
 
-.morelord-marketplace .mlm-header {
-  display: flex;
+.morelord-marketplace .mlm-market-header {
   flex: 0 0 auto;
+  margin-bottom: 0;
+}
+
+.morelord-marketplace .mlm-brand-row {
+  display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.85rem;
 }
 
-.morelord-marketplace .mlm-title {
+.morelord-marketplace .mlm-brand {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.8rem;
 }
 
-.morelord-marketplace .mlm-title h2 {
+.morelord-marketplace .mlm-brand > i {
+  font-size: 1.8rem;
+  opacity: 0.9;
+}
+
+.morelord-marketplace .mlm-brand h1 {
   margin: 0;
+  font-size: 2rem;
+  line-height: 1.05;
+}
+
+.morelord-marketplace .mlm-brand span {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.8rem;
+  opacity: 0.68;
 }
 
 
 /* =========================================================
-   Status Bar
+   Active Shopper
    ========================================================= */
 
-.morelord-marketplace .mlm-status-bar {
+.morelord-marketplace .mlm-shopper-card {
   display: flex;
-  flex: 0 0 auto;
   align-items: center;
   justify-content: space-between;
-  margin: 0.75rem 0 1rem;
-  padding: 0.6rem 0.85rem;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem 0.9rem;
   border: 1px solid var(--color-border-light-primary);
-  border-radius: 6px;
+  border-radius: 8px;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.065),
+      rgba(255, 255, 255, 0.025)
+    );
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.16);
+}
+
+.morelord-marketplace .mlm-shopper-identity {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.morelord-marketplace .mlm-shopper-portrait,
+.morelord-marketplace .mlm-shopper-placeholder {
+  flex: 0 0 auto;
+  width: 48px;
+  height: 48px;
+  border: 1px solid var(--color-border-light-primary);
+  border-radius: 50%;
+}
+
+.morelord-marketplace .mlm-shopper-portrait {
+  object-fit: cover;
+}
+
+.morelord-marketplace .mlm-shopper-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: rgba(255, 255, 255, 0.04);
 }
 
-.morelord-marketplace .mlm-status-bar > div {
+.morelord-marketplace .mlm-shopper-copy {
   display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.morelord-marketplace .mlm-shopper-label {
+  margin-bottom: 0.1rem;
+  font-size: 0.76rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.68;
+}
+
+.morelord-marketplace .mlm-shopper-copy strong {
+  overflow: hidden;
+  font-size: 1.35rem;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.morelord-marketplace .mlm-shopper-wallet {
+  display: flex;
+  flex: 0 0 auto;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.65rem;
+  padding-left: 1rem;
+  border-left: 1px solid var(--color-border-light-primary);
+}
+
+.morelord-marketplace .mlm-shopper-wallet > i {
+  font-size: 1.3rem;
+}
+
+.morelord-marketplace .mlm-shopper-wallet > div {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.morelord-marketplace .mlm-shopper-wallet span {
+  margin-bottom: 0.1rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.68;
+}
+
+.morelord-marketplace .mlm-shopper-wallet strong {
+  font-size: 1rem;
+  white-space: nowrap;
 }
 
 
 /* =========================================================
-   Tabs
+   Marketplace Tabs
    ========================================================= */
 
 .morelord-marketplace .mlm-tabs {
   display: flex;
-  flex: 0 0 auto;
-  gap: 0.35rem;
-  margin-bottom: 1rem;
+  align-items: flex-end;
+  gap: 0;
+  margin: 0;
+  padding-left: 0.5rem;
+  border-bottom: 1px solid var(--color-border-light-primary);
 }
 
-.morelord-marketplace .mlm-tabs button {
-  padding: 0.4rem 0.9rem;
+.morelord-marketplace .mlm-tab-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 105px;
+  margin: 0 0 -1px;
+  padding: 0.65rem 1rem;
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: 7px 7px 0 0;
+  background: transparent;
+  box-shadow: none;
+  color: inherit;
+  font-weight: 500;
 }
 
-.morelord-marketplace .mlm-tabs button.active {
-  font-weight: bold;
-  box-shadow: 0 0 0 1px var(--color-border-highlight);
+.morelord-marketplace .mlm-tab-button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.morelord-marketplace .mlm-tab-button.active {
+  z-index: 2;
+  border-color: var(--color-border-light-primary);
+  background: var(--color-cool-5);
+  font-weight: 700;
+}
+
+.morelord-marketplace .mlm-tab-button.active::after {
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  height: 2px;
+  background: var(--color-cool-5);
+  content: "";
+}
+
+.morelord-marketplace .mlm-tab-button:disabled {
+  cursor: wait;
+  opacity: 0.68;
 }
 
 
@@ -98,6 +233,7 @@
   flex-direction: column;
   min-width: 0;
   min-height: 0;
+  padding-top: 0.9rem;
   overflow: hidden;
 }
 
@@ -720,10 +856,6 @@
   opacity: 0.72;
 }
 
-.morelord-marketplace .mlm-tabs button:disabled {
-  cursor: wait;
-  opacity: 0.75;
-}
 
 /* =========================================================
    Filter Instruction Key
@@ -797,4 +929,22 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+
+/* =========================================================
+   Transaction Chat Cards
+   ========================================================= */
+
+.morelord-marketplace-card .mlm-transaction-source {
+  margin-bottom: 0.4rem;
+  font-size: 0.9rem;
+  font-style: italic;
+  font-weight: 400;
+  line-height: 1.2;
+  opacity: 0.72;
+}
+
+.morelord-marketplace-card p {
+  margin: 0.25rem 0;
 }

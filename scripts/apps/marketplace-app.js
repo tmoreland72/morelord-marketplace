@@ -78,11 +78,33 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
     }
   }
 
+  getTokenImage(actor) {
+    if (!actor) return "icons/svg/mystery-man.svg";
+
+    const controlledToken = game.canvas?.tokens?.controlled?.find(
+      token => token.actor?.id === actor.id
+    );
+
+    const sceneToken = game.canvas?.tokens?.placeables?.find(
+      token => token.actor?.id === actor.id
+    );
+
+    return (
+      controlledToken?.document?.texture?.src ??
+      sceneToken?.document?.texture?.src ??
+      actor.prototypeToken?.texture?.src ??
+      actor.img ??
+      "icons/svg/mystery-man.svg"
+    );
+  }
+
   async _prepareContext(options) {
     const actor = this.actor ?? ActorService.getMarketplaceActor();
 
     const context = {
       actor,
+      tokenImg: this.getTokenImage(actor),
+      isGM: game.user.isGM,
       activeTab: this.activeTab,
       isSellTab: this.activeTab === "sell",
       isBuyTab: this.activeTab === "buy",
