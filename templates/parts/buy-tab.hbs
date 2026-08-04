@@ -6,23 +6,19 @@
     </div>
 
     {{#if hasBuyFilters}}
-    <button type="button" class="mlm-clear-all" data-action="clearBuyFilters">
-      <i class="fa-solid fa-filter-circle-xmark"></i>
-      Clear all filters
-    </button>
+      <button type="button" class="mlm-clear-all" data-action="clearBuyFilters">
+        <i class="fa-solid fa-filter-circle-xmark"></i>
+        Clear all filters
+      </button>
     {{/if}}
   </div>
 
   <div class="mlm-buy-layout">
     <aside class="mlm-filter-sidebar" aria-label="Buy item filters">
       <div class="mlm-filter-search">
-        <label for="mlm-buy-search">
-          Search
-        </label>
-
+        <label for="mlm-buy-search">Search</label>
         <div class="mlm-search">
           <input id="mlm-buy-search" type="text" name="search" value="{{filters.search}}" placeholder="Search items...">
-
           <button type="button" class="mlm-clear-search" title="Clear Search" data-action="clearSearch">
             <i class="fa-solid fa-xmark"></i>
           </button>
@@ -30,30 +26,19 @@
       </div>
 
       <div class="mlm-filter-key" aria-label="Filter state key">
-        <span title="No filter">
-          <i class="fa-regular fa-square"></i>
-          Any
-        </span>
-
-        <span title="Include matching items">
-          <i class="fa-solid fa-square-check"></i>
-          Include
-        </span>
-
-        <span title="Exclude matching items">
-          <i class="fa-solid fa-square-minus"></i>
-          Exclude
-        </span>
+        <span title="No filter"><i class="fa-regular fa-square"></i> Any</span>
+        <span title="Include matching items"><i class="fa-solid fa-square-check"></i> Include</span>
+        <span title="Exclude matching items"><i class="fa-solid fa-square-minus"></i> Exclude</span>
       </div>
 
       <section class="mlm-filter-group mlm-affordability-group">
         <h4>Affordability</h4>
-
-        <button type="button" class="mlm-filter-option-button {{#if filters.affordableOnly}}active{{/if}}"
-          data-action="toggleAffordable" title="Only show items this character can afford">
-
+        <button
+          type="button"
+          class="mlm-filter-option-button {{#if filters.affordableOnly}}active{{/if}}"
+          data-action="toggleAffordable"
+          title="Only show items this character can afford">
           <i class="{{#if filters.affordableOnly}}fa-solid fa-square-check{{else}}fa-regular fa-square{{/if}}"></i>
-
           <span>Only show what I can afford</span>
         </button>
       </section>
@@ -62,82 +47,102 @@
         <h4>Item Type</h4>
         <div class="mlm-filter-options">
           {{#each buyFacets.types}}
-          <button type="button" class="mlm-tristate-filter state-{{state}}" data-action="cycleFacetFilter"
-            data-filter-group="types" data-filter-value="{{value}}" title="{{stateTitle}}">
-            {{#if isIncluded}}
-            <i class="fa-solid fa-square-check"></i>
-            {{else if isExcluded}}
-            <i class="fa-solid fa-square-minus"></i>
-            {{else}}
-            <i class="fa-regular fa-square"></i>
-            {{/if}}
-            <span>{{label}}</span>
-            <small>{{count}}</small>
-          </button>
+            <button
+              type="button"
+              class="mlm-tristate-filter state-{{state}}"
+              data-action="cycleFacetFilter"
+              data-filter-group="types"
+              data-filter-value="{{value}}"
+              title="{{stateTitle}}">
+              {{#if isIncluded}}
+                <i class="fa-solid fa-square-check"></i>
+              {{else if isExcluded}}
+                <i class="fa-solid fa-square-minus"></i>
+              {{else}}
+                <i class="fa-regular fa-square"></i>
+              {{/if}}
+              <span>{{label}}</span>
+              <small>{{count}}</small>
+            </button>
           {{/each}}
         </div>
       </section>
 
       {{#if showSubtypeFilters}}
-      <section class="mlm-filter-group">
-        <h4>Category</h4>
-        <div class="mlm-filter-options">
-          {{#each buyFacets.subtypes}}
-          <button type="button" class="mlm-tristate-filter state-{{state}}" data-action="cycleFacetFilter"
-            data-filter-group="subtypes" data-filter-value="{{value}}" title="{{stateTitle}}">
-            {{#if isIncluded}}
-            <i class="fa-solid fa-square-check"></i>
-            {{else if isExcluded}}
-            <i class="fa-solid fa-square-minus"></i>
-            {{else}}
-            <i class="fa-regular fa-square"></i>
-            {{/if}}
-            <span>{{label}}</span>
-            <small>{{count}}</small>
-          </button>
-          {{/each}}
-        </div>
-      </section>
+        <section class="mlm-filter-group">
+          <h4>Category</h4>
+          <div class="mlm-filter-options">
+            {{#each buyFacets.subtypes}}
+              <button
+                type="button"
+                class="mlm-tristate-filter state-{{state}}"
+                data-action="cycleFacetFilter"
+                data-filter-group="subtypes"
+                data-filter-value="{{value}}"
+                title="{{stateTitle}}">
+                {{#if isIncluded}}
+                  <i class="fa-solid fa-square-check"></i>
+                {{else if isExcluded}}
+                  <i class="fa-solid fa-square-minus"></i>
+                {{else}}
+                  <i class="fa-regular fa-square"></i>
+                {{/if}}
+                <span>{{label}}</span>
+                <small>{{count}}</small>
+              </button>
+            {{/each}}
+          </div>
+        </section>
       {{/if}}
 
       {{#if showPropertyFilters}}
-      <section class="mlm-filter-group">
-        <h4>Weapon Properties</h4>
-        <div class="mlm-filter-options">
-          {{#each buyFacets.properties}}
-          <button type="button" class="mlm-tristate-filter state-{{state}}" data-action="cycleFacetFilter"
-            data-filter-group="properties" data-filter-value="{{value}}" title="{{stateTitle}}">
-            {{#if isIncluded}}
-            <i class="fa-solid fa-square-check"></i>
-            {{else if isExcluded}}
-            <i class="fa-solid fa-square-minus"></i>
-            {{else}}
-            <i class="fa-regular fa-square"></i>
-            {{/if}}
-            <span>{{label}}</span>
-            <small>{{count}}</small>
-          </button>
-          {{/each}}
-        </div>
-      </section>
+        <section class="mlm-filter-group">
+          <h4>Weapon Properties</h4>
+          <div class="mlm-filter-options">
+            {{#each buyFacets.properties}}
+              <button
+                type="button"
+                class="mlm-tristate-filter state-{{state}}"
+                data-action="cycleFacetFilter"
+                data-filter-group="properties"
+                data-filter-value="{{value}}"
+                title="{{stateTitle}}">
+                {{#if isIncluded}}
+                  <i class="fa-solid fa-square-check"></i>
+                {{else if isExcluded}}
+                  <i class="fa-solid fa-square-minus"></i>
+                {{else}}
+                  <i class="fa-regular fa-square"></i>
+                {{/if}}
+                <span>{{label}}</span>
+                <small>{{count}}</small>
+              </button>
+            {{/each}}
+          </div>
+        </section>
       {{/if}}
 
       <section class="mlm-filter-group">
         <h4>Rarity</h4>
         <div class="mlm-filter-options">
           {{#each buyFacets.rarities}}
-          <button type="button" class="mlm-tristate-filter state-{{state}}" data-action="cycleFacetFilter"
-            data-filter-group="rarities" data-filter-value="{{value}}" title="{{stateTitle}}">
-            {{#if isIncluded}}
-            <i class="fa-solid fa-square-check"></i>
-            {{else if isExcluded}}
-            <i class="fa-solid fa-square-minus"></i>
-            {{else}}
-            <i class="fa-regular fa-square"></i>
-            {{/if}}
-            <span>{{label}}</span>
-            <small>{{count}}</small>
-          </button>
+            <button
+              type="button"
+              class="mlm-tristate-filter state-{{state}}"
+              data-action="cycleFacetFilter"
+              data-filter-group="rarities"
+              data-filter-value="{{value}}"
+              title="{{stateTitle}}">
+              {{#if isIncluded}}
+                <i class="fa-solid fa-square-check"></i>
+              {{else if isExcluded}}
+                <i class="fa-solid fa-square-minus"></i>
+              {{else}}
+                <i class="fa-regular fa-square"></i>
+              {{/if}}
+              <span>{{label}}</span>
+              <small>{{count}}</small>
+            </button>
           {{/each}}
         </div>
       </section>
@@ -150,13 +155,11 @@
             <span>Any</span>
           </label>
           <label class="mlm-filter-option">
-            <input type="radio" name="attunement" value="required" data-filter-control {{#if
-              attunementRequired}}checked{{/if}}>
+            <input type="radio" name="attunement" value="required" data-filter-control {{#if attunementRequired}}checked{{/if}}>
             <span>Required</span>
           </label>
           <label class="mlm-filter-option">
-            <input type="radio" name="attunement" value="not-required" data-filter-control {{#if
-              attunementNotRequired}}checked{{/if}}>
+            <input type="radio" name="attunement" value="not-required" data-filter-control {{#if attunementNotRequired}}checked{{/if}}>
             <span>Not Required</span>
           </label>
         </div>
@@ -165,11 +168,9 @@
       <section class="mlm-filter-group">
         <h4>Price (gp)</h4>
         <div class="mlm-price-range">
-          <input type="number" name="minPrice" min="0" step="1" value="{{filters.minPrice}}" placeholder="Min"
-            data-filter-control>
+          <input type="number" name="minPrice" min="0" step="1" value="{{filters.minPrice}}" placeholder="Min" data-filter-control>
           <span>to</span>
-          <input type="number" name="maxPrice" min="0" step="1" value="{{filters.maxPrice}}" placeholder="Max"
-            data-filter-control>
+          <input type="number" name="maxPrice" min="0" step="1" value="{{filters.maxPrice}}" placeholder="Max" data-filter-control>
         </div>
       </section>
 
@@ -177,18 +178,23 @@
         <h4>Source</h4>
         <div class="mlm-filter-options mlm-source-options">
           {{#each buyFacets.sources}}
-          <button type="button" class="mlm-tristate-filter state-{{state}}" data-action="cycleFacetFilter"
-            data-filter-group="sources" data-filter-value="{{value}}" title="{{stateTitle}}">
-            {{#if isIncluded}}
-            <i class="fa-solid fa-square-check"></i>
-            {{else if isExcluded}}
-            <i class="fa-solid fa-square-minus"></i>
-            {{else}}
-            <i class="fa-regular fa-square"></i>
-            {{/if}}
-            <span title="{{label}}">{{label}}</span>
-            <small>{{count}}</small>
-          </button>
+            <button
+              type="button"
+              class="mlm-tristate-filter state-{{state}}"
+              data-action="cycleFacetFilter"
+              data-filter-group="sources"
+              data-filter-value="{{value}}"
+              title="{{stateTitle}}">
+              {{#if isIncluded}}
+                <i class="fa-solid fa-square-check"></i>
+              {{else if isExcluded}}
+                <i class="fa-solid fa-square-minus"></i>
+              {{else}}
+                <i class="fa-regular fa-square"></i>
+              {{/if}}
+              <span title="{{label}}">{{label}}</span>
+              <small>{{count}}</small>
+            </button>
           {{/each}}
         </div>
       </section>
@@ -210,34 +216,33 @@
           </thead>
           <tbody>
             {{#each buyItems}}
-            <tr>
-              <td>
-                <div class="mlm-item-cell">
-                  <img src="{{img}}" alt="{{name}}">
-                  <a class="content-link" data-link data-uuid="{{uuid}}">{{name}}</a>
-                </div>
-              </td>
-              <td>{{typeLabel}}</td>
-              <td>{{subtypeLabel}}</td>
-              <td>{{rarityLabel}}</td>
-              <td>{{buyPrice}}</td>
-              <td title="{{packId}}">{{source}}</td>
-              <td>
-                <div class="mlm-actions">
-                  <button type="button" class="mlm-buy-button" title="Buy {{name}}" data-action="buyItem"
-                    data-pack-id="{{packId}}" data-document-id="{{documentId}}">
-                    <i class="fa-solid fa-cart-plus"></i>
-                  </button>
-                </div>
-              </td>
-            </tr>
+              <tr>
+                <td>
+                  <div class="mlm-item-cell">
+                    <img src="{{img}}" alt="{{name}}">
+                    <a class="content-link" data-link data-uuid="{{uuid}}">{{name}}</a>
+                  </div>
+                </td>
+                <td>{{typeLabel}}</td>
+                <td>{{subtypeLabel}}</td>
+                <td>{{rarityLabel}}</td>
+                <td>{{buyPrice}}</td>
+                <td title="{{packId}}">{{source}}</td>
+                <td>
+                  <div class="mlm-actions">
+                    <button type="button" class="mlm-buy-button" title="Buy {{name}}" data-action="buyItem" data-pack-id="{{packId}}" data-document-id="{{documentId}}">
+                      <i class="fa-solid fa-cart-plus"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
             {{else}}
-            <tr>
-              <td colspan="7" class="mlm-empty-results">
-                <i class="fa-solid fa-magnifying-glass"></i>
-                No items match the selected filters.
-              </td>
-            </tr>
+              <tr>
+                <td colspan="7" class="mlm-empty-results">
+                  <i class="fa-solid fa-magnifying-glass"></i>
+                  No items match the selected filters.
+                </td>
+              </tr>
             {{/each}}
           </tbody>
         </table>

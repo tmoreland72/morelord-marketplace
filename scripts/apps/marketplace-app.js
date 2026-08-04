@@ -44,6 +44,7 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
     this.actor = ActorService.getMarketplaceActor();
     this.activeTab = "sell";
     this.filters = this.getEmptyFilters();
+    this.isLoadingBuy = false;
     MorelordMarketplaceApp.instances.add(this);
   }
 
@@ -86,6 +87,7 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       isSellTab: this.activeTab === "sell",
       isBuyTab: this.activeTab === "buy",
       isSearchTab: this.activeTab === "search",
+      isLoadingBuy: this.isLoadingBuy,
       filters: this.filters,
       canSell: game.settings.get(MODULE_ID, "enableSelling"),
       canBuy: game.settings.get(MODULE_ID, "enableBuying"),
@@ -110,7 +112,7 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       context.sellItems = await ActorService.getSellableItems(actor);
     }
 
-    if (context.isBuyTab) {
+    if (context.isBuyTab && !this.isLoadingBuy) {
       const catalog = await CompendiumService.getBuyableCatalog();
       const availableCurrencyCp = CurrencyService.currencyToCp(
         CurrencyService.getCurrency(actor)
@@ -141,6 +143,8 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
 
   _onRender(context, options) {
     super._onRender(context, options);
+
+    if (this.isLoadingBuy) return;
 
     const buyLayout = this.element.querySelector(".mlm-buy-layout");
     if (!buyLayout) return;
@@ -220,8 +224,35 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
   }
 
   static async switchTab(event, target) {
-    this.activeTab = target.dataset.tab;
+    event.preventDefault();
+
+    if (this.isLoadingBuy) return;
+
+    const nextTab = target.dataset.tab;
+
+    if (nextTab !== "buy") {
+      this.activeTab = nextTab;
+      await this.render();
+      return;
+    }
+
+    this.activeTab = "buy";
+    this.isLoadingBuy = true;
+
+    // Render the loading state immediately before processing the catalog.
     await this.render();
+
+    try {
+      await CompendiumService.getBuyableCatalog();
+    } catch (error) {
+      console.error(`[${MODULE_ID}] Failed to load the Buy catalog`, error);
+      ui.notifications.error(
+        "Morelord Marketplace could not load the available items."
+      );
+    } finally {
+      this.isLoadingBuy = false;
+      await this.render();
+    }
   }
 
   static async sellOne(event, target) {
@@ -239,6 +270,8 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
   }
 
   static async buyItem(event, target) {
+    if (this.isLoadingBuy) return;
+
     await CompendiumService.buyCompendiumItem({
       actor: this.actor,
       packId: target.dataset.packId,
@@ -250,6 +283,8 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
 
   static async cycleFacetFilter(event, target) {
     event.preventDefault();
+    if (this.isLoadingBuy) return;
+
     const group = target.dataset.filterGroup;
     const value = target.dataset.filterValue;
     this.cycleFacet(group, value);
@@ -258,18 +293,24 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
 
   static async toggleAffordable(event) {
     event.preventDefault();
+    if (this.isLoadingBuy) return;
+
     this.filters.affordableOnly = !this.filters.affordableOnly;
     await this.render();
   }
 
   static async clearSearch(event) {
     event.preventDefault();
+    if (this.isLoadingBuy) return;
+
     this.filters.search = "";
     await this.render();
   }
 
   static async clearBuyFilters(event) {
     event.preventDefault();
+    if (this.isLoadingBuy) return;
+
     this.filters = this.getEmptyFilters();
     await this.render();
   }

@@ -233,9 +233,9 @@
 
 .morelord-marketplace .mlm-clear-all {
   display: inline-flex;
-  flex: 0 0 auto;
   align-items: center;
   gap: 0.4rem;
+  flex: 0 0 auto;
 }
 
 
@@ -418,136 +418,6 @@
 
 
 /* =========================================================
-   Affordability Filter
-   ========================================================= */
-
-.morelord-marketplace .mlm-affordability-group {
-  padding-top: 0.75rem;
-  padding-bottom: 0.75rem;
-  border-top: 1px solid var(--color-border-light-primary);
-}
-
-.morelord-marketplace .mlm-filter-option-button {
-  display: grid;
-  grid-template-columns: 22px minmax(0, 1fr);
-  align-items: center;
-  gap: 0.4rem;
-  width: 100%;
-  min-width: 0;
-  margin: 0;
-  padding: 0.28rem 0.35rem;
-  border: none;
-  background: transparent;
-  box-shadow: none;
-  color: inherit;
-  text-align: left;
-}
-
-.morelord-marketplace .mlm-filter-option-button:hover {
-  background: rgba(255, 255, 255, 0.07);
-}
-
-.morelord-marketplace .mlm-filter-option-button.active {
-  font-weight: 600;
-}
-
-.morelord-marketplace .mlm-filter-option-button i {
-  width: 22px;
-  text-align: center;
-}
-
-.morelord-marketplace .mlm-filter-option-button span {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-
-/* =========================================================
-   Tri-State Filter Key
-   ========================================================= */
-
-.morelord-marketplace .mlm-filter-key {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem 0.8rem;
-  margin: 0 0 0.75rem;
-  padding: 0.55rem 0.65rem;
-  border: 1px solid var(--color-border-light-primary);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.035);
-  font-size: 0.78rem;
-}
-
-.morelord-marketplace .mlm-filter-key span {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  white-space: nowrap;
-}
-
-.morelord-marketplace .mlm-filter-key i {
-  width: 1rem;
-  text-align: center;
-}
-
-
-/* =========================================================
-   Tri-State Filter Options
-   ========================================================= */
-
-.morelord-marketplace .mlm-tristate-filter {
-  display: grid;
-  grid-template-columns: 22px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 0.4rem;
-  width: 100%;
-  min-width: 0;
-  padding: 0.28rem 0.35rem;
-  border: none;
-  background: transparent;
-  box-shadow: none;
-  color: inherit;
-  text-align: left;
-}
-
-.morelord-marketplace .mlm-tristate-filter:hover {
-  background: rgba(255, 255, 255, 0.07);
-}
-
-.morelord-marketplace .mlm-tristate-filter i {
-  width: 22px;
-  text-align: center;
-}
-
-.morelord-marketplace .mlm-tristate-filter span {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.morelord-marketplace .mlm-tristate-filter small {
-  margin-left: auto;
-  opacity: 0.7;
-}
-
-.morelord-marketplace .mlm-tristate-filter.state-include {
-  font-weight: 600;
-}
-
-.morelord-marketplace .mlm-tristate-filter.state-exclude {
-  opacity: 0.82;
-  text-decoration: line-through;
-}
-
-.morelord-marketplace .mlm-tristate-filter.state-none {
-  opacity: 0.9;
-}
-
-
-/* =========================================================
    Price Filters
    ========================================================= */
 
@@ -569,9 +439,9 @@
    ========================================================= */
 
 .morelord-marketplace .mlm-source-options {
-  max-height: 260px;
-  overflow-y: auto;
-  padding-right: 0.25rem;
+  max-height: none;
+  overflow: visible;
+  padding-right: 0;
 }
 
 
@@ -732,4 +602,199 @@
 .morelord-marketplace-settings .mlm-compendium-text small {
   opacity: 0.75;
   font-size: 0.8rem;
+}
+/* =========================================================
+   Tri-State Buy Filters
+   ========================================================= */
+
+.morelord-marketplace .mlm-affordable-filter {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  margin-bottom: 0.75rem;
+  padding: 0.5rem 0.6rem;
+  text-align: left;
+}
+
+.morelord-marketplace .mlm-affordable-filter.active {
+  box-shadow: 0 0 0 1px var(--color-border-highlight);
+}
+
+.morelord-marketplace .mlm-filter-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.7rem;
+  margin-bottom: 0.75rem;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid var(--color-border-light-primary);
+  border-radius: 6px;
+  font-size: 0.78rem;
+  opacity: 0.9;
+}
+
+.morelord-marketplace .mlm-filter-key span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.morelord-marketplace .mlm-tristate-filter {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+  min-width: 0;
+  padding: 0.28rem 0.35rem;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  text-align: left;
+}
+
+.morelord-marketplace .mlm-tristate-filter:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.morelord-marketplace .mlm-tristate-filter span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.morelord-marketplace .mlm-tristate-filter small {
+  margin-left: auto;
+  opacity: 0.7;
+}
+
+.morelord-marketplace .mlm-tristate-filter.state-include {
+  font-weight: 600;
+}
+
+.morelord-marketplace .mlm-tristate-filter.state-exclude {
+  opacity: 0.82;
+  text-decoration: line-through;
+}
+
+.morelord-marketplace .mlm-tristate-filter.state-none {
+  opacity: 0.9;
+}
+
+
+/* =========================================================
+   Buy Catalog Loading State
+   ========================================================= */
+
+.morelord-marketplace .mlm-buy-loading {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  min-width: 0;
+  min-height: 0;
+  border: 1px solid var(--color-border-light-primary);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.morelord-marketplace .mlm-buy-loading > i {
+  flex: 0 0 auto;
+  font-size: 2rem;
+}
+
+.morelord-marketplace .mlm-buy-loading > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.morelord-marketplace .mlm-buy-loading strong {
+  font-size: 1.05rem;
+}
+
+.morelord-marketplace .mlm-buy-loading span {
+  opacity: 0.72;
+}
+
+.morelord-marketplace .mlm-tabs button:disabled {
+  cursor: wait;
+  opacity: 0.75;
+}
+
+/* =========================================================
+   Filter Instruction Key
+   ========================================================= */
+
+.morelord-marketplace .mlm-filter-key {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.8rem;
+  margin: 0 0 0.75rem;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--color-border-light-primary);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+  font-size: 0.78rem;
+}
+
+.morelord-marketplace .mlm-filter-key span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  white-space: nowrap;
+}
+
+.morelord-marketplace .mlm-filter-key i {
+  width: 1rem;
+  text-align: center;
+}
+
+/* =========================================================
+   Affordability Filter
+   ========================================================= */
+
+.morelord-marketplace .mlm-affordability-group {
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
+
+.morelord-marketplace .mlm-filter-option-button {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 0.28rem 0.35rem;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  color: inherit;
+  text-align: left;
+}
+
+.morelord-marketplace .mlm-filter-option-button:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.morelord-marketplace .mlm-filter-option-button.active {
+  font-weight: 600;
+}
+
+.morelord-marketplace .mlm-filter-option-button i {
+  width: 22px;
+  text-align: center;
+}
+
+.morelord-marketplace .mlm-filter-option-button span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

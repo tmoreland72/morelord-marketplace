@@ -1,70 +1,67 @@
 <section class="mlm-shell">
-    <header class="mlm-header">
-        <div class="mlm-title">
-            <i class="fa-solid fa-store"></i>
-            <h2>Morelord Marketplace</h2>
-        </div>
+  <header class="mlm-header">
+    <div class="mlm-title">
+      <i class="fa-solid fa-store"></i>
+      <h2>Morelord Marketplace</h2>
+    </div>
+  </header>
 
-        {{!-- {{#if isGM}}
-        <div class="mlm-menu">
-            <button type="button" class="mlm-menu-button" title="Marketplace Options">
-                <i class="fa-solid fa-ellipsis-vertical"></i>
-            </button>
-
-            <div class="mlm-menu-dropdown">
-                <button type="button" data-action="openSettings">
-                    <i class="fa-solid fa-gears"></i>
-                    Marketplace Settings
-                </button>
-
-                <button type="button" data-action="refreshMarketplace">
-                    <i class="fa-solid fa-rotate"></i>
-                    Refresh Marketplace
-                </button>
-            </div>
-        </div>
-        {{/if}} --}}
-    </header>
-
-    {{#if error}}
+  {{#if error}}
     <div class="mlm-error">{{error}}</div>
-    {{else}}
+  {{else}}
     <nav class="mlm-tabs">
-        <button type="button" data-action="switchTab" data-tab="sell" class="{{#if isSellTab}}active{{/if}}">
-            Sell
-        </button>
+      <button
+        type="button"
+        data-action="switchTab"
+        data-tab="sell"
+        class="{{#if isSellTab}}active{{/if}}"
+        {{#if isLoadingBuy}}disabled{{/if}}>
+        Sell
+      </button>
 
-        <button type="button" data-action="switchTab" data-tab="buy" class="{{#if isBuyTab}}active{{/if}}">
-            Buy
-        </button>
-
-        {{!-- <button type="button" data-action="switchTab" data-tab="search" class="{{#if isSearchTab}}active{{/if}}">
-            Search
-        </button> --}}
+      <button
+        type="button"
+        data-action="switchTab"
+        data-tab="buy"
+        class="{{#if isBuyTab}}active{{/if}}"
+        {{#if isLoadingBuy}}disabled{{/if}}>
+        {{#if isLoadingBuy}}
+          <i class="fa-solid fa-spinner fa-spin"></i>
+          Loading…
+        {{else}}
+          Buy
+        {{/if}}
+      </button>
     </nav>
 
     <div class="mlm-status-bar">
-        <div>
-            <i class="fa-solid fa-user"></i>
-            Shopping as <strong>{{actor.name}}</strong>
-        </div>
+      <div>
+        <i class="fa-solid fa-user"></i>
+        Shopping as <strong>{{actor.name}}</strong>
+      </div>
 
-        <div>
-            <i class="fa-solid fa-coins"></i>
-            Coin: <strong>{{{currency}}}</strong>
-        </div>
+      <div>
+        <i class="fa-solid fa-coins"></i>
+        Coin: <strong>{{{currency}}}</strong>
+      </div>
     </div>
 
     {{#if isSellTab}}
-    {{> "modules/morelord-marketplace/templates/parts/sell-tab.hbs"}}
+      {{> "modules/morelord-marketplace/templates/parts/sell-tab.hbs"}}
     {{/if}}
 
     {{#if isBuyTab}}
-    {{> "modules/morelord-marketplace/templates/parts/buy-tab.hbs"}}
+      {{#if isLoadingBuy}}
+        <section class="mlm-buy-loading" aria-live="polite" aria-busy="true">
+          <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
+          <div>
+            <strong>Loading marketplace items…</strong>
+            <span>Reading and processing the selected item compendiums.</span>
+          </div>
+        </section>
+      {{else}}
+        {{> "modules/morelord-marketplace/templates/parts/buy-tab.hbs"}}
+      {{/if}}
     {{/if}}
-
-    {{#if isSearchTab}}
-    {{> "modules/morelord-marketplace/templates/parts/search-tab.hbs"}}
-    {{/if}}
-    {{/if}}
+  {{/if}}
 </section>

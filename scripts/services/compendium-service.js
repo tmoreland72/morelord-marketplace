@@ -281,7 +281,16 @@ export class CompendiumService {
       entry.system?.type === undefined ||
       entry.system?.properties === undefined;
 
-    if (!priceCp || missingFilterData) {
+    /*
+     * Compendium indexes do not always preserve the complete dnd5e source
+     * structure. An item may show a source book on its sheet while the index
+     * exposes only a primitive value or an incomplete object. Load the full
+     * document whenever the indexed source cannot identify a book.
+     */
+    const missingSourceData =
+      !this.hasUsableSource(entry.system?.source);
+
+    if (!priceCp || missingFilterData || missingSourceData) {
       const document = await pack.getDocument(
         entry._id
       );
@@ -461,36 +470,80 @@ export class CompendiumService {
     return definition?.label ?? "Common";
   }
 
-  static getSourceBook(sourceData, pack) {
-    let book = "";
-
+  static hasUsableSource(sourceData) {
     if (typeof sourceData === "string") {
-      book = sourceData.trim();
-    } else if (
-      sourceData &&
-      typeof sourceData === "object"
-    ) {
-      book = String(
-        sourceData.book ??
-        sourceData.title ??
-        sourceData.source ??
-        sourceData.custom ??
-        ""
-      ).trim();
+      return Boolean(sourceData.trim());
     }
 
-    /*
-     * Numeric, boolean, null, and other primitive source values
-     * are not useful book identifiers. Fall back to the pack label.
-     */
-    if (book) {
-      return this.resolveSourceBookLabel(book);
+    if (!sourceData || typeof sourceData !== "object") {
+      return false;
+    }
+
+    const candidate =
+      sourceData.book ??
+      sourceData.title ??
+      sourceData.source ??
+      sourceData.custom;
+
+    if (candidate && typeof candidate === "object") {
+      return Boolean(
+        candidate.label ??
+        candidate.name ??
+        candidate.title ??
+        candidate.value ??
+        candidate.id ??
+        candidate.key
+      );
+    }
+
+    return candidate !== null &&
+      candidate !== undefined &&
+      String(candidate).trim() !== "";
+  }
+
+  static getSourceBook(sourceData, pack) {
+    const candidate = this.extractSourceCandidate(
+      sourceData
+    );
+
+    if (candidate !== "") {
+      return this.resolveSourceBookLabel(candidate);
     }
 
     return (
       pack.metadata.label ??
       pack.collection
     );
+  }
+
+  static extractSourceCandidate(sourceData) {
+    if (typeof sourceData === "string") {
+      return sourceData.trim();
+    }
+
+    if (!sourceData || typeof sourceData !== "object") {
+      return "";
+    }
+
+    let candidate =
+      sourceData.book ??
+      sourceData.title ??
+      sourceData.source ??
+      sourceData.custom ??
+      "";
+
+    if (candidate && typeof candidate === "object") {
+      candidate =
+        candidate.label ??
+        candidate.name ??
+        candidate.title ??
+        candidate.value ??
+        candidate.id ??
+        candidate.key ??
+        "";
+    }
+
+    return String(candidate ?? "").trim();
   }
 
   static resolveSourceBookLabel(book) {
