@@ -3,6 +3,7 @@ import { PricingService } from "./pricing-service.js";
 import { CurrencyService } from "./currency-service.js";
 import { ShopService } from "./shop-service.js";
 import { TransactionService } from "./transaction-service.js";
+import { TransactionApprovalService } from "./transaction-approval-service.js";
 
 export class CompendiumService {
   static indexCache = new Map();
@@ -795,15 +796,35 @@ export class CompendiumService {
       return;
     }
 
+    if (TransactionApprovalService.requiresApproval("buy")) {
+      await TransactionApprovalService.requestBuy({
+        actor,
+        packId,
+        documentId,
+        item,
+        priceCp
+      });
+      return;
+    }
+
+    const originalCurrencyCp = CurrencyService.currencyToCp(
+      CurrencyService.getCurrency(actor)
+    );
+
     await CurrencyService.deductCurrency(
       actor,
       priceCp
     );
 
-    await actor.createEmbeddedDocuments(
-      "Item",
-      [item.toObject()]
-    );
+    try {
+      await actor.createEmbeddedDocuments(
+        "Item",
+        [item.toObject()]
+      );
+    } catch (error) {
+      await CurrencyService.setCurrency(actor, originalCurrencyCp);
+      throw error;
+    }
 
     await TransactionService.post({
       type: "buy",

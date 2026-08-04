@@ -1,21 +1,15 @@
 {
   "MLM.ModuleName": "Morelord Marketplace",
-
   "MLM.Title": "Morelord Marketplace",
-
   "MLM.Tabs.Sell": "Sell",
   "MLM.Tabs.Buy": "Buy",
   "MLM.Tabs.Search": "Search",
-
   "MLM.Currency": "Currency",
-
   "MLM.Sell.Header": "Sell Inventory",
   "MLM.Sell.SellOne": "Sell One",
   "MLM.Sell.SellAll": "Sell All",
-
   "MLM.Buy.Header": "Buy Items",
   "MLM.Buy.Buy": "Buy",
-
   "MLM.Columns.Item": "Item",
   "MLM.Columns.Type": "Type",
   "MLM.Columns.Quantity": "Qty",
@@ -25,36 +19,38 @@
   "MLM.Columns.Rarity": "Rarity",
   "MLM.Columns.Source": "Source",
   "MLM.Columns.Actions": "Actions",
-
   "MLM.Filters.Search": "Search",
   "MLM.Filters.AllTypes": "All Types",
   "MLM.Filters.AllRarities": "All Rarities",
-
   "MLM.Types.Weapon": "Weapon",
   "MLM.Types.Equipment": "Equipment",
   "MLM.Types.Consumable": "Consumable",
   "MLM.Types.Tool": "Tool",
   "MLM.Types.Loot": "Loot",
-
   "MLM.Messages.NoActor": "No assigned character was found.",
   "MLM.Messages.NoPrice": "This item has no price.",
   "MLM.Messages.CannotAfford": "You cannot afford that item.",
   "MLM.Messages.BuyingDisabled": "Buying is currently disabled.",
   "MLM.Messages.SellingDisabled": "Selling is currently disabled.",
   "MLM.Messages.ItemNotFound": "Item not found.",
-
   "MLM.Settings.SellRate.Name": "Default Sell Rate",
   "MLM.Settings.SellRate.Hint": "Percentage of listed value received when selling items.",
-
   "MLM.Settings.EnableBuying.Name": "Enable Buying",
   "MLM.Settings.EnableBuying.Hint": "Allow players to purchase items from the marketplace.",
-
   "MLM.Settings.EnableSelling.Name": "Enable Selling",
   "MLM.Settings.EnableSelling.Hint": "Allow players to sell items from their inventory.",
-
   "MLM.Settings.Debug.Name": "Enable Debug Logging",
   "MLM.Settings.Debug.Hint": "Show additional marketplace information in the browser console.",
-
-  "MLM.Transaction.Bought": "{actor} bought {quantity} × {item} for {price}.",
-  "MLM.Transaction.Sold": "{actor} sold {quantity} × {item} for {price}."
+  "MLM.Transaction.Bought": "{actor} bought {quantity} \u00d7 {item} for {price}.",
+  "MLM.Transaction.Sold": "{actor} sold {quantity} \u00d7 {item} for {price}.",
+  "MLM.Settings.RequireBuyApproval.Name": "Require GM Approval for Purchases",
+  "MLM.Settings.RequireBuyApproval.Hint": "Player purchases remain pending until a Game Master approves or denies each transaction.",
+  "MLM.Settings.RequireSellApproval.Name": "Require GM Approval for Sales",
+  "MLM.Settings.RequireSellApproval.Hint": "Player sales remain pending until a Game Master approves or denies each transaction.",
+  "MLM.Transaction.AwaitingApproval": "Awaiting GM Approval",
+  "MLM.Transaction.Approve": "Approve",
+  "MLM.Transaction.Deny": "Deny",
+  "MLM.Transaction.Approved": "Approved",
+  "MLM.Transaction.Denied": "Denied",
+  "MLM.Transaction.Failed": "Unable to Complete"
 }

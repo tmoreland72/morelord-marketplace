@@ -4,6 +4,7 @@ import {
   initializeDefaultCompendiums
 } from "./settings.js";
 import { MorelordMarketplaceApp } from "./apps/marketplace-app.js";
+import { TransactionApprovalService } from "./services/transaction-approval-service.js";
 import { Logger } from "./logger.js";
 
 Logger.log("main.js loaded");
@@ -26,6 +27,7 @@ Hooks.once("ready", async () => {
   Logger.log("Ready");
 
   await initializeDefaultCompendiums();
+  TransactionApprovalService.initialize();
 
   game.modules.get(MODULE_ID).api = {
     openMarketplace: () => new MorelordMarketplaceApp().render(true)
@@ -54,19 +56,20 @@ Hooks.on("updateActor", actor => {
 });
 
 Hooks.on("createItem", item => {
-  if (item.parent) {
-    MorelordMarketplaceApp.refreshForActor(item.parent);
-  }
+  if (item.parent) MorelordMarketplaceApp.refreshForActor(item.parent);
 });
 
 Hooks.on("updateItem", item => {
-  if (item.parent) {
-    MorelordMarketplaceApp.refreshForActor(item.parent);
-  }
+  if (item.parent) MorelordMarketplaceApp.refreshForActor(item.parent);
 });
 
 Hooks.on("deleteItem", item => {
-  if (item.parent) {
-    MorelordMarketplaceApp.refreshForActor(item.parent);
-  }
+  if (item.parent) MorelordMarketplaceApp.refreshForActor(item.parent);
 });
+
+const prepareApprovalCard = (message, html) => {
+  TransactionApprovalService.prepareChatCard(message, html);
+};
+
+Hooks.on("renderChatMessageHTML", prepareApprovalCard);
+Hooks.on("renderChatMessage", prepareApprovalCard);

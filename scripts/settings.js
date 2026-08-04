@@ -3,13 +3,11 @@ import { MorelordMarketplaceSettingsApp } from "./apps/marketplace-settings-app.
 import { CompendiumService } from "./services/compendium-service.js";
 import { Logger } from "./logger.js";
 
-const DEFAULT_COMPENDIUM_LABEL_TERMS = ["item", "equipment"];
-
 export function registerSettings() {
   game.settings.registerMenu(MODULE_ID, "marketplaceConfiguration", {
     name: "Marketplace Configuration",
     label: "Configure Marketplace",
-    hint: "Select the compendiums and other options available to Morelord Marketplace.",
+    hint: "Select the compendiums available to Morelord Marketplace.",
     icon: "fa-solid fa-store",
     type: MorelordMarketplaceSettingsApp,
     restricted: true
@@ -17,7 +15,7 @@ export function registerSettings() {
 
   game.settings.register(MODULE_ID, "sellRate", {
     name: "Default Sell Rate",
-    hint: "Percentage of list price received when selling items.",
+    hint: "Percentage of list price received when selling items. Use 1 for 100% or 0.5 for 50%.",
     scope: "world",
     config: true,
     type: Number,
@@ -26,6 +24,7 @@ export function registerSettings() {
 
   game.settings.register(MODULE_ID, "enableSelling", {
     name: "Enable Selling",
+    hint: "Allow characters to sell inventory items through the Marketplace.",
     scope: "world",
     config: true,
     type: Boolean,
@@ -34,6 +33,34 @@ export function registerSettings() {
 
   game.settings.register(MODULE_ID, "enableBuying", {
     name: "Enable Buying",
+    hint: "Allow characters to purchase items through the Marketplace.",
+    scope: "world",
+    config: true,
+    type: Boolean,
+    default: true
+  });
+
+  game.settings.register(MODULE_ID, "requireSellApproval", {
+    name: "Require GM Approval for Sales",
+    hint: "Player sales remain pending until a Game Master approves or denies each transaction.",
+    scope: "world",
+    config: true,
+    type: Boolean,
+    default: false
+  });
+
+  game.settings.register(MODULE_ID, "requireBuyApproval", {
+    name: "Require GM Approval for Purchases",
+    hint: "Player purchases remain pending until a Game Master approves or denies each transaction.",
+    scope: "world",
+    config: true,
+    type: Boolean,
+    default: false
+  });
+
+  game.settings.register(MODULE_ID, "postTransactionCards", {
+    name: "Post Transaction Cards",
+    hint: "Post completed and pending Marketplace transactions to chat.",
     scope: "world",
     config: true,
     type: Boolean,
@@ -42,7 +69,7 @@ export function registerSettings() {
 
   game.settings.register(MODULE_ID, "allowedCompendiums", {
     name: "Allowed Compendiums",
-    hint: "Compendium pack IDs players may buy from.",
+    hint: "Compendium pack IDs characters may buy from.",
     scope: "world",
     config: false,
     type: Array,
@@ -71,14 +98,6 @@ export function registerSettings() {
     type: String,
     default: ""
   });
-
-  game.settings.register(MODULE_ID, "postTransactionCards", {
-    name: "Post Transaction Cards",
-    scope: "world",
-    config: true,
-    type: Boolean,
-    default: true
-  });
 }
 
 export async function initializeDefaultCompendiums() {
@@ -91,65 +110,40 @@ export async function initializeDefaultCompendiums() {
 
   if (initialized) return;
 
-  const existingPackIds = game.settings.get(
-    MODULE_ID,
-    "allowedCompendiums"
-  ) ?? [];
+  const existing = game.settings.get(MODULE_ID, "allowedCompendiums") ?? [];
 
-  // Preserve any compendium choices already made in an existing world.
-  if (existingPackIds.length > 0) {
+  if (existing.length) {
     await game.settings.set(
       MODULE_ID,
       "defaultCompendiumsInitialized",
       true
     );
-
-    Logger.log(
-      "Existing marketplace compendium selection preserved",
-      existingPackIds
-    );
     return;
   }
 
-  const defaultPackIds = game.packs
+  const defaults = game.packs
     .filter(pack => {
       const documentName = String(
-        pack.documentName ??
-        pack.metadata?.type ??
-        ""
-      ).toLowerCase();
+        pack.documentName ?? pack.metadata?.type ?? ""
+      );
 
-      if (documentName !== "item") return false;
+      if (documentName !== "Item") return false;
 
       const label = String(
-        pack.metadata?.label ??
-        pack.title ??
-        pack.collection ??
-        ""
+        pack.metadata?.label ?? pack.title ?? pack.collection ?? ""
       ).toLowerCase();
 
-      return DEFAULT_COMPENDIUM_LABEL_TERMS.some(term =>
-        label.includes(term)
-      );
+      return label.includes("item") || label.includes("equipment");
     })
     .map(pack => pack.collection);
 
-  await game.settings.set(
-    MODULE_ID,
-    "allowedCompendiums",
-    defaultPackIds
-  );
-
+  await game.settings.set(MODULE_ID, "allowedCompendiums", defaults);
   await game.settings.set(
     MODULE_ID,
     "defaultCompendiumsInitialized",
     true
   );
 
-  CompendiumService.clearCache?.();
-
-  Logger.log(
-    "Initialized default marketplace compendiums",
-    defaultPackIds
-  );
+  CompendiumService.clearCache();
+  Logger.log("Initialized default Marketplace compendiums", defaults);
 }

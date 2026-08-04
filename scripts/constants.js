@@ -1,8 +1,22 @@
 export const MODULE_ID = "morelord-marketplace";
 
 export const ITEM_TYPES = {
-  SELLABLE: ["weapon", "equipment", "consumable", "tool", "loot", "container"],
-  BUYABLE: ["weapon", "equipment", "consumable", "tool", "loot", "container"]
+  SELLABLE: [
+    "weapon",
+    "equipment",
+    "consumable",
+    "tool",
+    "loot",
+    "container"
+  ],
+  BUYABLE: [
+    "weapon",
+    "equipment",
+    "consumable",
+    "tool",
+    "loot",
+    "container"
+  ]
 };
 
 export const DENOMINATION_TO_CP = {
@@ -20,7 +34,16 @@ export const FLAGS = {
   CUSTOM_PRICE: "customPrice",
   MARKETPLACE_TAGS: "marketplaceTags",
   SHOP_ID: "shopId",
-  WISHLIST: "wishlist"
+  WISHLIST: "wishlist",
+  TRANSACTION: "transaction"
+};
+
+export const TRANSACTION_STATUS = {
+  PENDING: "pending",
+  PROCESSING: "processing",
+  APPROVED: "approved",
+  DENIED: "denied",
+  FAILED: "failed"
 };
 
 export const RARITY_OPTIONS = [
