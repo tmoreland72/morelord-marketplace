@@ -1,4 +1,45 @@
 <section class="mlm-settings">
+<section class="mlm-premium-access {{#unless premium.entitled}}is-locked{{/unless}}">
+  <div class="mlm-premium-access-icon">
+    <i class="fa-solid fa-crown"></i>
+  </div>
+
+  <div class="mlm-premium-access-copy">
+    <strong>GM Approval Workflow</strong>
+
+    {{#if premium.entitled}}
+      <span>Unlocked with {{premium.tierLabel}}</span>
+    {{else}}
+      {{#if premium.connected}}
+        <span>Locked — this account does not currently include premium module features.</span>
+      {{else}}
+        {{#if premium.coreActive}}
+          <span>Connect a Morelord account to unlock premium Marketplace features.</span>
+        {{else}}
+          <span>Morelord Core must be enabled to manage premium access.</span>
+        {{/if}}
+      {{/if}}
+    {{/if}}
+
+    {{#if premium.validatedAtLabel}}
+      <small>Access last checked {{premium.validatedAtLabel}}</small>
+    {{/if}}
+  </div>
+
+  <div class="mlm-premium-access-actions">
+    <button type="button" data-action="manageAccount">
+      <i class="fa-solid fa-user-gear"></i>
+      {{#if premium.connected}}Manage Account{{else}}Connect Account{{/if}}
+    </button>
+
+    {{#if premium.connected}}
+      <button type="button" data-action="refreshAccess">
+        <i class="fa-solid fa-rotate"></i> Refresh
+      </button>
+    {{/if}}
+  </div>
+</section>
+
   <header class="mlm-settings-header">
     <h2>Marketplace Compendiums</h2>
     <p>Select which Item compendiums players can buy from.</p>

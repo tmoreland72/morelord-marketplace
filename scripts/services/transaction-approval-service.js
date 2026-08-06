@@ -6,6 +6,7 @@ import {
 import { CurrencyService } from "./currency-service.js";
 import { TransactionService } from "./transaction-service.js";
 import { Logger } from "../logger.js";
+import { EntitlementService } from "./entitlement-service.js";
 
 export class TransactionApprovalService {
   static initialized = false;
@@ -55,6 +56,7 @@ export class TransactionApprovalService {
 
   static requiresApproval(type) {
     if (game.user.isGM) return false;
+    if (!EntitlementService.hasGmApprovals()) return false;
 
     const setting = type === "sell"
       ? "requireSellApproval"

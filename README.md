@@ -66,6 +66,19 @@ Clicking an item opens the original compendium entry.
 
 ---
 
+### 👑 Optional Premium Features
+
+With an active **Morelord Tools Premium** or **Tools Champion** membership:
+
+- Require GM approval for player purchases
+- Require GM approval for player sales
+- Manage access through the shared Morelord Core module
+- Continue using cached access during temporary website outages
+
+Standard buying and selling remain free. Existing world data is never removed when premium access expires.
+
+---
+
 ### ⚙️ Configurable
 
 Game Masters can configure:
@@ -95,8 +108,9 @@ Install this URL using:
 
 ## Requirements
 
-- Foundry VTT v13
-- dnd5e System v5.x
+- Foundry VTT v14
+- Morelord Core v0.1.0 or later
+- dnd5e System compatible with Foundry v14
 
 ---
 

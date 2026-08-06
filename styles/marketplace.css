@@ -1033,3 +1033,109 @@
   flex: 0 0 auto;
   margin-top: 0.08rem;
 }
+
+/* =========================================================
+   Morelord Premium Access
+   ========================================================= */
+
+.morelord-marketplace .mlm-premium-access {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.85rem;
+  margin-bottom: 1rem;
+  padding: 0.85rem;
+  border: 1px solid rgba(226, 168, 46, 0.55);
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(226, 168, 46, 0.12), rgba(110, 23, 23, 0.12));
+}
+
+.morelord-marketplace .mlm-premium-access.is-locked {
+  border-color: var(--color-border-light-primary);
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.morelord-marketplace .mlm-premium-access-icon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgba(226, 168, 46, 0.18);
+  font-size: 1.2rem;
+}
+
+.morelord-marketplace .mlm-premium-access-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.morelord-marketplace .mlm-premium-access-copy small {
+  opacity: 0.7;
+}
+
+.morelord-marketplace .mlm-premium-access-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.mlm-premium-setting-locked {
+  opacity: 0.82;
+}
+
+.mlm-premium-setting-badge {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  width: auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  height: 1.35rem;
+  margin: 0 0 0 0.4rem;
+  padding: 0 0.45rem !important;
+  border: 1px solid rgba(226, 168, 46, 0.55);
+  border-radius: 999px;
+  color: #dca72f;
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1;
+  vertical-align: middle;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.mlm-premium-setting-badge i {
+  font-size: 0.62rem;
+}
+
+.mlm-premium-setting-message {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.mlm-inline-account-button {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  flex: 0 0 auto;
+  width: auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  height: 1.6rem;
+  margin: 0 !important;
+  padding: 0 0.5rem !important;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.mlm-inline-account-button i {
+  font-size: 0.68rem;
+}

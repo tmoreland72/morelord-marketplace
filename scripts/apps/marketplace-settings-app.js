@@ -1,6 +1,7 @@
 import { MODULE_ID } from "../constants.js";
 import { CompendiumService } from "../services/compendium-service.js";
 import { MorelordMarketplaceApp } from "./marketplace-app.js";
+import { EntitlementService } from "../services/entitlement-service.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -21,7 +22,9 @@ export class MorelordMarketplaceSettingsApp extends HandlebarsApplicationMixin(A
     actions: {
       save: MorelordMarketplaceSettingsApp.save,
       selectAll: MorelordMarketplaceSettingsApp.selectAll,
-      selectNone: MorelordMarketplaceSettingsApp.selectNone
+      selectNone: MorelordMarketplaceSettingsApp.selectNone,
+      manageAccount: MorelordMarketplaceSettingsApp.manageAccount,
+      refreshAccess: MorelordMarketplaceSettingsApp.refreshAccess
     }
   };
 
@@ -44,7 +47,39 @@ export class MorelordMarketplaceSettingsApp extends HandlebarsApplicationMixin(A
       }))
       .sort((a, b) => a.label.localeCompare(b.label));
 
-    return { packs };
+    const premium = EntitlementService.status();
+
+    return {
+      packs,
+      premium: {
+        ...premium,
+        tierLabel: premium.tier === "champion"
+          ? "Tools Champion"
+          : premium.tier === "premium"
+            ? "Tools Premium"
+            : "Standard",
+        validatedAtLabel: premium.validatedAt
+          ? new Date(premium.validatedAt).toLocaleString()
+          : null
+      }
+    };
+  }
+
+  static manageAccount(event) {
+    event.preventDefault();
+    EntitlementService.openAccount();
+  }
+
+  static async refreshAccess(event, target) {
+    event.preventDefault();
+    target.disabled = true;
+
+    try {
+      await EntitlementService.refresh({ quiet: false });
+      this.render({ force: true });
+    } finally {
+      target.disabled = false;
+    }
   }
 
   static async save(event, target) {
