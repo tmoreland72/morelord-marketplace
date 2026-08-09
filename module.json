@@ -1,43 +1,43 @@
 {
-  "id": "morelord-marketplace",
-  "title": "Morelord Marketplace",
-  "description": "A standalone shopping, selling, and marketplace system for Foundry VTT.",
-  "version": "0.3.2",
-  "compatibility": {
-    "minimum": "14",
-    "verified": "14"
-  },
-  "authors": [
-    {
-      "name": "Morelord Gaming"
-    }
-  ],
-  "esmodules": [
-    "scripts/main.js"
-  ],
-  "styles": [
-    "styles/marketplace.css"
-  ],
-  "languages": [
-    {
-      "lang": "en",
-      "name": "English",
-      "path": "lang/en.json"
-    }
-  ],
-  "download": "https://github.com/tmoreland72/morelord-marketplace/releases/download/v0.3.2/morelord-marketplace.zip",
-  "url": "https://github.com/tmoreland72/morelord-marketplace",
-  "manifest": "https://raw.githubusercontent.com/tmoreland72/morelord-marketplace/main/module.json",
-  "relationships": {
-    "requires": [
-      {
-        "id": "morelord-core",
-        "type": "module",
-        "compatibility": {
-          "minimum": "0.1.0"
-        },
-        "manifest": "https://raw.githubusercontent.com/tmoreland72/morelord-core/main/module.json"
-      }
-    ]
-  }
+    "id":  "morelord-marketplace",
+    "title":  "Morelord Marketplace",
+    "description":  "A standalone shopping, selling, and marketplace system for Foundry VTT.",
+    "version":  "0.4.0",
+    "compatibility":  {
+                          "minimum":  "14",
+                          "verified":  "14"
+                      },
+    "authors":  [
+                    {
+                        "name":  "Morelord Gaming"
+                    }
+                ],
+    "esmodules":  [
+                      "scripts/main.js"
+                  ],
+    "styles":  [
+                   "styles/marketplace.css"
+               ],
+    "languages":  [
+                      {
+                          "lang":  "en",
+                          "name":  "English",
+                          "path":  "lang/en.json"
+                      }
+                  ],
+    "download":  "https://github.com/tmoreland72/morelord-marketplace/releases/download/v0.4.0/morelord-marketplace.zip",
+    "url":  "https://github.com/tmoreland72/morelord-marketplace",
+    "manifest":  "https://raw.githubusercontent.com/tmoreland72/morelord-marketplace/main/module.json",
+    "relationships":  {
+                          "requires":  [
+                                           {
+                                               "id":  "morelord-core",
+                                               "type":  "module",
+                                               "compatibility":  {
+                                                                     "minimum":  "0.1.0"
+                                                                 },
+                                               "manifest":  "https://raw.githubusercontent.com/tmoreland72/morelord-core/main/module.json"
+                                           }
+                                       ]
+                      }
 }
