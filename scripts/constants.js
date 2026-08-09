@@ -35,7 +35,8 @@ export const FLAGS = {
   MARKETPLACE_TAGS: "marketplaceTags",
   SHOP_ID: "shopId",
   WISHLIST: "wishlist",
-  TRANSACTION: "transaction"
+  TRANSACTION: "transaction",
+  PURCHASABLE: "purchasable"
 };
 
 export const TRANSACTION_STATUS = {

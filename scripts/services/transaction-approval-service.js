@@ -6,7 +6,6 @@ import {
 import { CurrencyService } from "./currency-service.js";
 import { TransactionService } from "./transaction-service.js";
 import { Logger } from "../logger.js";
-import { EntitlementService } from "./entitlement-service.js";
 
 export class TransactionApprovalService {
   static initialized = false;
@@ -56,7 +55,6 @@ export class TransactionApprovalService {
 
   static requiresApproval(type) {
     if (game.user.isGM) return false;
-    if (!EntitlementService.hasGmApprovals()) return false;
 
     const setting = type === "sell"
       ? "requireSellApproval"
@@ -239,6 +237,10 @@ export class TransactionApprovalService {
 
     const item = await pack.getDocument(documentId);
     if (!item) throw new Error("The requested item could not be found.");
+
+    if (item.getFlag(MODULE_ID, FLAGS.PURCHASABLE) === false) {
+      throw new Error("The requested item is no longer available for purchase.");
+    }
 
     if (!CurrencyService.canAfford(actor, transaction.totalPriceCp)) {
       throw new Error("The character can no longer afford this purchase.");

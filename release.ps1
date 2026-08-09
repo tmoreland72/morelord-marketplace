@@ -1,4 +1,6 @@
-# Morelord Marketplace release script - corrected manifest property handling v2
+# Standard Morelord Foundry module release workflow.
+# This file is intentionally shared across Morelord module repositories.
+# Project-specific values live in release.config.json.
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $false)]
@@ -15,1001 +17,568 @@ param(
     [switch]$Draft,
 
     [Parameter(Mandatory = $false)]
-    [switch]$DryRun
+    [switch]$DryRun,
+
+    [Parameter(Mandatory = $false)]
+    [switch]$SkipWebsitePublish,
+
+    [Parameter(Mandatory = $false)]
+    [switch]$WebsiteOnly,
+
+    [Parameter(Mandatory = $false)]
+    [string]$WebsiteUrl,
+
+    [Parameter(Mandatory = $false)]
+    [string]$WebsiteToken,
+
+    [Parameter(Mandatory = $false)]
+    [string]$ReleaseNotesPath
 )
 
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = 'Stop'
+Set-StrictMode -Version Latest
 
 $ProjectRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
-
-$ModuleId = "morelord-marketplace"
-$ModuleTitle = "Morelord Marketplace"
-$GitHubOwner = "tmoreland72"
-$GitHubRepo = "morelord-marketplace"
-$ReleaseBranch = "main"
-
-$ArchiveName = "$ModuleId.zip"
-$ArchivePath = Join-Path $ProjectRoot $ArchiveName
-$ManifestPath = Join-Path $ProjectRoot "module.json"
-
-$StagingPath = Join-Path `
-    ([System.IO.Path]::GetTempPath()) `
-    ("{0}-release-{1}" -f $ModuleId, [guid]::NewGuid().ToString("N"))
-
-$DryRunArchivePath = Join-Path `
-    ([System.IO.Path]::GetTempPath()) `
-    ("{0}-dry-run-{1}.zip" -f $ModuleId, [guid]::NewGuid().ToString("N"))
+$ConfigPath = Join-Path $ProjectRoot 'release.config.json'
+$ManifestPath = Join-Path $ProjectRoot 'module.json'
+$Utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 
 $OriginalManifestText = $null
 $ManifestWasModified = $false
 $CommitWasCreated = $false
 $TagWasCreated = $false
-
-$Utf8NoBom = New-Object System.Text.UTF8Encoding($false)
-
-
-function Show-Usage {
-    Write-Host ""
-    Write-Host "$ModuleTitle - Release Script" -ForegroundColor Cyan
-    Write-Host ""
-
-    Write-Host "Syntax:" -ForegroundColor Yellow
-    Write-Host ""
-    Write-Host "  .\release.ps1 -Version <version> [options]"
-    Write-Host ""
-
-    Write-Host "Options:" -ForegroundColor Yellow
-    Write-Host ""
-    Write-Host "  -CommitMessage <message>  Override the default release commit message."
-    Write-Host "  -Prerelease               Mark the GitHub Release as a prerelease."
-    Write-Host "  -Draft                    Create the GitHub Release as a draft."
-    Write-Host "  -DryRun                   Validate and package without modifying Git or GitHub."
-    Write-Host ""
-
-    Write-Host "Examples:" -ForegroundColor Yellow
-    Write-Host ""
-    Write-Host '  .\release.ps1 -Version 0.1.0'
-    Write-Host '  .\release.ps1 -Version 0.2.0 -Prerelease'
-    Write-Host '  .\release.ps1 -Version 1.0.0 -Draft'
-    Write-Host '  .\release.ps1 -Version 0.2.0 -DryRun'
-    Write-Host '  .\release.ps1 -Version 0.1.1 -CommitMessage "Release v0.1.1"'
-    Write-Host ""
-
-    Write-Host "The script will:" -ForegroundColor Yellow
-    Write-Host ""
-    Write-Host "  1. Verify Git, GitHub CLI authentication, branch, remote, and repository state."
-    Write-Host "  2. Validate module.json and require a version greater than the current version."
-    Write-Host "  3. Update the manifest version and permanent release URLs."
-    Write-Host "  4. Stage only the files required by Foundry."
-    Write-Host "  5. Build and thoroughly validate the release ZIP."
-    Write-Host "  6. Commit the manifest change and create an annotated Git tag."
-    Write-Host "  7. Push the release commit and tag together."
-    Write-Host "  8. Create a GitHub Release with generated release notes and upload the ZIP."
-    Write-Host ""
-}
-
+$PushCompleted = $false
+$GitHubReleaseCreated = $false
 
 function Write-Step {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$Message
-    )
-
-    Write-Host ""
+    param([Parameter(Mandatory = $true)][string]$Message)
+    Write-Host ''
     Write-Host $Message -ForegroundColor Cyan
 }
 
+function Write-Utf8NoBom {
+    param(
+        [Parameter(Mandatory = $true)][string]$Path,
+        [Parameter(Mandatory = $true)][string]$Text
+    )
+    [System.IO.File]::WriteAllText($Path, $Text, $Utf8NoBom)
+}
 
 function Assert-CommandExists {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$Command
-    )
-
+    param([Parameter(Mandatory = $true)][string]$Command)
     if (-not (Get-Command $Command -ErrorAction SilentlyContinue)) {
         throw "Required command '$Command' was not found."
     }
 }
 
-
 function Invoke-NativeCommand {
     param(
-        [Parameter(Mandatory = $true)]
-        [scriptblock]$Command,
-
-        [Parameter(Mandatory = $true)]
-        [string]$FailureMessage
+        [Parameter(Mandatory = $true)][scriptblock]$Command,
+        [Parameter(Mandatory = $true)][string]$FailureMessage
     )
-
     & $Command
-
-    if ($LASTEXITCODE -ne 0) {
-        throw $FailureMessage
-    }
+    if ($LASTEXITCODE -ne 0) { throw $FailureMessage }
 }
-
 
 function Get-GitOutput {
     param(
-        [Parameter(Mandatory = $true)]
-        [scriptblock]$Command,
-
-        [Parameter(Mandatory = $true)]
-        [string]$FailureMessage
+        [Parameter(Mandatory = $true)][scriptblock]$Command,
+        [Parameter(Mandatory = $true)][string]$FailureMessage
     )
-
     $Output = & $Command
-
-    if ($LASTEXITCODE -ne 0) {
-        throw $FailureMessage
-    }
-
+    if ($LASTEXITCODE -ne 0) { throw $FailureMessage }
     return ($Output | Out-String).Trim()
 }
 
-
-function Write-Utf8NoBom {
+function Get-RequiredConfigValue {
     param(
-        [Parameter(Mandatory = $true)]
-        [string]$Path,
-
-        [Parameter(Mandatory = $true)]
-        [string]$Text
+        [Parameter(Mandatory = $true)][psobject]$Config,
+        [Parameter(Mandatory = $true)][string]$Name
     )
-
-    [System.IO.File]::WriteAllText(
-        $Path,
-        $Text,
-        $Utf8NoBom
-    )
+    $Property = $Config.PSObject.Properties[$Name]
+    if ($null -eq $Property -or [string]::IsNullOrWhiteSpace([string]$Property.Value)) {
+        throw "release.config.json is missing required property '$Name'."
+    }
+    return [string]$Property.Value
 }
-
-
 
 function Set-JsonProperty {
     param(
-        [Parameter(Mandatory = $true)]
-        [psobject]$Object,
-
-        [Parameter(Mandatory = $true)]
-        [string]$Name,
-
-        [Parameter(Mandatory = $false)]
-        $Value
+        [Parameter(Mandatory = $true)][psobject]$Object,
+        [Parameter(Mandatory = $true)][string]$Name,
+        [Parameter(Mandatory = $false)]$Value
     )
-
     if ($Object.PSObject.Properties.Name -contains $Name) {
         $Object.$Name = $Value
     }
     else {
-        $Object |
-            Add-Member `
-                -MemberType NoteProperty `
-                -Name $Name `
-                -Value $Value
+        $Object | Add-Member -MemberType NoteProperty -Name $Name -Value $Value
     }
 }
-
 
 function Assert-Utf8JsonFile {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$Path
-    )
-
+    param([Parameter(Mandatory = $true)][string]$Path)
     $Bytes = [System.IO.File]::ReadAllBytes($Path)
-
-    if ($Bytes.Length -eq 0) {
-        throw "JSON file '$Path' is empty."
-    }
-
-    $HasBom =
-        $Bytes.Length -ge 3 -and
-        $Bytes[0] -eq 0xEF -and
-        $Bytes[1] -eq 0xBB -and
-        $Bytes[2] -eq 0xBF
-
-    if ($HasBom) {
-        throw "JSON file '$Path' contains a UTF-8 BOM."
-    }
-
-    if ($Bytes[0] -ne 0x7B) {
-        throw "JSON file '$Path' does not begin with '{'."
-    }
-
-    try {
-        Get-Content -Path $Path -Raw |
-            ConvertFrom-Json |
-            Out-Null
-    }
-    catch {
-        throw "JSON file '$Path' is invalid: $($_.Exception.Message)"
-    }
+    if ($Bytes.Length -eq 0) { throw "JSON file '$Path' is empty." }
+    $HasBom = $Bytes.Length -ge 3 -and $Bytes[0] -eq 0xEF -and $Bytes[1] -eq 0xBB -and $Bytes[2] -eq 0xBF
+    if ($HasBom) { throw "JSON file '$Path' contains a UTF-8 BOM." }
+    $Text = [System.IO.File]::ReadAllText($Path)
+    try { $null = $Text | ConvertFrom-Json } catch { throw "JSON file '$Path' is invalid: $($_.Exception.Message)" }
 }
-
 
 function Assert-Manifest {
     param(
-        [Parameter(Mandatory = $true)]
-        [psobject]$Manifest
+        [Parameter(Mandatory = $true)][psobject]$Manifest,
+        [Parameter(Mandatory = $true)][string]$ExpectedModuleId
     )
-
-    $RequiredProperties = @(
-        "id",
-        "title",
-        "version",
-        "compatibility"
-    )
-
-    foreach ($Property in $RequiredProperties) {
+    foreach ($Property in @('id', 'title', 'version', 'compatibility')) {
         if ($Manifest.PSObject.Properties.Name -notcontains $Property) {
             throw "module.json is missing required property '$Property'."
         }
     }
-
-    if ($Manifest.id -ne $ModuleId) {
-        throw "module.json id '$($Manifest.id)' does not match expected module id '$ModuleId'."
+    if ($Manifest.id -ne $ExpectedModuleId) {
+        throw "module.json id '$($Manifest.id)' does not match '$ExpectedModuleId'."
     }
-
-    if ([string]::IsNullOrWhiteSpace([string]$Manifest.title)) {
-        throw "module.json title is empty."
-    }
-
-    if ([string]::IsNullOrWhiteSpace([string]$Manifest.version)) {
-        throw "module.json version is empty."
-    }
-
     if ($Manifest.version -notmatch '^\d+\.\d+\.\d+$') {
-        throw "Current module.json version '$($Manifest.version)' is not a supported semantic version."
+        throw "Current module.json version '$($Manifest.version)' is not supported by this release script."
     }
-
-    if (-not $Manifest.compatibility) {
-        throw "module.json compatibility block is missing."
-    }
-
     if (-not $Manifest.compatibility.minimum) {
-        throw "module.json compatibility.minimum is missing."
+        throw 'module.json compatibility.minimum is missing.'
     }
-
-    $MinimumCompatibility = 0
-
-    if (-not [int]::TryParse(
-        [string]$Manifest.compatibility.minimum,
-        [ref]$MinimumCompatibility
-    )) {
+    $Minimum = 0
+    if (-not [int]::TryParse([string]$Manifest.compatibility.minimum, [ref]$Minimum)) {
         throw "module.json compatibility.minimum '$($Manifest.compatibility.minimum)' is not numeric."
     }
-
-    if ($MinimumCompatibility -lt 14) {
-        throw "$ModuleTitle must require Foundry VTT v14 or later."
-    }
+    if ($Minimum -lt 13) { throw 'Morelord modules must require Foundry VTT v13 or later.' }
 }
-
 
 function Test-RemoteTagExists {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$Tag
-    )
-
+    param([Parameter(Mandatory = $true)][string]$Tag)
     $PreviousPreference = $ErrorActionPreference
-    $ErrorActionPreference = "SilentlyContinue"
-
+    $ErrorActionPreference = 'SilentlyContinue'
     try {
-        git ls-remote `
-            --exit-code `
-            --tags `
-            origin `
-            "refs/tags/$Tag" `
-            *> $null
-
+        git ls-remote --exit-code --tags origin "refs/tags/$Tag" *> $null
         return $LASTEXITCODE -eq 0
     }
-    finally {
-        $ErrorActionPreference = $PreviousPreference
-    }
+    finally { $ErrorActionPreference = $PreviousPreference }
 }
-
 
 function Test-GitHubReleaseExists {
     param(
-        [Parameter(Mandatory = $true)]
-        [string]$Tag
+        [Parameter(Mandatory = $true)][string]$Tag,
+        [Parameter(Mandatory = $true)][string]$Repository
     )
-
     $PreviousPreference = $ErrorActionPreference
-    $ErrorActionPreference = "SilentlyContinue"
-
+    $ErrorActionPreference = 'SilentlyContinue'
     try {
-        gh release view $Tag `
-            --repo "$GitHubOwner/$GitHubRepo" `
-            *> $null
-
+        gh release view $Tag --repo $Repository *> $null
         return $LASTEXITCODE -eq 0
     }
-    finally {
-        $ErrorActionPreference = $PreviousPreference
-    }
+    finally { $ErrorActionPreference = $PreviousPreference }
 }
-
-
-function Copy-ReleaseContent {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$Destination
-    )
-
-    $RequiredPaths = @(
-        "module.json",
-        "README.md",
-        "scripts",
-        "styles",
-        "templates"
-    )
-
-    $OptionalPaths = @(
-        "assets",
-        "lang",
-        "LICENSE",
-        "LICENSE.md",
-        "CHANGELOG.md"
-    )
-
-    foreach ($Path in $RequiredPaths) {
-        $SourcePath = Join-Path $ProjectRoot $Path
-
-        if (-not (Test-Path $SourcePath)) {
-            throw "Required release path '$Path' was not found."
-        }
-    }
-
-    New-Item `
-        -ItemType Directory `
-        -Path $Destination `
-        -Force |
-        Out-Null
-
-    foreach ($Path in $RequiredPaths) {
-        Copy-Item `
-            -Path (Join-Path $ProjectRoot $Path) `
-            -Destination $Destination `
-            -Recurse `
-            -Force
-    }
-
-    foreach ($Path in $OptionalPaths) {
-        $SourcePath = Join-Path $ProjectRoot $Path
-
-        if (Test-Path $SourcePath) {
-            Copy-Item `
-                -Path $SourcePath `
-                -Destination $Destination `
-                -Recurse `
-                -Force
-        }
-    }
-}
-
 
 function Update-ManifestFile {
     param(
-        [Parameter(Mandatory = $true)]
-        [string]$Path,
-
-        [Parameter(Mandatory = $true)]
-        [string]$ReleaseVersion,
-
-        [Parameter(Mandatory = $true)]
-        [string]$ReleaseDownloadUrl
+        [Parameter(Mandatory = $true)][string]$Path,
+        [Parameter(Mandatory = $true)][string]$ReleaseVersion,
+        [Parameter(Mandatory = $true)][string]$DownloadUrl,
+        [Parameter(Mandatory = $true)][string]$RepositoryUrl,
+        [Parameter(Mandatory = $true)][string]$ManifestUrl,
+        [Parameter(Mandatory = $true)][string]$ExpectedModuleId
     )
-
-    $Manifest =
-        Get-Content `
-            -Path $Path `
-            -Raw |
-        ConvertFrom-Json
-
-    Assert-Manifest -Manifest $Manifest
-
-    Set-JsonProperty `
-        -Object $Manifest `
-        -Name "version" `
-        -Value $ReleaseVersion
-
-    Set-JsonProperty `
-        -Object $Manifest `
-        -Name "download" `
-        -Value $ReleaseDownloadUrl
-
-    Set-JsonProperty `
-        -Object $Manifest `
-        -Name "url" `
-        -Value "https://github.com/$GitHubOwner/$GitHubRepo"
-
-    Set-JsonProperty `
-        -Object $Manifest `
-        -Name "manifest" `
-        -Value "https://raw.githubusercontent.com/$GitHubOwner/$GitHubRepo/$ReleaseBranch/module.json"
-
-    $ManifestJson =
-        $Manifest |
-        ConvertTo-Json -Depth 100
-
-    Write-Utf8NoBom `
-        -Path $Path `
-        -Text $ManifestJson
-
+    $Manifest = Get-Content -Path $Path -Raw | ConvertFrom-Json
+    Assert-Manifest -Manifest $Manifest -ExpectedModuleId $ExpectedModuleId
+    Set-JsonProperty -Object $Manifest -Name 'version' -Value $ReleaseVersion
+    Set-JsonProperty -Object $Manifest -Name 'download' -Value $DownloadUrl
+    Set-JsonProperty -Object $Manifest -Name 'url' -Value $RepositoryUrl
+    Set-JsonProperty -Object $Manifest -Name 'manifest' -Value $ManifestUrl
+    Write-Utf8NoBom -Path $Path -Text ($Manifest | ConvertTo-Json -Depth 100)
     Assert-Utf8JsonFile -Path $Path
 }
 
+function Copy-ReleaseContent {
+    param(
+        [Parameter(Mandatory = $true)][string]$Destination,
+        [Parameter(Mandatory = $true)][string[]]$RequiredPaths,
+        [Parameter(Mandatory = $true)][string[]]$OptionalPaths
+    )
+    foreach ($RelativePath in $RequiredPaths) {
+        if (-not (Test-Path (Join-Path $ProjectRoot $RelativePath))) {
+            throw "Required release path '$RelativePath' was not found."
+        }
+    }
+    New-Item -ItemType Directory -Path $Destination -Force | Out-Null
+    foreach ($RelativePath in $RequiredPaths) {
+        Copy-Item -Path (Join-Path $ProjectRoot $RelativePath) -Destination $Destination -Recurse -Force
+    }
+    foreach ($RelativePath in $OptionalPaths) {
+        $Source = Join-Path $ProjectRoot $RelativePath
+        if (Test-Path $Source) {
+            Copy-Item -Path $Source -Destination $Destination -Recurse -Force
+        }
+    }
+}
 
 function Build-Archive {
     param(
-        [Parameter(Mandatory = $true)]
-        [string]$SourceDirectory,
-
-        [Parameter(Mandatory = $true)]
-        [string]$DestinationArchive
+        [Parameter(Mandatory = $true)][string]$SourceDirectory,
+        [Parameter(Mandatory = $true)][string]$DestinationArchive
     )
-
-    if (Test-Path $DestinationArchive) {
-        Remove-Item `
-            -Path $DestinationArchive `
-            -Force
-    }
-
-    Compress-Archive `
-        -Path (Join-Path $SourceDirectory "*") `
-        -DestinationPath $DestinationArchive `
-        -CompressionLevel Optimal `
-        -Force
+    if (Test-Path $DestinationArchive) { Remove-Item $DestinationArchive -Force }
+    Compress-Archive -Path (Join-Path $SourceDirectory '*') -DestinationPath $DestinationArchive -CompressionLevel Optimal -Force
 }
-
 
 function Assert-Archive {
     param(
-        [Parameter(Mandatory = $true)]
-        [string]$Path,
-
-        [Parameter(Mandatory = $true)]
-        [string]$ExpectedVersion,
-
-        [Parameter(Mandatory = $true)]
-        [string]$ExpectedDownloadUrl
+        [Parameter(Mandatory = $true)][string]$Path,
+        [Parameter(Mandatory = $true)][string]$ExpectedVersion,
+        [Parameter(Mandatory = $true)][string]$ExpectedDownloadUrl,
+        [Parameter(Mandatory = $true)][string]$ExpectedModuleId,
+        [Parameter(Mandatory = $true)][string[]]$RequiredPaths
     )
-
     Add-Type -AssemblyName System.IO.Compression.FileSystem
-
     $Zip = [System.IO.Compression.ZipFile]::OpenRead($Path)
-
     try {
-        $EntryNames = @(
-            $Zip.Entries |
-                ForEach-Object {
-                    $_.FullName.Replace("\", "/")
+        $EntryNames = @($Zip.Entries | ForEach-Object { $_.FullName.Replace('\', '/') })
+        foreach ($RelativePath in $RequiredPaths) {
+            if ($RelativePath -in @('module.json', 'README.md', 'LICENSE', 'LICENSE.md')) {
+                if ($EntryNames -notcontains $RelativePath) { throw "Required archive entry '$RelativePath' is missing from the ZIP root." }
+            }
+            else {
+                $Prefix = $RelativePath.TrimEnd('/') + '/'
+                if (-not ($EntryNames | Where-Object { $_.StartsWith($Prefix, [System.StringComparison]::OrdinalIgnoreCase) })) {
+                    throw "Required archive folder '$Prefix' was not found."
                 }
-        )
-
-        $RequiredRootEntries = @(
-            "module.json",
-            "README.md"
-        )
-
-        foreach ($EntryName in $RequiredRootEntries) {
-            if ($EntryNames -notcontains $EntryName) {
-                throw "Required archive entry '$EntryName' was not found at the ZIP root."
             }
         }
-
-        $RequiredFolders = @(
-            "scripts/",
-            "styles/",
-            "templates/"
-        )
-
-        foreach ($Folder in $RequiredFolders) {
-            $FoundFolderContent =
-                $EntryNames |
-                Where-Object {
-                    $_.StartsWith(
-                        $Folder,
-                        [System.StringComparison]::OrdinalIgnoreCase
-                    )
-                }
-
-            if (-not $FoundFolderContent) {
-                throw "Required archive folder '$Folder' was not found."
-            }
-        }
-
         $ForbiddenPatterns = @(
-            '^\.git/',
-            '^\.github/',
-            '^\.vscode/',
-            '^node_modules/',
-            '^\.release-staging/',
-            '(^|/)release\.ps1$',
-            '\.zip$',
-            '\.log$',
-            '(^|/)\.DS_Store$',
-            '(^|/)Thumbs\.db$'
+            '^\.git/', '^\.github/', '^\.vscode/', '^node_modules/', '^\.release-',
+            '(^|/)release\.ps1$', '(^|/)release\.config\.json$', '\.zip$', '\.log$',
+            '(^|/)\.DS_Store$', '(^|/)Thumbs\.db$', '^RELEASE-NOTES-'
         )
-
         foreach ($EntryName in $EntryNames) {
             foreach ($Pattern in $ForbiddenPatterns) {
-                if ($EntryName -match $Pattern) {
-                    throw "Forbidden archive entry '$EntryName' matched pattern '$Pattern'."
-                }
+                if ($EntryName -match $Pattern) { throw "Forbidden archive entry '$EntryName' matched '$Pattern'." }
             }
         }
-
-        $ManifestEntry =
-            $Zip.Entries |
-            Where-Object {
-                $_.FullName.Replace("\", "/") -eq "module.json"
-            } |
-            Select-Object -First 1
-
-        if (-not $ManifestEntry) {
-            throw "module.json is not located at the ZIP root."
-        }
-
-        $ManifestStream = $ManifestEntry.Open()
-
-        try {
-            $FirstByte = $ManifestStream.ReadByte()
-
-            if ($FirstByte -ne 0x7B) {
-                throw "ZIP module.json does not begin with '{'. Possible BOM or invalid encoding."
-            }
-        }
-        finally {
-            $ManifestStream.Dispose()
-        }
-
+        $ManifestEntry = $Zip.Entries | Where-Object { $_.FullName.Replace('\', '/') -eq 'module.json' } | Select-Object -First 1
+        if (-not $ManifestEntry) { throw 'module.json is not at the ZIP root.' }
         $Reader = New-Object System.IO.StreamReader($ManifestEntry.Open())
-
-        try {
-            $ZippedManifestText = $Reader.ReadToEnd()
-            $ZippedManifest = $ZippedManifestText | ConvertFrom-Json
-        }
-        finally {
-            $Reader.Dispose()
-        }
-
-        Assert-Manifest -Manifest $ZippedManifest
-
-        if ($ZippedManifest.version -ne $ExpectedVersion) {
-            throw "ZIP module.json version '$($ZippedManifest.version)' does not match '$ExpectedVersion'."
-        }
-
-        if ($ZippedManifest.download -ne $ExpectedDownloadUrl) {
-            throw "ZIP module.json download URL does not match the expected release URL."
-        }
-
-        Write-Host "  module.json found at ZIP root"
-        Write-Host "  README.md found at ZIP root"
-        Write-Host "  required folders verified"
-        Write-Host "  forbidden entries check passed"
-        Write-Host "  version: $($ZippedManifest.version)"
-        Write-Host "  download URL verified"
-        Write-Host "  UTF-8 BOM check passed"
+        try { $ZippedManifest = $Reader.ReadToEnd() | ConvertFrom-Json } finally { $Reader.Dispose() }
+        Assert-Manifest -Manifest $ZippedManifest -ExpectedModuleId $ExpectedModuleId
+        if ($ZippedManifest.version -ne $ExpectedVersion) { throw "ZIP version '$($ZippedManifest.version)' does not match '$ExpectedVersion'." }
+        if ($ZippedManifest.download -ne $ExpectedDownloadUrl) { throw 'ZIP download URL does not match the expected release URL.' }
     }
-    finally {
-        $Zip.Dispose()
-    }
+    finally { $Zip.Dispose() }
 }
 
+function Get-ReleaseMetadataFromMarkdown {
+    param(
+        [Parameter(Mandatory = $true)][string]$Path,
+        [Parameter(Mandatory = $true)][string]$DefaultTitle
+    )
+    $Lines = @(Get-Content -Path $Path -Encoding UTF8)
+    $Title = $DefaultTitle
+    $SummaryLines = New-Object System.Collections.Generic.List[string]
+    $Changes = New-Object System.Collections.Generic.List[object]
+    $CurrentCategory = $null
+    $SeenH2 = $false
 
-if ([string]::IsNullOrWhiteSpace($Version)) {
-    Show-Usage
-    exit 0
+    $CategoryMap = @{
+        'added' = 'feature'; 'new' = 'feature'; 'features' = 'feature'; 'feature' = 'feature'
+        'improvements' = 'improvement'; 'improvement' = 'improvement'; 'changed' = 'improvement'; 'changes' = 'improvement'
+        'fixed' = 'fix'; 'fixes' = 'fix'; 'bug fixes' = 'fix'; 'bugfixes' = 'fix'
+        'breaking' = 'breaking'; 'breaking changes' = 'breaking'
+        'security' = 'security'
+    }
+
+    foreach ($Line in $Lines) {
+        $Trimmed = $Line.Trim()
+        if ($Trimmed -match '^#\s+(.+)$' -and $Trimmed -notmatch '^##') {
+            $Title = $Matches[1].Trim()
+            continue
+        }
+        if ($Trimmed -match '^##\s+(.+)$') {
+            $SeenH2 = $true
+            $Heading = $Matches[1].Trim().ToLowerInvariant()
+            if ($CategoryMap.ContainsKey($Heading)) { $CurrentCategory = $CategoryMap[$Heading] } else { $CurrentCategory = $null }
+            continue
+        }
+        if (-not $SeenH2 -and -not [string]::IsNullOrWhiteSpace($Trimmed)) {
+            $SummaryLines.Add($Trimmed)
+            continue
+        }
+        if ($null -ne $CurrentCategory -and $Trimmed -match '^[-*]\s+(.+)$') {
+            $Description = $Matches[1].Trim()
+            $Tier = 'standard'
+            if ($Description -match '^\[(Premium|Champion|Standard)\]\s*(.+)$') {
+                $Tier = $Matches[1].ToLowerInvariant(); $Description = $Matches[2].Trim()
+            }
+            elseif ($Description -match '^\*\*(Premium|Champion|Standard):\*\*\s*(.+)$') {
+                $Tier = $Matches[1].ToLowerInvariant(); $Description = $Matches[2].Trim()
+            }
+            $Changes.Add([pscustomobject]@{ category = $CurrentCategory; tier = $Tier; description = $Description })
+        }
+    }
+
+    $Summary = ($SummaryLines -join ' ').Trim()
+    if ([string]::IsNullOrWhiteSpace($Summary) -and $Changes.Count -gt 0) {
+        $Summary = [string]$Changes[0].description
+    }
+    return [pscustomobject]@{ title = $Title; summary = $Summary; changes = @($Changes | ForEach-Object { $_ }) }
 }
 
+function Publish-WebsiteRelease {
+    param(
+        [Parameter(Mandatory = $true)][string]$EndpointBase,
+        [Parameter(Mandatory = $true)][string]$Token,
+        [Parameter(Mandatory = $true)][psobject]$Payload
+    )
+    $Endpoint = "$($EndpointBase.TrimEnd('/'))/api/releases"
+    $Json = $Payload | ConvertTo-Json -Depth 20
+    $Headers = @{ Authorization = "Bearer $Token"; Accept = 'application/json' }
+    try {
+        $Response = Invoke-RestMethod -Method Post -Uri $Endpoint -Headers $Headers -ContentType 'application/json; charset=utf-8' -Body $Json
+    }
+    catch {
+        $Details = $_.ErrorDetails.Message
+        if ([string]::IsNullOrWhiteSpace($Details)) { $Details = $_.Exception.Message }
+        throw "Website release publication failed: $Details"
+    }
+    if (-not $Response.ok) { throw "Website release publication failed: $($Response.error)" }
+    return $Response
+}
+
+function Show-Usage {
+    param([string]$Title)
+    Write-Host ''
+    Write-Host "$Title - Standard Morelord Release Workflow" -ForegroundColor Cyan
+    Write-Host ''
+    Write-Host '  .\release.ps1 -Version <x.y.z> [-DryRun] [-Prerelease] [-Draft]' -ForegroundColor Yellow
+    Write-Host '  .\release.ps1 -Version <x.y.z> -WebsiteOnly' -ForegroundColor Yellow
+    Write-Host ''
+    Write-Host 'Normal releases publish GitHub + Foundry + morelordgaming.com/releases.'
+    Write-Host 'Set MORELORD_RELEASE_TOKEN (preferred) or RELEASE_PUBLISH_TOKEN in your local environment.'
+    Write-Host 'Use -SkipWebsitePublish only for exceptional cases.'
+    Write-Host 'Draft and prerelease builds are not published to the public website release feed.'
+    Write-Host ''
+}
+
+if (-not (Test-Path $ConfigPath)) { throw "release.config.json was not found at '$ConfigPath'." }
+Assert-Utf8JsonFile -Path $ConfigPath
+$Config = Get-Content -Path $ConfigPath -Raw | ConvertFrom-Json
+$ModuleId = Get-RequiredConfigValue -Config $Config -Name 'moduleId'
+$ModuleTitle = Get-RequiredConfigValue -Config $Config -Name 'moduleTitle'
+$ProductSlug = Get-RequiredConfigValue -Config $Config -Name 'productSlug'
+$GitHubOwner = Get-RequiredConfigValue -Config $Config -Name 'githubOwner'
+$GitHubRepo = Get-RequiredConfigValue -Config $Config -Name 'githubRepo'
+$ReleaseBranch = Get-RequiredConfigValue -Config $Config -Name 'releaseBranch'
+$ArchiveName = Get-RequiredConfigValue -Config $Config -Name 'archiveName'
+$RequiredPaths = @($Config.requiredPaths | ForEach-Object { [string]$_ })
+$OptionalPaths = @($Config.optionalPaths | ForEach-Object { [string]$_ })
+if ($RequiredPaths.Count -eq 0) { throw 'release.config.json requiredPaths must contain at least one path.' }
+
+if ([string]::IsNullOrWhiteSpace($Version)) { Show-Usage -Title $ModuleTitle; exit 0 }
 
 $Tag = "v$Version"
-
-if ([string]::IsNullOrWhiteSpace($CommitMessage)) {
-    $CommitMessage = "Release $Tag"
+if ([string]::IsNullOrWhiteSpace($CommitMessage)) { $CommitMessage = "Release $Tag" }
+if ([string]::IsNullOrWhiteSpace($WebsiteUrl)) {
+    $WebsiteUrl = if ($Config.websiteUrl) { [string]$Config.websiteUrl } else { 'https://morelordgaming.com' }
 }
+if ([string]::IsNullOrWhiteSpace($WebsiteToken)) {
+    $WebsiteToken = if (-not [string]::IsNullOrWhiteSpace($env:MORELORD_RELEASE_TOKEN)) { $env:MORELORD_RELEASE_TOKEN } else { $env:RELEASE_PUBLISH_TOKEN }
+}
+if ([string]::IsNullOrWhiteSpace($ReleaseNotesPath)) { $ReleaseNotesPath = Join-Path $ProjectRoot "RELEASE-NOTES-$Version.md" }
+elseif (-not [System.IO.Path]::IsPathRooted($ReleaseNotesPath)) { $ReleaseNotesPath = Join-Path $ProjectRoot $ReleaseNotesPath }
 
-$DownloadUrl =
-    "https://github.com/$GitHubOwner/$GitHubRepo/releases/download/$Tag/$ArchiveName"
-
-$ManifestUrl =
-    "https://raw.githubusercontent.com/$GitHubOwner/$GitHubRepo/$ReleaseBranch/module.json"
-
-$GitHubReleaseUrl =
-    "https://github.com/$GitHubOwner/$GitHubRepo/releases/tag/$Tag"
-
+$Repository = "$GitHubOwner/$GitHubRepo"
+$RepositoryUrl = "https://github.com/$Repository"
+$ManifestUrl = "https://raw.githubusercontent.com/$Repository/$ReleaseBranch/module.json"
+$DownloadUrl = "https://github.com/$Repository/releases/download/$Tag/$ArchiveName"
+$GitHubReleaseUrl = "https://github.com/$Repository/releases/tag/$Tag"
+$ArchivePath = Join-Path $ProjectRoot $ArchiveName
+$StagingPath = Join-Path ([System.IO.Path]::GetTempPath()) ("$ModuleId-release-" + [guid]::NewGuid().ToString('N'))
+$DryRunArchivePath = Join-Path ([System.IO.Path]::GetTempPath()) ("$ModuleId-dry-run-" + [guid]::NewGuid().ToString('N') + '.zip')
+$ShouldPublishWebsite = -not $SkipWebsitePublish -and -not $Draft -and -not $Prerelease
+if ($WebsiteOnly) { $ShouldPublishWebsite = $true }
 
 Set-Location $ProjectRoot
 
-Write-Host ""
-Write-Host "Preparing $ModuleTitle release $Tag..." -ForegroundColor Cyan
-
-if ($DryRun) {
-    Write-Host "DRY RUN: Git and GitHub will not be modified." -ForegroundColor Yellow
+if ($WebsiteOnly) {
+    if (-not (Test-Path $ReleaseNotesPath -PathType Leaf)) { throw "Release notes were not found: $ReleaseNotesPath" }
+    if ([string]::IsNullOrWhiteSpace($WebsiteToken)) { throw 'Website-only publishing requires MORELORD_RELEASE_TOKEN, RELEASE_PUBLISH_TOKEN, or -WebsiteToken.' }
+    $ReleaseMetadata = Get-ReleaseMetadataFromMarkdown -Path $ReleaseNotesPath -DefaultTitle "$ModuleTitle $Version"
+    $Payload = [pscustomobject]@{
+        productSlug = $ProductSlug
+        version = $Version
+        title = [string]$ReleaseMetadata.title
+        summary = [string]$ReleaseMetadata.summary
+        publishedAt = [DateTimeOffset]::Now.ToString('o')
+        githubReleaseUrl = $GitHubReleaseUrl
+        downloadUrl = $DownloadUrl
+        manifestUrl = $ManifestUrl
+        changes = @($ReleaseMetadata.changes)
+    }
+    Write-Host ''
+    Write-Host "Publishing existing $ModuleTitle $Tag to $WebsiteUrl/releases..." -ForegroundColor Cyan
+    if ($DryRun) {
+        Write-Host ($Payload | ConvertTo-Json -Depth 20)
+        Write-Host 'Website-only dry run completed; nothing was published.' -ForegroundColor Green
+        exit 0
+    }
+    $WebsiteResponse = Publish-WebsiteRelease -EndpointBase $WebsiteUrl -Token $WebsiteToken -Payload $Payload
+    Write-Host "Published: $($WebsiteResponse.action) $($WebsiteResponse.releaseId)" -ForegroundColor Green
+    Write-Host "$WebsiteUrl$($WebsiteResponse.publicUrl)"
+    exit 0
 }
 
+Write-Host ''
+Write-Host "Preparing $ModuleTitle $Tag..." -ForegroundColor Cyan
+if ($DryRun) { Write-Host 'DRY RUN: no project files, Git history, GitHub releases, or website records will be changed.' -ForegroundColor Yellow }
+if (($Draft -or $Prerelease) -and -not $SkipWebsitePublish) { Write-Host 'Website publication will be skipped for draft/prerelease builds.' -ForegroundColor Yellow }
 
 try {
-    Write-Step "Checking prerequisites..."
-
-    Assert-CommandExists "git"
-
-    if (-not $DryRun) {
-        Assert-CommandExists "gh"
+    Write-Step 'Checking prerequisites and release metadata...'
+    Assert-CommandExists 'git'
+    if (-not $DryRun) { Assert-CommandExists 'gh' }
+    if (-not (Test-Path $ManifestPath)) { throw 'module.json was not found.' }
+    if (-not (Test-Path $ReleaseNotesPath -PathType Leaf)) { throw "Release notes were not found: $ReleaseNotesPath" }
+    if ($ShouldPublishWebsite -and [string]::IsNullOrWhiteSpace($WebsiteToken)) {
+        throw 'Website publishing is enabled but no token is configured. Set MORELORD_RELEASE_TOKEN or pass -WebsiteToken. Use -SkipWebsitePublish only when intentionally bypassing the website feed.'
     }
+    $ReleaseMetadata = Get-ReleaseMetadataFromMarkdown -Path $ReleaseNotesPath -DefaultTitle "$ModuleTitle $Version"
+    Write-Host "  Notes           : $ReleaseNotesPath"
+    Write-Host "  Website changes : $($ReleaseMetadata.changes.Count)"
 
-    git rev-parse --is-inside-work-tree 2>$null |
-        Out-Null
+    Write-Step 'Checking repository identity and state...'
+    git rev-parse --is-inside-work-tree *> $null
+    if ($LASTEXITCODE -ne 0) { throw 'This directory is not a Git repository.' }
+    $CurrentBranch = Get-GitOutput -Command { git branch --show-current } -FailureMessage 'Unable to determine the current Git branch.'
+    if ($CurrentBranch -ne $ReleaseBranch) { throw "Releases must run from '$ReleaseBranch'. Current branch: '$CurrentBranch'." }
+    $OriginUrl = Get-GitOutput -Command { git remote get-url origin } -FailureMessage "Git remote 'origin' was not found."
+    if ($OriginUrl -notmatch [regex]::Escape($Repository)) { throw "Git remote 'origin' does not point to $Repository. Current: $OriginUrl" }
+    $InitialStatus = Get-GitOutput -Command { git status --porcelain } -FailureMessage 'Unable to inspect the Git working tree.'
+    if (-not [string]::IsNullOrWhiteSpace($InitialStatus)) { throw "The working tree is not clean:`n$InitialStatus" }
+    Invoke-NativeCommand -Command { git fetch origin --tags --prune } -FailureMessage 'Unable to fetch origin.'
+    $Behind = [int](Get-GitOutput -Command { git rev-list --count "HEAD..origin/$ReleaseBranch" } -FailureMessage 'Unable to compare local and remote branches.')
+    if ($Behind -gt 0) { throw "Local '$ReleaseBranch' is $Behind commit(s) behind origin. Pull before releasing." }
+    if (-not $DryRun) { Invoke-NativeCommand -Command { gh auth status } -FailureMessage "GitHub CLI is not authenticated. Run 'gh auth login'." }
+    if (git tag --list $Tag) { throw "Git tag '$Tag' already exists locally." }
+    if (Test-RemoteTagExists -Tag $Tag) { throw "Git tag '$Tag' already exists on origin." }
+    if (-not $DryRun -and (Test-GitHubReleaseExists -Tag $Tag -Repository $Repository)) { throw "GitHub Release '$Tag' already exists." }
 
-    if ($LASTEXITCODE -ne 0) {
-        throw "This directory is not a Git repository."
-    }
-
-    if (-not (Test-Path $ManifestPath)) {
-        throw "module.json was not found at '$ManifestPath'."
-    }
-
-
-    Write-Step "Checking repository identity and state..."
-
-    $CurrentBranch = Get-GitOutput `
-        -Command { git branch --show-current } `
-        -FailureMessage "Unable to determine the current Git branch."
-
-    if ($CurrentBranch -ne $ReleaseBranch) {
-        throw "Releases must be created from '$ReleaseBranch'. Current branch: '$CurrentBranch'."
-    }
-
-    $OriginUrl = Get-GitOutput `
-        -Command { git remote get-url origin } `
-        -FailureMessage "Git remote 'origin' was not found."
-
-    $ExpectedRepositoryPattern =
-        [regex]::Escape("$GitHubOwner/$GitHubRepo")
-
-    if ($OriginUrl -notmatch $ExpectedRepositoryPattern) {
-        throw "Git remote 'origin' does not point to $GitHubOwner/$GitHubRepo. Current value: $OriginUrl"
-    }
-
-    $InitialGitStatus = Get-GitOutput `
-        -Command { git status --porcelain } `
-        -FailureMessage "Unable to inspect the Git working tree."
-
-    if (-not [string]::IsNullOrWhiteSpace($InitialGitStatus)) {
-        throw @"
-The working tree contains uncommitted or untracked changes.
-
-Commit or stash them before creating a release:
-
-$InitialGitStatus
-"@
-    }
-
-    Invoke-NativeCommand `
-        -Command { git fetch origin --tags --prune } `
-        -FailureMessage "Unable to fetch the latest repository state from origin."
-
-    git rev-parse --verify "origin/$ReleaseBranch" *> $null
-
-    if ($LASTEXITCODE -ne 0) {
-        throw "Remote branch 'origin/$ReleaseBranch' was not found."
-    }
-
-    $BehindCountText = Get-GitOutput `
-        -Command {
-            git rev-list `
-                --count `
-                "HEAD..origin/$ReleaseBranch"
-        } `
-        -FailureMessage "Unable to compare the local branch with origin/$ReleaseBranch."
-
-    $BehindCount = [int]$BehindCountText
-
-    if ($BehindCount -gt 0) {
-        throw "Local '$ReleaseBranch' is $BehindCount commit(s) behind origin/$ReleaseBranch. Pull before releasing."
-    }
-
-
-    Write-Step "Checking GitHub CLI and release identifiers..."
-
-    if (-not $DryRun) {
-        Invoke-NativeCommand `
-            -Command { gh auth status } `
-            -FailureMessage "GitHub CLI is not authenticated. Run 'gh auth login' first."
-    }
-
-    $ExistingLocalTag = git tag --list $Tag
-
-    if ($ExistingLocalTag) {
-        throw "Git tag '$Tag' already exists locally."
-    }
-
-    if (Test-RemoteTagExists -Tag $Tag) {
-        throw "Git tag '$Tag' already exists on origin."
-    }
-
-    if (-not $DryRun) {
-        if (Test-GitHubReleaseExists -Tag $Tag) {
-            throw "GitHub Release '$Tag' already exists."
-        }
-    }
-
-
-    Write-Step "Validating module.json..."
-
+    Write-Step 'Validating and preparing module manifest...'
     Assert-Utf8JsonFile -Path $ManifestPath
-
-    $Manifest =
-        Get-Content `
-            -Path $ManifestPath `
-            -Raw |
-        ConvertFrom-Json
-
-    Assert-Manifest -Manifest $Manifest
-
-    $CurrentVersionObject = [version]$Manifest.version
-    $ReleaseVersionObject = [version]$Version
-
-    if ($ReleaseVersionObject -lt $CurrentVersionObject) {
-        throw "Release version $Version cannot be lower than current version $($Manifest.version)."
-    }
-
-    if ($ReleaseVersionObject -eq $CurrentVersionObject) {
-        Write-Host "  Version note    : module.json is already set to the requested release version." -ForegroundColor Yellow
-    }
-
-    Write-Host "  Module ID       : $($Manifest.id)"
+    $Manifest = Get-Content $ManifestPath -Raw | ConvertFrom-Json
+    Assert-Manifest -Manifest $Manifest -ExpectedModuleId $ModuleId
+    $CurrentVersion = [version]$Manifest.version
+    $RequestedVersion = [version]$Version
+    if ($RequestedVersion -lt $CurrentVersion) { throw "Release version $Version cannot be lower than current version $($Manifest.version)." }
+    Write-Host "  Module          : $ModuleId"
     Write-Host "  Current version : $($Manifest.version)"
     Write-Host "  Release version : $Version"
-    Write-Host "  Branch          : $CurrentBranch"
-    Write-Host "  Origin          : $OriginUrl"
-    Write-Host "  Download URL    : $DownloadUrl"
+    Write-Host "  Repository      : $Repository"
+    Write-Host "  Archive         : $ArchiveName"
 
-
-    Write-Step "Preparing release staging directory..."
-
-    Copy-ReleaseContent -Destination $StagingPath
-
-    $StagedManifestPath = Join-Path $StagingPath "module.json"
-
-    Update-ManifestFile `
-        -Path $StagedManifestPath `
-        -ReleaseVersion $Version `
-        -ReleaseDownloadUrl $DownloadUrl
-
+    Write-Step 'Building and validating release archive...'
+    Copy-ReleaseContent -Destination $StagingPath -RequiredPaths $RequiredPaths -OptionalPaths $OptionalPaths
+    $StagedManifest = Join-Path $StagingPath 'module.json'
+    Update-ManifestFile -Path $StagedManifest -ReleaseVersion $Version -DownloadUrl $DownloadUrl -RepositoryUrl $RepositoryUrl -ManifestUrl $ManifestUrl -ExpectedModuleId $ModuleId
     if (-not $DryRun) {
-        $OriginalManifestText =
-            Get-Content `
-                -Path $ManifestPath `
-                -Raw
-
-        Update-ManifestFile `
-            -Path $ManifestPath `
-            -ReleaseVersion $Version `
-            -ReleaseDownloadUrl $DownloadUrl
-
+        $OriginalManifestText = Get-Content $ManifestPath -Raw
+        Update-ManifestFile -Path $ManifestPath -ReleaseVersion $Version -DownloadUrl $DownloadUrl -RepositoryUrl $RepositoryUrl -ManifestUrl $ManifestUrl -ExpectedModuleId $ModuleId
         $ManifestWasModified = $true
-
-        Copy-Item `
-            -Path $ManifestPath `
-            -Destination $StagedManifestPath `
-            -Force
+        Copy-Item $ManifestPath $StagedManifest -Force
     }
+    $OutputArchive = if ($DryRun) { $DryRunArchivePath } else { $ArchivePath }
+    Build-Archive -SourceDirectory $StagingPath -DestinationArchive $OutputArchive
+    Assert-Archive -Path $OutputArchive -ExpectedVersion $Version -ExpectedDownloadUrl $DownloadUrl -ExpectedModuleId $ModuleId -RequiredPaths $RequiredPaths
+    Write-Host "  Archive verified: $OutputArchive" -ForegroundColor Green
 
-
-    Write-Step "Building release archive..."
-
-    $OutputArchivePath =
-        if ($DryRun) {
-            $DryRunArchivePath
-        }
-        else {
-            $ArchivePath
-        }
-
-    Build-Archive `
-        -SourceDirectory $StagingPath `
-        -DestinationArchive $OutputArchivePath
-
-    Write-Host "  Archive: $OutputArchivePath"
-
-
-    Write-Step "Verifying release archive..."
-
-    Assert-Archive `
-        -Path $OutputArchivePath `
-        -ExpectedVersion $Version `
-        -ExpectedDownloadUrl $DownloadUrl
-
-    Write-Host ""
-    Write-Host "Archive verification successful." -ForegroundColor Green
-
+    $Payload = [pscustomobject]@{
+        productSlug = $ProductSlug
+        version = $Version
+        title = [string]$ReleaseMetadata.title
+        summary = [string]$ReleaseMetadata.summary
+        publishedAt = [DateTimeOffset]::Now.ToString('o')
+        githubReleaseUrl = $GitHubReleaseUrl
+        downloadUrl = $DownloadUrl
+        manifestUrl = $ManifestUrl
+        changes = @($ReleaseMetadata.changes)
+    }
+    Write-Step 'Validating website release payload...'
+    $PayloadJson = $Payload | ConvertTo-Json -Depth 20
+    $null = $PayloadJson | ConvertFrom-Json
+    Write-Host "  Product slug    : $ProductSlug"
+    Write-Host "  Release title   : $($Payload.title)"
+    Write-Host "  Changes         : $($Payload.changes.Count)"
+    if ($ShouldPublishWebsite) { Write-Host "  Website         : $WebsiteUrl/releases" } else { Write-Host '  Website         : skipped' -ForegroundColor Yellow }
 
     if ($DryRun) {
-        Write-Host ""
-        Write-Host "========================================" -ForegroundColor Green
+        Write-Host ''
         Write-Host "Dry run for $Tag completed successfully." -ForegroundColor Green
-        Write-Host "No project files, Git history, tags, or GitHub releases were changed." -ForegroundColor Green
-        Write-Host "========================================" -ForegroundColor Green
-        Write-Host ""
+        Write-Host 'Git, GitHub, and the website were not modified.' -ForegroundColor Green
         exit 0
     }
 
-
-    Write-Step "Staging release manifest..."
-
-    Invoke-NativeCommand `
-        -Command { git add -- module.json } `
-        -FailureMessage "git add failed."
-
+    Write-Step 'Creating release commit and tag...'
+    git add -- module.json
     git diff --cached --quiet
-
-    if ($LASTEXITCODE -eq 0) {
-        throw "No staged release changes were detected."
-    }
-
-    git diff --cached --check
-
-    if ($LASTEXITCODE -ne 0) {
-        throw "Staged changes contain whitespace errors."
-    }
-
-    Write-Host ""
-    git status --short
-
-
-    Write-Step "Creating release commit..."
-
-    Write-Host "  $CommitMessage"
-
-    Invoke-NativeCommand `
-        -Command {
-            git commit `
-                -m $CommitMessage
-        } `
-        -FailureMessage "git commit failed."
-
+    if ($LASTEXITCODE -eq 0) { throw 'No staged manifest change was detected. The requested version may already be committed.' }
+    Invoke-NativeCommand -Command { git diff --cached --check } -FailureMessage 'Staged changes contain whitespace errors.'
+    Invoke-NativeCommand -Command { git commit -m $CommitMessage } -FailureMessage 'git commit failed.'
     $CommitWasCreated = $true
-
-
-    Write-Step "Creating annotated Git tag $Tag..."
-
-    Invoke-NativeCommand `
-        -Command {
-            git tag `
-                -a $Tag `
-                -m "$ModuleTitle $Tag"
-        } `
-        -FailureMessage "Failed to create Git tag '$Tag'."
-
+    Invoke-NativeCommand -Command { git tag -a $Tag -m "$ModuleTitle $Tag" } -FailureMessage "Failed to create tag '$Tag'."
     $TagWasCreated = $true
 
+    Write-Step 'Pushing release commit and tag...'
+    Invoke-NativeCommand -Command { git push origin $ReleaseBranch $Tag } -FailureMessage 'Failed to push the release commit and tag.'
+    $PushCompleted = $true
 
-    Write-Step "Pushing release commit and tag..."
-
-    Invoke-NativeCommand `
-        -Command {
-            git push `
-                origin `
-                $ReleaseBranch `
-                $Tag
-        } `
-        -FailureMessage "Failed to push the release commit and tag."
-
-
-    Write-Step "Creating GitHub Release..."
-
-    $ReleaseTitle = "$Tag - $ModuleTitle"
-
-    $ReleaseArguments = @(
-        "release",
-        "create",
-        $Tag,
-        $ArchivePath,
-        "--repo",
-        "$GitHubOwner/$GitHubRepo",
-        "--title",
-        $ReleaseTitle,
-        "--generate-notes",
-        "--verify-tag"
-    )
-
-    if ($Prerelease) {
-        $ReleaseArguments += "--prerelease"
-    }
-
-    if ($Draft) {
-        $ReleaseArguments += "--draft"
-    }
-
+    Write-Step 'Creating GitHub Release from the same release notes...'
+    $ReleaseArguments = @('release','create',$Tag,$ArchivePath,'--repo',$Repository,'--title',"$Tag - $ModuleTitle",'--notes-file',$ReleaseNotesPath,'--verify-tag')
+    if ($Prerelease) { $ReleaseArguments += '--prerelease' }
+    if ($Draft) { $ReleaseArguments += '--draft' }
     & gh @ReleaseArguments
+    if ($LASTEXITCODE -ne 0) { throw "Failed to create GitHub Release '$Tag'." }
+    $GitHubReleaseCreated = $true
+    Invoke-NativeCommand -Command { gh release view $Tag --repo $Repository } -FailureMessage 'GitHub Release verification failed.'
 
-    if ($LASTEXITCODE -ne 0) {
-        throw "Failed to create GitHub Release '$Tag'."
+    if ($ShouldPublishWebsite) {
+        Write-Step 'Publishing release to morelordgaming.com...'
+        $WebsiteResponse = Publish-WebsiteRelease -EndpointBase $WebsiteUrl -Token $WebsiteToken -Payload $Payload
+        Write-Host "  Website record  : $($WebsiteResponse.action) $($WebsiteResponse.releaseId)" -ForegroundColor Green
+        Write-Host "  Public URL      : $WebsiteUrl$($WebsiteResponse.publicUrl)"
     }
 
-
-    Write-Step "Verifying GitHub Release..."
-
-    Invoke-NativeCommand `
-        -Command {
-            gh release view `
-                $Tag `
-                --repo "$GitHubOwner/$GitHubRepo"
-        } `
-        -FailureMessage "GitHub Release verification failed."
-
-
-    Write-Host ""
-    Write-Host "========================================" -ForegroundColor Green
+    Write-Host ''
+    Write-Host '========================================' -ForegroundColor Green
     Write-Host "Release $Tag completed successfully." -ForegroundColor Green
-    Write-Host "========================================" -ForegroundColor Green
-    Write-Host ""
-
-    Write-Host "Foundry Manifest URL:" -ForegroundColor Yellow
-    Write-Host $ManifestUrl
-    Write-Host ""
-
-    Write-Host "Release download URL:" -ForegroundColor Yellow
-    Write-Host $DownloadUrl
-    Write-Host ""
-
-    Write-Host "GitHub Release:" -ForegroundColor Yellow
-    Write-Host $GitHubReleaseUrl
-    Write-Host ""
+    Write-Host '========================================' -ForegroundColor Green
+    Write-Host "Manifest: $ManifestUrl"
+    Write-Host "Download: $DownloadUrl"
+    Write-Host "GitHub:   $GitHubReleaseUrl"
+    if ($ShouldPublishWebsite) { Write-Host "Website:  $WebsiteUrl/releases" }
+    Write-Host ''
 }
 catch {
-    Write-Host ""
-    Write-Host "RELEASE FAILED" -ForegroundColor Red
+    Write-Host ''
+    Write-Host 'RELEASE FAILED' -ForegroundColor Red
     Write-Host $_.Exception.Message -ForegroundColor Red
-    Write-Host ""
-
-    if (
-        $ManifestWasModified -and
-        -not $CommitWasCreated -and
-        $null -ne $OriginalManifestText
-    ) {
-        Write-Host "Restoring the original module.json..." -ForegroundColor Yellow
-
-        Write-Utf8NoBom `
-            -Path $ManifestPath `
-            -Text $OriginalManifestText
-
-        $ManifestWasModified = $false
+    Write-Host ''
+    if ($ManifestWasModified -and -not $CommitWasCreated -and $null -ne $OriginalManifestText) {
+        Write-Host 'Restoring the original module.json...' -ForegroundColor Yellow
+        Write-Utf8NoBom -Path $ManifestPath -Text $OriginalManifestText
     }
-
-    if ($TagWasCreated -and -not $CommitWasCreated) {
-        git tag -d $Tag *> $null
-    }
-
     if ($CommitWasCreated) {
-        Write-Host "The release commit was created before the failure." -ForegroundColor Yellow
-        Write-Host "The script did not automatically rewrite Git history." -ForegroundColor Yellow
+        Write-Host 'A release commit was created before the failure. Git history was not rewritten automatically.' -ForegroundColor Yellow
     }
-
-    if ($TagWasCreated) {
-        Write-Host "The local tag '$Tag' may exist and should be inspected before retrying." -ForegroundColor Yellow
-    }
-
+    if ($TagWasCreated) { Write-Host "Local tag '$Tag' may exist and should be inspected before retrying." -ForegroundColor Yellow }
+    if ($PushCompleted) { Write-Host 'The commit/tag were already pushed to GitHub. Inspect the remote before retrying.' -ForegroundColor Yellow }
+    if ($GitHubReleaseCreated) { Write-Host 'The GitHub Release was already created. The website publication can be retried separately if needed.' -ForegroundColor Yellow }
     exit 1
 }
 finally {
-    if (Test-Path $StagingPath) {
-        Remove-Item `
-            -Path $StagingPath `
-            -Recurse `
-            -Force `
-            -ErrorAction SilentlyContinue
-    }
-
-    if ($DryRun -and (Test-Path $DryRunArchivePath)) {
-        Remove-Item `
-            -Path $DryRunArchivePath `
-            -Force `
-            -ErrorAction SilentlyContinue
-    }
+    if (Test-Path $StagingPath) { Remove-Item $StagingPath -Recurse -Force -ErrorAction SilentlyContinue }
+    if ($DryRun -and (Test-Path $DryRunArchivePath)) { Remove-Item $DryRunArchivePath -Force -ErrorAction SilentlyContinue }
 }

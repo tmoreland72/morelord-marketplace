@@ -1,4 +1,4 @@
-import { MODULE_ID } from "../constants.js";
+import { MODULE_ID, FLAGS } from "../constants.js";
 import { PricingService } from "./pricing-service.js";
 import { CurrencyService } from "./currency-service.js";
 import { ShopService } from "./shop-service.js";
@@ -247,13 +247,43 @@ export class CompendiumService {
         "system.properties",
         "system.attunement",
         "system.identifier",
-        "system.source"
+        "system.source",
+        `flags.${MODULE_ID}.${FLAGS.PURCHASABLE}`
       ]
     });
 
     this.indexCache.set(pack.collection, index);
 
     return index;
+  }
+
+  /**
+   * Return the explicit Marketplace purchasable flag when present.
+   *
+   * undefined = no override; normal Marketplace rules apply
+   * true      = explicitly purchasable
+   * false     = explicitly excluded from purchasing
+   */
+  static getPurchasableFlag(itemData) {
+    if (!itemData) return undefined;
+
+    if (typeof itemData.getFlag === "function") {
+      const value = itemData.getFlag(
+        MODULE_ID,
+        FLAGS.PURCHASABLE
+      );
+
+      if (value === true || value === false) {
+        return value;
+      }
+    }
+
+    const value =
+      itemData.flags?.[MODULE_ID]?.[FLAGS.PURCHASABLE];
+
+    return value === true || value === false
+      ? value
+      : undefined;
   }
 
   static async indexEntryToMarketplaceRow(
@@ -269,6 +299,12 @@ export class CompendiumService {
         pack.collection
       )
     ) {
+      return null;
+    }
+
+    // An explicit false flag means the item may still have monetary
+    // value and be sellable, but it must never appear in the Buy catalog.
+    if (this.getPurchasableFlag(entry) === false) {
       return null;
     }
 
@@ -297,6 +333,10 @@ export class CompendiumService {
       );
 
       if (!document) return null;
+
+      if (this.getPurchasableFlag(document) === false) {
+        return null;
+      }
 
       itemData = document;
       priceCp = PricingService.getItemPriceCp(
@@ -768,6 +808,13 @@ export class CompendiumService {
         "Item not found."
       );
 
+      return;
+    }
+
+    if (this.getPurchasableFlag(item) === false) {
+      ui.notifications.warn(
+        `${item.name} is not available for purchase.`
+      );
       return;
     }
 

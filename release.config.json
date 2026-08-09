@@ -1,0 +1,24 @@
+{
+  "moduleId": "morelord-marketplace",
+  "moduleTitle": "Morelord Marketplace",
+  "productSlug": "morelord-marketplace",
+  "githubOwner": "tmoreland72",
+  "githubRepo": "morelord-marketplace",
+  "releaseBranch": "main",
+  "archiveName": "morelord-marketplace.zip",
+  "websiteUrl": "https://morelordgaming.com",
+  "requiredPaths": [
+    "module.json",
+    "README.md",
+    "scripts",
+    "styles",
+    "templates"
+  ],
+  "optionalPaths": [
+    "assets",
+    "lang",
+    "LICENSE",
+    "LICENSE.md",
+    "CHANGELOG.md"
+  ]
+}

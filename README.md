@@ -191,3 +191,37 @@ MIT License
 ---
 
 Created by **Morelord Gaming**
+## Standard release workflow
+
+All Morelord Foundry modules use the same `release.ps1`. Project-specific values are stored in `release.config.json`, so improvements to the workflow can be copied between repositories without editing module logic.
+
+Before a normal release, create `RELEASE-NOTES-x.y.z.md`. The same Markdown file is used for the GitHub Release and parsed into the public Morelord Gaming `/releases` feed. Recognized headings are `Added`, `Features`, `Improvements`, `Changed`, `Fixed`, `Breaking Changes`, and `Security`. Prefix a bullet with `[Premium]` or `[Champion]` when the change is tier-specific; otherwise it is treated as Standard.
+
+Set the website publishing token once in your PowerShell environment:
+
+```powershell
+$env:MORELORD_RELEASE_TOKEN = "<release publish token>"
+```
+
+Validate without changing Git, GitHub, or the website:
+
+```powershell
+.\release.ps1 -Version x.y.z -DryRun
+```
+
+Publish the normal release:
+
+```powershell
+.\release.ps1 -Version x.y.z
+```
+
+The normal workflow validates the repository, updates `module.json`, builds and verifies the Foundry ZIP, commits and tags the release, pushes it, creates the GitHub Release from the same release-notes file, and publishes the release to `https://morelordgaming.com/releases`. Draft and prerelease builds intentionally skip the public website feed.
+
+If GitHub release creation succeeds but website publication fails, retry only the idempotent website step:
+
+```powershell
+.\release.ps1 -Version x.y.z -WebsiteOnly
+```
+
+Use `-SkipWebsitePublish` only when intentionally creating a normal GitHub/Foundry release that should not appear on the Morelord website.
+
