@@ -88,10 +88,14 @@ function Import-ProjectEnv {
             $Value = $Value.Substring(1, $Value.Length - 2)
         }
 
-        # An explicitly set process environment variable wins over .env.
-        if ([string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($Name, "Process"))) {
-            [Environment]::SetEnvironmentVariable($Name, $Value, "Process")
-        }
+        # Project .env is authoritative for local release configuration.
+        # An explicit -WebsiteToken parameter is handled separately and still
+        # takes precedence over RELEASE_PUBLISH_TOKEN.
+        [Environment]::SetEnvironmentVariable(
+            $Name,
+            $Value,
+            "Process"
+        )
     }
 }
 
@@ -405,7 +409,7 @@ function Show-Usage {
     Write-Host '  .\release.ps1 -Version <x.y.z> -WebsiteOnly' -ForegroundColor Yellow
     Write-Host ''
     Write-Host 'Normal releases publish GitHub + Foundry + morelordgaming.com/releases.'
-    Write-Host 'Set RELEASE_PUBLISH_TOKEN in the project .env file, set MORELORD_RELEASE_TOKEN/RELEASE_PUBLISH_TOKEN in the process environment, or pass -WebsiteToken.'
+    Write-Host 'Set RELEASE_PUBLISH_TOKEN in the project .env file or pass -WebsiteToken.'
     Write-Host 'Use -SkipWebsitePublish only for exceptional cases.'
     Write-Host 'Draft and prerelease builds are not published to the public website release feed.'
     Write-Host ''
@@ -433,7 +437,7 @@ if ([string]::IsNullOrWhiteSpace($WebsiteUrl)) {
     $WebsiteUrl = if ($Config.websiteUrl) { [string]$Config.websiteUrl } else { 'https://morelordgaming.com' }
 }
 if ([string]::IsNullOrWhiteSpace($WebsiteToken)) {
-    $WebsiteToken = if (-not [string]::IsNullOrWhiteSpace($env:MORELORD_RELEASE_TOKEN)) { $env:MORELORD_RELEASE_TOKEN } else { $env:RELEASE_PUBLISH_TOKEN }
+    $WebsiteToken = $env:RELEASE_PUBLISH_TOKEN
 }
 if ([string]::IsNullOrWhiteSpace($ReleaseNotesPath)) { $ReleaseNotesPath = Join-Path $ProjectRoot "RELEASE-NOTES-$Version.md" }
 elseif (-not [System.IO.Path]::IsPathRooted($ReleaseNotesPath)) { $ReleaseNotesPath = Join-Path $ProjectRoot $ReleaseNotesPath }
@@ -453,7 +457,7 @@ Set-Location $ProjectRoot
 
 if ($WebsiteOnly) {
     if (-not (Test-Path $ReleaseNotesPath -PathType Leaf)) { throw "Release notes were not found: $ReleaseNotesPath" }
-    if ([string]::IsNullOrWhiteSpace($WebsiteToken)) { throw 'Website-only publishing requires MORELORD_RELEASE_TOKEN, RELEASE_PUBLISH_TOKEN, or -WebsiteToken.' }
+    if ([string]::IsNullOrWhiteSpace($WebsiteToken)) { throw 'Website-only publishing requires RELEASE_PUBLISH_TOKEN in the project .env file or -WebsiteToken.' }
     $ReleaseMetadata = Get-ReleaseMetadataFromMarkdown -Path $ReleaseNotesPath -DefaultTitle "$ModuleTitle $Version"
     $Payload = [pscustomobject]@{
         productSlug = $ProductSlug
@@ -491,7 +495,7 @@ try {
     if (-not (Test-Path $ManifestPath)) { throw 'module.json was not found.' }
     if (-not (Test-Path $ReleaseNotesPath -PathType Leaf)) { throw "Release notes were not found: $ReleaseNotesPath" }
     if ($ShouldPublishWebsite -and [string]::IsNullOrWhiteSpace($WebsiteToken)) {
-        throw 'Website publishing is enabled but no token is configured. Set MORELORD_RELEASE_TOKEN or pass -WebsiteToken. Use -SkipWebsitePublish only when intentionally bypassing the website feed.'
+        throw 'Website publishing is enabled but no token is configured. Set RELEASE_PUBLISH_TOKEN in the project .env file or pass -WebsiteToken. Use -SkipWebsitePublish only when intentionally bypassing the website feed.'
     }
     $ReleaseMetadata = Get-ReleaseMetadataFromMarkdown -Path $ReleaseNotesPath -DefaultTitle "$ModuleTitle $Version"
     Write-Host "  Notes           : $ReleaseNotesPath"
