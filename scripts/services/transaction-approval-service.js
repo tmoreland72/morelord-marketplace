@@ -6,6 +6,7 @@ import {
 import { CurrencyService } from "./currency-service.js";
 import { TransactionService } from "./transaction-service.js";
 import { Logger } from "../logger.js";
+import { PurchaseEligibilityService } from "./purchase-eligibility-service.js";
 
 export class TransactionApprovalService {
   static initialized = false;
@@ -238,7 +239,7 @@ export class TransactionApprovalService {
     const item = await pack.getDocument(documentId);
     if (!item) throw new Error("The requested item could not be found.");
 
-    if (item.getFlag(MODULE_ID, FLAGS.PURCHASABLE) === false) {
+    if (!PurchaseEligibilityService.isPurchasable(item)) {
       throw new Error("The requested item is no longer available for purchase.");
     }
 

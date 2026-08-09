@@ -4,6 +4,7 @@ import { CurrencyService } from "./currency-service.js";
 import { ShopService } from "./shop-service.js";
 import { TransactionService } from "./transaction-service.js";
 import { TransactionApprovalService } from "./transaction-approval-service.js";
+import { PurchaseEligibilityService } from "./purchase-eligibility-service.js";
 
 export class CompendiumService {
   static indexCache = new Map();
@@ -248,42 +249,14 @@ export class CompendiumService {
         "system.attunement",
         "system.identifier",
         "system.source",
-        `flags.${MODULE_ID}.${FLAGS.PURCHASABLE}`
+        `flags.${MODULE_ID}.${FLAGS.PURCHASABLE}`,
+        "flags.morelord-craftworks.purchasable"
       ]
     });
 
     this.indexCache.set(pack.collection, index);
 
     return index;
-  }
-
-  /**
-   * Return the explicit Marketplace purchasable flag when present.
-   *
-   * undefined = no override; normal Marketplace rules apply
-   * true      = explicitly purchasable
-   * false     = explicitly excluded from purchasing
-   */
-  static getPurchasableFlag(itemData) {
-    if (!itemData) return undefined;
-
-    if (typeof itemData.getFlag === "function") {
-      const value = itemData.getFlag(
-        MODULE_ID,
-        FLAGS.PURCHASABLE
-      );
-
-      if (value === true || value === false) {
-        return value;
-      }
-    }
-
-    const value =
-      itemData.flags?.[MODULE_ID]?.[FLAGS.PURCHASABLE];
-
-    return value === true || value === false
-      ? value
-      : undefined;
   }
 
   static async indexEntryToMarketplaceRow(
@@ -304,7 +277,7 @@ export class CompendiumService {
 
     // An explicit false flag means the item may still have monetary
     // value and be sellable, but it must never appear in the Buy catalog.
-    if (this.getPurchasableFlag(entry) === false) {
+    if (!PurchaseEligibilityService.isPurchasable(entry)) {
       return null;
     }
 
@@ -334,7 +307,7 @@ export class CompendiumService {
 
       if (!document) return null;
 
-      if (this.getPurchasableFlag(document) === false) {
+      if (!PurchaseEligibilityService.isPurchasable(document)) {
         return null;
       }
 
@@ -811,7 +784,7 @@ export class CompendiumService {
       return;
     }
 
-    if (this.getPurchasableFlag(item) === false) {
+    if (!PurchaseEligibilityService.isPurchasable(item)) {
       ui.notifications.warn(
         `${item.name} is not available for purchase.`
       );
