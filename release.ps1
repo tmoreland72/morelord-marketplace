@@ -50,6 +50,53 @@ $TagWasCreated = $false
 $PushCompleted = $false
 $GitHubReleaseCreated = $false
 
+
+function Import-ProjectEnv {
+    param(
+        [string]$Path = (Join-Path $PSScriptRoot ".env")
+    )
+
+    if (-not (Test-Path -LiteralPath $Path)) {
+        return
+    }
+
+    Write-Host "Loading project environment from .env..." -ForegroundColor DarkGray
+
+    foreach ($RawLine in Get-Content -LiteralPath $Path) {
+        $Line = $RawLine.Trim()
+
+        if ([string]::IsNullOrWhiteSpace($Line) -or $Line.StartsWith("#")) {
+            continue
+        }
+
+        $Parts = $Line -split "=", 2
+        if ($Parts.Count -ne 2) {
+            continue
+        }
+
+        $Name = $Parts[0].Trim()
+        $Value = $Parts[1].Trim()
+
+        if ([string]::IsNullOrWhiteSpace($Name)) {
+            continue
+        }
+
+        if (
+            ($Value.StartsWith('"') -and $Value.EndsWith('"')) -or
+            ($Value.StartsWith("'") -and $Value.EndsWith("'"))
+        ) {
+            $Value = $Value.Substring(1, $Value.Length - 2)
+        }
+
+        # An explicitly set process environment variable wins over .env.
+        if ([string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($Name, "Process"))) {
+            [Environment]::SetEnvironmentVariable($Name, $Value, "Process")
+        }
+    }
+}
+
+Import-ProjectEnv
+
 function Write-Step {
     param([Parameter(Mandatory = $true)][string]$Message)
     Write-Host ''
@@ -358,7 +405,7 @@ function Show-Usage {
     Write-Host '  .\release.ps1 -Version <x.y.z> -WebsiteOnly' -ForegroundColor Yellow
     Write-Host ''
     Write-Host 'Normal releases publish GitHub + Foundry + morelordgaming.com/releases.'
-    Write-Host 'Set MORELORD_RELEASE_TOKEN (preferred) or RELEASE_PUBLISH_TOKEN in your local environment.'
+    Write-Host 'Set RELEASE_PUBLISH_TOKEN in the project .env file, set MORELORD_RELEASE_TOKEN/RELEASE_PUBLISH_TOKEN in the process environment, or pass -WebsiteToken.'
     Write-Host 'Use -SkipWebsitePublish only for exceptional cases.'
     Write-Host 'Draft and prerelease builds are not published to the public website release feed.'
     Write-Host ''
