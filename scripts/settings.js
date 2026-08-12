@@ -23,8 +23,8 @@ export function registerSettings() {
   });
 
   game.settings.register(MODULE_ID, "enableSelling", {
-    name: "Enable Selling",
-    hint: "Allow characters to sell inventory items through the Marketplace.",
+    name: "Enable Global Marketplace Selling",
+    hint: "Allow selling through the unrestricted global Marketplace. Shop selling is controlled by each shop and is not affected by this setting.",
     scope: "world",
     config: true,
     type: Boolean,
@@ -32,8 +32,8 @@ export function registerSettings() {
   });
 
   game.settings.register(MODULE_ID, "enableBuying", {
-    name: "Enable Buying",
-    hint: "Allow characters to purchase items through the Marketplace.",
+    name: "Enable Global Marketplace Buying",
+    hint: "Allow buying through the unrestricted global Marketplace. When disabled, players may still browse the global catalog as a lookup tool. Shop buying is controlled by each shop and is not affected by this setting.",
     scope: "world",
     config: true,
     type: Boolean,

@@ -4,6 +4,11 @@ import { Logger } from "../logger.js";
 export const CORE_MODULE_ID = "morelord-core";
 export const PRODUCT_SLUG = MODULE_ID;
 export const GM_APPROVALS_FEATURE = "marketplace.gm-approvals";
+// The website currently exposes the feature with the historical "markplace"
+// spelling. Support both spellings so correcting the website key later does
+// not require a module migration.
+export const SHOP_MANAGER_FEATURE = "markplace.shop-manager";
+export const SHOP_MANAGER_FEATURE_ALIAS = "marketplace.shop-manager";
 
 export class EntitlementService {
   static get coreModule() {
@@ -34,6 +39,16 @@ export class EntitlementService {
     return this.hasFeature(GM_APPROVALS_FEATURE);
   }
 
+  static hasShopManager() {
+    const featureAccess = this.hasFeature(SHOP_MANAGER_FEATURE) || this.hasFeature(SHOP_MANAGER_FEATURE_ALIAS);
+    if (featureAccess) return true;
+
+    // Shop Manager is a Premium feature. Treat an explicitly reported Premium
+    // or Champion Marketplace tier as valid access as a resilient fallback if
+    // the feature list has not finished refreshing yet.
+    return ["premium", "champion"].includes(String(this.getTier() ?? "").toLowerCase());
+  }
+
   static getEntitlements() {
     return this.api?.getEntitlements?.(PRODUCT_SLUG) ?? null;
   }
@@ -46,9 +61,7 @@ export class EntitlementService {
     } catch (error) {
       Logger.error("Unable to refresh Marketplace entitlements", error);
       if (!quiet) {
-        ui.notifications.error(
-          error?.message ?? "Marketplace premium access could not be refreshed."
-        );
+        ui.notifications.error(error?.message ?? "Marketplace premium access could not be refreshed.");
       }
       return null;
     }
@@ -59,19 +72,17 @@ export class EntitlementService {
       this.api.open();
       return;
     }
-
-    ui.notifications.warn(
-      "Morelord Core must be enabled before a Morelord account can be connected."
-    );
+    ui.notifications.warn("Morelord Core must be enabled before a Morelord account can be connected.");
   }
 
   static status() {
     const entitlements = this.getEntitlements();
-
     return {
       coreActive: this.isCoreActive(),
       connected: this.isConnected(),
       entitled: this.hasGmApprovals(),
+      gmApprovals: this.hasGmApprovals(),
+      shopManager: this.hasShopManager(),
       tier: this.getTier(),
       validatedAt: entitlements?.validatedAt ?? null,
       expiresAt: entitlements?.expiresAt ?? null

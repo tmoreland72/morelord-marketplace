@@ -1,0 +1,143 @@
+<section class="mlm-shop-manager-shell {{#if isWorking}}is-working{{/if}}">
+  {{#if isWorking}}
+    <div class="mlm-shop-working-overlay" aria-live="polite" aria-busy="true">
+      <div class="mlm-shop-working-card">
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        <strong>{{workingMessage}}</strong>
+        <span>Please wait while Marketplace prepares the shop.</span>
+      </div>
+    </div>
+  {{/if}}
+  <aside class="mlm-shop-list-panel">
+    <div class="mlm-shop-manager-heading">
+      <div class="mlm-shop-manager-title">
+        <span class="mlm-shop-manager-eyebrow">Vendor Library</span>
+        <h2>Shop Templates</h2>
+        <p>Start with a ready-made vendor type, then customize only what you need.</p>
+      </div>
+      <button type="button" class="mlm-shop-import-button" data-action="importShop" title="Import a portable shop definition">
+        <i class="fa-solid fa-file-import"></i><span>Import Shop</span>
+      </button>
+    </div>
+
+    <div class="mlm-shop-preset-grid">
+      {{#each presets}}
+        <button type="button" class="mlm-shop-preset-card" data-action="createShop" data-shop-type="{{key}}" title="Create {{label}}">
+          <span class="mlm-shop-preset-icon"><i class="fa-solid {{icon}}"></i></span>
+          <span>{{label}}</span>
+        </button>
+      {{/each}}
+    </div>
+
+    <div class="mlm-shop-library-heading">
+      <div>
+        <span class="mlm-shop-manager-eyebrow">Current World</span>
+        <h3>Shops</h3>
+      </div>
+      <span class="mlm-shop-count">{{shops.length}}</span>
+    </div>
+
+    <div class="mlm-shop-list">
+      {{#each shops}}
+        <button type="button" class="mlm-shop-list-item mlm-shop-card {{#if selected}}active{{/if}}" data-action="selectShop" data-shop-id="{{id}}">
+          <img class="mlm-shop-card-image" src="{{img}}" alt="">
+          <span class="mlm-shop-card-body">
+            <span class="mlm-shop-card-name">{{name}}</span>
+            <span class="mlm-shop-card-type">{{typeLabel}}</span>
+            <span class="mlm-shop-card-tags">
+              {{#each tags}}
+                <span class="mlm-shop-card-tag"><i class="fa-solid {{icon}}"></i>{{label}}</span>
+              {{/each}}
+            </span>
+          </span>
+          <i class="fa-solid fa-chevron-right mlm-shop-card-chevron"></i>
+        </button>
+      {{else}}
+        <div class="mlm-shop-empty">Choose a Shop Template above to create your first shop.</div>
+      {{/each}}
+    </div>
+  </aside>
+
+  <main class="mlm-shop-editor-panel">
+    {{#if selected}}
+      <form data-shop-form>
+        <header class="mlm-shop-editor-header">
+          <div><h2>{{selected.name}}</h2><p>{{selected.type}} shop</p></div>
+          <div class="mlm-shop-editor-actions">
+            <button type="button" data-action="placeShop"><i class="fa-solid fa-location-dot"></i> Place on Scene</button>
+            <button type="button" data-action="restockShop"><i class="fa-solid fa-rotate"></i> Restock Now</button>
+            <button type="button" data-action="saveShop" class="primary"><i class="fa-solid fa-floppy-disk"></i> Save</button>
+          </div>
+        </header>
+
+        <div class="mlm-shop-section-grid">
+          <section class="mlm-shop-config-card">
+            <h3>Identity & Access</h3>
+            <label>Name <input type="text" name="name" value="{{selected.name}}"></label>
+            <label>Token Image
+              <div class="mlm-file-picker-row">
+                <input type="text" name="img" value="{{selected.img}}">
+                <button type="button" data-action="browseImage" title="Browse Foundry files"><i class="fa-solid fa-folder-open"></i></button>
+              </div>
+            </label>
+            <div class="mlm-inline-checks">
+              <label><input type="checkbox" name="allowBuying" {{#if selected.allowBuying}}checked{{/if}}> Players can buy</label>
+              <label><input type="checkbox" name="allowSelling" {{#if selected.allowSelling}}checked{{/if}}> Shop buys items</label>
+            </div>
+          </section>
+
+          <section class="mlm-shop-config-card">
+            <h3>Pricing & Reputation</h3>
+            <label>Party Reputation
+              <select name="reputation">{{#each selected.reputations}}<option value="{{key}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}</select>
+            </label>
+            <div class="mlm-two-column-fields">
+              <label>Buy Multiplier <input type="number" name="buyModifier" min="0" step="0.05" value="{{selected.buyModifier}}"></label>
+              <label>Base Sell Rate <input type="number" name="sellModifier" min="0" step="0.05" value="{{selected.sellModifier}}"></label>
+            </div>
+            <p class="hint">Reputation modifies both values automatically. Hostile parties cannot trade.</p>
+          </section>
+
+          <section class="mlm-shop-config-card mlm-shop-config-wide">
+            <h3>Products</h3>
+            <div class="mlm-option-columns">
+              <div><strong>Item Types</strong>{{#each selected.itemTypeOptions}}<label><input type="checkbox" name="itemTypes" value="{{key}}" {{#if checked}}checked{{/if}}> {{label}}</label>{{/each}}</div>
+              <div><strong>Rarities</strong>{{#each selected.rarityOptions}}<label><input type="checkbox" name="rarities" value="{{key}}" {{#if checked}}checked{{/if}}> {{label}}</label>{{/each}}</div>
+            </div>
+          </section>
+
+          <section class="mlm-shop-config-card">
+            <h3>Inventory</h3>
+            <label>Mode
+              <select name="inventoryMode">{{#each selected.inventoryModes}}<option value="{{key}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}</select>
+            </label>
+            <label><input type="checkbox" name="randomEnabled" {{#if selected.randomInventory.enabled}}checked{{/if}}> Generate limited stock randomly</label>
+            <label><input type="checkbox" name="allowDuplicates" {{#if selected.randomInventory.allowDuplicates}}checked{{/if}}> Allow duplicate random items</label>
+            <div class="mlm-stock-counts">
+              <label>Common <input type="number" name="stockCommon" min="0" value="{{selected.randomInventory.counts.common}}"></label>
+              <label>Uncommon <input type="number" name="stockUncommon" min="0" value="{{selected.randomInventory.counts.uncommon}}"></label>
+              <label>Rare <input type="number" name="stockRare" min="0" value="{{selected.randomInventory.counts.rare}}"></label>
+              <label>Very Rare <input type="number" name="stockVeryrare" min="0" value="{{selected.randomInventory.counts.veryrare}}"></label>
+              <label>Legendary <input type="number" name="stockLegendary" min="0" value="{{selected.randomInventory.counts.legendary}}"></label>
+            </div>
+          </section>
+
+          <section class="mlm-shop-config-card">
+            <h3>Restocking</h3>
+            <label>Rule
+              <select name="restockRule">{{#each selected.restockRules}}<option value="{{key}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}</select>
+            </label>
+            <label>Behavior
+              <select name="restockBehavior">{{#each selected.restockBehaviors}}<option value="{{key}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}</select>
+            </label>
+            <p class="hint">Manual restocking works now. Scheduled rules are stored for automation hooks and future world-time integration.</p>
+          </section>
+        </div>
+
+        <footer class="mlm-shop-editor-footer"><button type="button" data-action="exportShop"><i class="fa-solid fa-file-export"></i> Export Shop</button><button type="button" class="danger" data-action="deleteShop"><i class="fa-solid fa-trash"></i> Delete Shop</button></footer>
+      </form>
+    {{else}}
+      <div class="mlm-shop-editor-empty"><i class="fa-solid fa-shop-lock"></i><h2>No Shop Selected</h2><p>Create a shop from one of the Shop Templates.</p></div>
+    {{/if}}
+  </main>
+</section>

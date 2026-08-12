@@ -7,6 +7,7 @@ import { CurrencyService } from "./currency-service.js";
 import { TransactionService } from "./transaction-service.js";
 import { Logger } from "../logger.js";
 import { PurchaseEligibilityService } from "./purchase-eligibility-service.js";
+import { ShopService } from "./shop-service.js";
 
 export class TransactionApprovalService {
   static initialized = false;
@@ -85,10 +86,11 @@ export class TransactionApprovalService {
     }
   }
 
-  static async requestBuy({ actor, packId, documentId, item, priceCp }) {
+  static async requestBuy({ actor, fundingActor = actor, packId, documentId, item, priceCp, shopId = null }) {
     const message = await TransactionService.createPending({
       type: "buy",
       actor,
+      fundingActor,
       requestedByUserId: game.user.id,
       itemName: item.name,
       itemImg: item.img,
@@ -97,7 +99,8 @@ export class TransactionApprovalService {
       totalPriceCp: priceCp,
       payload: {
         packId,
-        documentId
+        documentId,
+        shopId
       }
     });
 
@@ -226,6 +229,11 @@ export class TransactionApprovalService {
     const actor = await globalThis.fromUuid(transaction.actorUuid);
     if (!actor) throw new Error("The character could not be found.");
 
+    const fundingActor = transaction.fundingActorUuid
+      ? await globalThis.fromUuid(transaction.fundingActorUuid)
+      : actor;
+    if (!fundingActor) throw new Error("The selected source of purchase funds could not be found.");
+
     const { packId, documentId } = transaction.payload ?? {};
     const allowed = game.settings.get(MODULE_ID, "allowedCompendiums") ?? [];
 
@@ -243,20 +251,20 @@ export class TransactionApprovalService {
       throw new Error("The requested item is no longer available for purchase.");
     }
 
-    if (!CurrencyService.canAfford(actor, transaction.totalPriceCp)) {
-      throw new Error("The character can no longer afford this purchase.");
+    if (!CurrencyService.canAfford(fundingActor, transaction.totalPriceCp)) {
+      throw new Error("The selected purchase funds are no longer sufficient.");
     }
 
     const originalCurrencyCp = CurrencyService.currencyToCp(
-      CurrencyService.getCurrency(actor)
+      CurrencyService.getCurrency(fundingActor)
     );
 
-    await CurrencyService.deductCurrency(actor, transaction.totalPriceCp);
+    await CurrencyService.deductCurrency(fundingActor, transaction.totalPriceCp);
 
     try {
       await actor.createEmbeddedDocuments("Item", [item.toObject()]);
     } catch (error) {
-      await CurrencyService.setCurrency(actor, originalCurrencyCp);
+      await CurrencyService.setCurrency(fundingActor, originalCurrencyCp);
       throw error;
     }
   }
@@ -313,6 +321,26 @@ export class TransactionApprovalService {
   }
 
   static async resolveMessage(message, transaction, status, reason = "") {
+    if (
+      transaction.type === "buy" &&
+      transaction.payload?.shopId &&
+      [TRANSACTION_STATUS.DENIED, TRANSACTION_STATUS.FAILED].includes(status)
+    ) {
+      const shop = ShopService.getShop(transaction.payload.shopId);
+      if (shop) {
+        const row = {
+          packId: transaction.payload.packId,
+          documentId: transaction.payload.documentId,
+          rarityKey: "common"
+        };
+        const key = ShopService.stockKey(row);
+        if (Object.prototype.hasOwnProperty.call(shop.stock ?? {}, key)) {
+          shop.stock[key] = Math.max(0, Number(shop.stock[key] ?? 0)) + Number(transaction.quantity ?? 1);
+          await ShopService.saveShop(shop);
+        }
+      }
+    }
+
     const resolvedTransaction = {
       ...transaction,
       status,

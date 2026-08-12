@@ -206,11 +206,14 @@
           <thead>
             <tr>
               <th>Item</th>
-              <th>Type</th>
-              <th>Category</th>
+              {{#unless isShop}}
+                <th>Type</th>
+                <th>Category</th>
+              {{/unless}}
               <th>Rarity</th>
               <th>Price</th>
-              <th>Source</th>
+              {{#unless isShop}}<th>Source</th>{{/unless}}
+              {{#if isShop}}<th>Stock</th>{{/if}}
               <th aria-label="Actions"></th>
             </tr>
           </thead>
@@ -223,22 +226,26 @@
                     <a class="content-link" data-link data-uuid="{{uuid}}">{{name}}</a>
                   </div>
                 </td>
-                <td>{{typeLabel}}</td>
-                <td>{{subtypeLabel}}</td>
+                {{#unless ../isShop}}
+                  <td>{{typeLabel}}</td>
+                  <td>{{subtypeLabel}}</td>
+                {{/unless}}
                 <td>{{rarityLabel}}</td>
                 <td>{{buyPrice}}</td>
-                <td title="{{packId}}">{{source}}</td>
+                {{#unless ../isShop}}<td title="{{packId}}">{{source}}</td>{{/unless}}
+                {{#if ../isShop}}<td title="{{stockTitle}}">{{stockLabel}}</td>{{/if}}
                 <td>
                   <div class="mlm-actions">
-                    <button type="button" class="mlm-buy-button" title="Buy {{name}}" data-action="buyItem" data-pack-id="{{packId}}" data-document-id="{{documentId}}">
+                    <button type="button" class="mlm-buy-button" title="{{#if ../isShop}}Add {{name}} to cart{{else}}Buy {{name}}{{/if}}" data-action="buyItem" data-pack-id="{{packId}}" data-document-id="{{documentId}}" {{#if ../isShop}}{{#unless canAddToCart}}disabled{{/unless}}{{else}}{{#unless ../canBuy}}disabled{{/unless}}{{/if}}>
                       <i class="fa-solid fa-cart-plus"></i>
                     </button>
+                    {{#if cartQty}}<span class="mlm-cart-qty">{{cartQty}}</span>{{/if}}
                   </div>
                 </td>
               </tr>
             {{else}}
               <tr>
-                <td colspan="7" class="mlm-empty-results">
+                <td colspan="{{#if isShop}}5{{else}}7{{/if}}" class="mlm-empty-results">
                   <i class="fa-solid fa-magnifying-glass"></i>
                   No items match the selected filters.
                 </td>
@@ -248,5 +255,37 @@
         </table>
       </div>
     </main>
+
+    {{#if isShop}}
+      <aside class="mlm-cart-panel">
+        <div class="mlm-cart-heading">
+          <div class="mlm-cart-title"><i class="fa-solid fa-cart-shopping"></i><strong>Cart</strong></div>
+          <span class="mlm-cart-count">{{cartCount}}</span>
+        </div>
+        <div class="mlm-cart-items">
+          {{#each cartItems}}
+            <div class="mlm-cart-line">
+              <img src="{{img}}" alt="{{name}}" data-link data-uuid="{{uuid}}" title="Open {{name}}">
+              <div>
+                <a class="content-link mlm-cart-item-name" data-link data-uuid="{{uuid}}">{{name}}</a>
+                <span>{{quantity}} × {{buyPrice}}</span>
+                <small>{{lineTotal}}</small>
+              </div>
+              <button type="button" data-action="removeFromCart" data-cart-key="{{packId}}:{{documentId}}" title="Remove one"><i class="fa-solid fa-minus"></i></button>
+            </div>
+          {{else}}
+            <div class="mlm-cart-empty"><i class="fa-solid fa-basket-shopping"></i><span>Your cart is empty.</span></div>
+          {{/each}}
+        </div>
+        <div class="mlm-cart-footer">
+          <div><span>Purchase Total</span><strong>{{cartTotal}}</strong></div>
+          <div><span>Remaining After Purchase</span><strong>{{cartRemaining}}</strong></div>
+          <button type="button" class="primary" data-action="checkoutCart" {{#unless canCheckout}}disabled{{/unless}}>
+            {{#if isCheckingOut}}<i class="fa-solid fa-spinner fa-spin"></i> Purchasing…{{else}}<i class="fa-solid fa-coins"></i> Purchase{{/if}}
+          </button>
+          {{#if cartCount}}<button type="button" data-action="clearCart"><i class="fa-solid fa-trash"></i> Clear Cart</button>{{/if}}
+        </div>
+      </aside>
+    {{/if}}
   </div>
 </section>

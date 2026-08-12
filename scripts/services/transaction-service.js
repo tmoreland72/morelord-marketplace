@@ -15,6 +15,13 @@ export class TransactionService {
       .replaceAll("'", "&#039;");
   }
 
+
+  static contentLink(uuid, label) {
+    const safeLabel = this.escape(label);
+    if (!uuid) return `<strong>${safeLabel}</strong>`;
+    return `<a class="content-link" data-link data-uuid="${this.escape(uuid)}">${safeLabel}</a>`;
+  }
+
   static getTransaction(message) {
     return message?.getFlag(MODULE_ID, FLAGS.TRANSACTION) ?? null;
   }
@@ -42,13 +49,19 @@ export class TransactionService {
     );
   }
 
-  static async post({ type, actor, itemName, quantity, priceCp }) {
+  static async post({ type, actor, fundingActor = actor, itemName, quantity, priceCp, shop = null }) {
     const enabled = game.settings.get(MODULE_ID, "postTransactionCards");
     if (!enabled) return null;
 
     const verb = type === "sell" ? "sold" : "bought";
     const price = CurrencyService.formatCp(priceCp);
-    const approvalBypassed = this.wasApprovalBypassed(type);
+    const approvalBypassed = !shop && this.wasApprovalBypassed(type);
+    const fundingNotice = type === "buy" && fundingActor?.id && fundingActor.id !== actor.id
+      ? `<p><strong>Paid from:</strong> ${this.escape(fundingActor.name)}</p>`
+      : "";
+    const shopNotice = shop?.name
+      ? `<p><strong>Shop:</strong> ${this.escape(shop.name)}</p>`
+      : "";
 
     const bypassNotice = approvalBypassed
       ? `
@@ -68,8 +81,40 @@ export class TransactionService {
         <div class="morelord-marketplace-card mlm-transaction-card mlm-transaction-complete">
           <div class="mlm-transaction-source">Morelord Marketplace</div>
           <p><strong>${this.escape(actor.name)}</strong> ${verb} <strong>${quantity} × ${this.escape(itemName)}</strong>.</p>
+          ${shopNotice}
           <p><strong>Total:</strong> ${this.escape(price)}</p>
+          ${fundingNotice}
           ${bypassNotice}
+        </div>
+      `
+    });
+  }
+
+  static async postCartPurchase({ actor, fundingActor = actor, shop, items = [] }) {
+    const enabled = game.settings.get(MODULE_ID, "postTransactionCards");
+    if (!enabled || !items.length) return null;
+
+    const totalCp = items.reduce((sum, item) => sum + Number(item.totalPriceCp ?? 0), 0);
+    const itemRows = items.map(item => `
+      <div class="mlm-cart-chat-line">
+        ${item.img ? `<img src="${this.escape(item.img)}" alt="${this.escape(item.name)}">` : ""}
+        <span><strong>${Number(item.quantity ?? 1)} ×</strong> ${this.contentLink(item.uuid, item.name)}</span>
+        <span>${this.escape(CurrencyService.formatCp(item.totalPriceCp ?? 0))}</span>
+      </div>
+    `).join("");
+    const fundingNotice = fundingActor?.id && fundingActor.id !== actor.id
+      ? `<p><strong>Paid from:</strong> ${this.escape(fundingActor.name)}</p>`
+      : "";
+
+    return ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor }),
+      content: `
+        <div class="morelord-marketplace-card mlm-transaction-card mlm-transaction-complete mlm-cart-transaction-card">
+          <div class="mlm-transaction-source">Morelord Marketplace</div>
+          <p><strong>${this.escape(actor.name)}</strong> purchased from <strong>${this.escape(shop?.name ?? "Marketplace Shop")}</strong>.</p>
+          <div class="mlm-cart-chat-items">${itemRows}</div>
+          <p><strong>Total:</strong> ${this.escape(CurrencyService.formatCp(totalCp))}</p>
+          ${fundingNotice}
         </div>
       `
     });
@@ -78,6 +123,7 @@ export class TransactionService {
   static async createPending({
     type,
     actor,
+    fundingActor = actor,
     requestedByUserId,
     itemName,
     itemImg,
@@ -93,6 +139,8 @@ export class TransactionService {
       requestedByUserId,
       actorUuid: actor.uuid,
       actorName: actor.name,
+      fundingActorUuid: fundingActor?.uuid ?? actor.uuid,
+      fundingActorName: fundingActor?.name ?? actor.name,
       itemName,
       itemImg,
       quantity,
@@ -138,6 +186,7 @@ export class TransactionService {
           <div>
             <p><strong>${this.escape(transaction.actorName)}</strong> requested to ${action} <strong>${transaction.quantity} × ${this.escape(transaction.itemName)}</strong>.</p>
             <p><strong>Total:</strong> ${this.escape(price)}</p>
+            ${transaction.type === "buy" && transaction.fundingActorUuid !== transaction.actorUuid ? `<p><strong>Paying from:</strong> ${this.escape(transaction.fundingActorName)}</p>` : ""}
           </div>
         </div>
         <div class="mlm-approval-status mlm-status-pending">
@@ -197,6 +246,7 @@ export class TransactionService {
         </div>
         <p><strong>${this.escape(transaction.actorName)}</strong>'s request to ${action} <strong>${transaction.quantity} × ${this.escape(transaction.itemName)}</strong> was ${approved ? "approved" : denied ? "denied" : "not completed"}.</p>
         <p><strong>Total:</strong> ${this.escape(price)}</p>
+        ${transaction.type === "buy" && transaction.fundingActorUuid !== transaction.actorUuid ? `<p><strong>Paid from:</strong> ${this.escape(transaction.fundingActorName)}</p>` : ""}
         ${reason ? `<p class="mlm-resolution-reason">${this.escape(reason)}</p>` : ""}
         <div class="mlm-resolution-meta">Resolved by ${this.escape(resolverName)}</div>
       </div>

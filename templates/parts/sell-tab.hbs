@@ -33,11 +33,11 @@
                 <td>{{sellPrice}}</td>
                 <td>
                     <div class="mlm-actions">
-                        <button type="button" data-action="sellOne" data-item-id="{{ownedItemId}}" title="Sell One">
+                        <button type="button" data-action="sellOne" data-item-id="{{ownedItemId}}" title="Sell One" {{#unless ../canSell}}disabled{{/unless}}>
                         <i class="fa-solid fa-coin"></i>
                         </button>
 
-                        <button type="button" data-action="sellAll" data-item-id="{{ownedItemId}}" title="Sell All">
+                        <button type="button" data-action="sellAll" data-item-id="{{ownedItemId}}" title="Sell All" {{#unless ../canSell}}disabled{{/unless}}>
                         <i class="fa-solid fa-sack-dollar"></i>
                         </button>
                     </div>

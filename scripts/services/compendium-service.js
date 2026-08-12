@@ -37,16 +37,33 @@ export class CompendiumService {
     this.catalogCache.clear();
   }
 
-  static async getBuyableCatalog() {
+  static clearCatalogCache() {
+    this.catalogCache.clear();
+  }
+
+  static async prewarmIndexes() {
     const packs = this.getAllowedPacks();
-    const currentShop = ShopService.getCurrentShop();
+    await Promise.allSettled(packs.map(pack => this.getPackIndex(pack)));
+  }
+
+  static async getBuyableCatalog(shop = null) {
+    const packs = this.getAllowedPacks();
+    const currentShop = shop;
 
     const cacheKey = JSON.stringify({
       packs: packs
         .map(pack => pack.collection)
         .sort(),
       shopId: currentShop?.id ?? null,
-      priceModifier: currentShop?.priceModifier ?? 1
+      shop: currentShop ? {
+        id: currentShop.id,
+        buyModifier: currentShop.buyModifier,
+        reputation: currentShop.reputation,
+        inventoryMode: currentShop.inventoryMode,
+        compendiums: [...(currentShop.compendiums ?? [])].sort(),
+        itemTypes: [...(currentShop.itemTypes ?? [])].sort(),
+        rarities: [...(currentShop.rarities ?? [])].map(value => ShopService.normalizeRarity(value)).sort()
+      } : null
     });
 
     if (this.catalogCache.has(cacheKey)) {
@@ -77,8 +94,8 @@ export class CompendiumService {
     return catalog;
   }
 
-  static async getBuyableItems(filters = {}) {
-    const catalog = await this.getBuyableCatalog();
+  static async getBuyableItems(filters = {}, shop = null) {
+    const catalog = await this.getBuyableCatalog(shop);
     return this.filterRows(catalog, filters);
   }
 
@@ -250,6 +267,7 @@ export class CompendiumService {
         "system.identifier",
         "system.source",
         `flags.${MODULE_ID}.${FLAGS.PURCHASABLE}`,
+        `flags.${MODULE_ID}.customPrice`,
         "flags.morelord-craftworks.purchasable"
       ]
     });
@@ -264,17 +282,6 @@ export class CompendiumService {
     entry,
     shop
   ) {
-    if (
-      shop &&
-      !ShopService.entryPassesShop(
-        entry,
-        shop,
-        pack.collection
-      )
-    ) {
-      return null;
-    }
-
     // An explicit false flag means the item may still have monetary
     // value and be sellable, but it must never appear in the Buy catalog.
     if (!PurchaseEligibilityService.isPurchasable(entry)) {
@@ -283,9 +290,7 @@ export class CompendiumService {
 
     let itemData = entry;
 
-    let priceCp = PricingService.getItemPriceCp({
-      system: entry.system ?? {}
-    });
+    let priceCp = PricingService.getItemPriceCp(entry);
 
     const missingFilterData =
       entry.system?.type === undefined ||
@@ -300,7 +305,15 @@ export class CompendiumService {
     const missingSourceData =
       !this.hasUsableSource(entry.system?.source);
 
-    if (!priceCp || missingFilterData || missingSourceData) {
+    // Shops only need the compact indexed data to browse. Avoid hydrating full
+    // documents for missing source/property metadata; the actual document is
+    // fetched only when the item is purchased. The global Marketplace retains
+    // the richer hydration behavior for its broader filtering/search UI.
+    if (shop && !priceCp) return null;
+
+    const requiresDocument = !shop && (!priceCp || missingFilterData || missingSourceData);
+
+    if (requiresDocument) {
       const document = await pack.getDocument(
         entry._id
       );
@@ -350,7 +363,7 @@ export class CompendiumService {
     const sourceKey =
       this.normalizeSourceKey(source);
 
-    return {
+    const row = {
       documentId: entry._id,
       packId: pack.collection,
       uuid:
@@ -385,6 +398,14 @@ export class CompendiumService {
       requiresAttunement:
         this.requiresAttunement(system)
     };
+
+    // Apply shop product rules only after Marketplace has normalized the item.
+    // This keeps shop inventory classification identical to the normal Buy tab.
+    if (shop && !ShopService.entryPassesShop(row, shop, pack.collection)) {
+      return null;
+    }
+
+    return row;
   }
 
   static getSubtypeKey(typeKey, system) {
@@ -736,8 +757,12 @@ export class CompendiumService {
 
   static async buyCompendiumItem({
     actor,
+    fundingActor = actor,
     packId,
-    documentId
+    documentId,
+    shop = null,
+    priceCpOverride = null,
+    suppressPost = false
   }) {
     if (
       !game.settings.get(
@@ -791,21 +816,22 @@ export class CompendiumService {
       return;
     }
 
-    const currentShop =
-      ShopService.getCurrentShop();
-
-    let priceCp =
-      PricingService.getItemPriceCp(item);
-
-    priceCp =
-      PricingService.applyShopModifier(
-        priceCp,
-        currentShop
+    let priceCp = priceCpOverride;
+    if (!Number.isFinite(priceCp)) {
+      priceCp = PricingService.getBuyPriceCp(
+        PricingService.getItemPriceCp(item),
+        shop
       );
+    }
+
+    if (priceCp === null) {
+      ui.notifications.warn(`${shop?.name ?? "This shop"} will not trade with you at your current reputation.`);
+      return { status: "blocked" };
+    }
 
     if (
-      !CurrencyService.canAfford(
-        actor,
+      !fundingActor || !CurrencyService.canAfford(
+        fundingActor,
         priceCp
       )
     ) {
@@ -813,26 +839,28 @@ export class CompendiumService {
         "You cannot afford that item."
       );
 
-      return;
+      return { status: "unaffordable" };
     }
 
-    if (TransactionApprovalService.requiresApproval("buy")) {
+    if (!shop && TransactionApprovalService.requiresApproval("buy")) {
       await TransactionApprovalService.requestBuy({
         actor,
+        fundingActor,
         packId,
         documentId,
         item,
-        priceCp
+        priceCp,
+        shopId: shop?.id ?? null
       });
-      return;
+      return { status: "pending", priceCp };
     }
 
     const originalCurrencyCp = CurrencyService.currencyToCp(
-      CurrencyService.getCurrency(actor)
+      CurrencyService.getCurrency(fundingActor)
     );
 
     await CurrencyService.deductCurrency(
-      actor,
+      fundingActor,
       priceCp
     );
 
@@ -842,17 +870,23 @@ export class CompendiumService {
         [item.toObject()]
       );
     } catch (error) {
-      await CurrencyService.setCurrency(actor, originalCurrencyCp);
+      await CurrencyService.setCurrency(fundingActor, originalCurrencyCp);
       throw error;
     }
 
-    await TransactionService.post({
-      type: "buy",
-      actor,
-      itemName: item.name,
-      quantity: 1,
-      priceCp
-    });
+    if (!suppressPost) {
+      await TransactionService.post({
+        type: "buy",
+        actor,
+        fundingActor,
+        itemName: item.name,
+        quantity: 1,
+        priceCp,
+        shop
+      });
+    }
+
+    return { status: "completed", priceCp, itemName: item.name, itemImg: item.img };
   }
 
   static dedupeRows(rows) {

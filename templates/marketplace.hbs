@@ -2,44 +2,94 @@
   <header class="mlm-market-header">
     <div class="mlm-brand-row">
       <div class="mlm-brand">
-        <i class="fa-solid fa-store"></i>
+        {{#if isShop}}
+          <img class="mlm-shop-brand-image" src="{{shopImg}}" alt="{{shopName}}">
+        {{else}}
+          <i class="fa-solid fa-store"></i>
+        {{/if}}
 
         <div>
-          <h1>Morelord Marketplace</h1>
-          <span>Buy, sell, and manage adventuring gear</span>
+          <h1>{{#if isShop}}{{shopName}}{{else}}Morelord Marketplace{{/if}}</h1>
+          <span>{{#if isShop}}Morelord Marketplace Vendor · Reputation: {{shopReputation}}{{else}}Buy, sell, and manage adventuring gear{{/if}}</span>
         </div>
       </div>
+      {{#if isShop}}
+        <div class="mlm-shop-header-actions">
+          <button type="button" data-action="refreshShop" title="Refresh shop inventory and clear the cart"><i class="fa-solid fa-rotate"></i> Refresh</button>
+          {{#if canManageShops}}<button type="button" class="mlm-manage-shops-button" data-action="manageShops"><i class="fa-solid fa-shop"></i> Manage Shops</button>{{/if}}
+        </div>
+      {{else if canManageShops}}
+        <button type="button" class="mlm-manage-shops-button" data-action="manageShops"><i class="fa-solid fa-shop"></i> Manage Shops</button>
+      {{/if}}
     </div>
 
-    {{#if actor}}
-      <div class="mlm-shopper-card">
-        <div class="mlm-shopper-identity">
-          <img
-            src="{{tokenImg}}"
-            alt="{{actor.name}}"
-            class="mlm-shopper-portrait">
-
-          <div class="mlm-shopper-copy">
-            <span class="mlm-shopper-label">
-              {{#if isGM}}
-                Marketplace for
-              {{else}}
-                Shopping as
-              {{/if}}
-            </span>
-
+    {{#if isShop}}
+      <div class="mlm-shopper-card mlm-shop-context-card">
+        <div class="mlm-shop-selector-block">
+          <span class="mlm-shopper-label">Shopping As</span>
+          {{#if showShopperSelector}}
+            <select data-mlm-shopper-select aria-label="Shopping As">
+              {{#each shopperOptions}}
+                <option value="{{id}}" {{#if selected}}selected{{/if}}>{{name}}</option>
+              {{/each}}
+            </select>
+          {{else if actor}}
             <strong>{{actor.name}}</strong>
-          </div>
+          {{else}}
+            <strong>No character selected</strong>
+          {{/if}}
+          <small>Purchased items go to this actor.</small>
+        </div>
+
+        <div class="mlm-shop-selector-block mlm-funding-selector-block">
+          <span class="mlm-shopper-label">Paying From</span>
+          {{#if showFundingSelector}}
+            <select data-mlm-funding-select aria-label="Paying From">
+              {{#each fundingOptions}}
+                <option value="{{id}}" {{#if selected}}selected{{/if}}>{{name}}{{#if typeLabel}} · {{typeLabel}}{{/if}}</option>
+              {{/each}}
+            </select>
+          {{else}}
+            <strong>No eligible funds actor</strong>
+          {{/if}}
+          <small>Purchase coin is deducted from this actor or group.</small>
         </div>
 
         <div class="mlm-shopper-wallet">
           <i class="fa-solid fa-coins"></i>
-
           <div>
             <span>Available Coin</span>
-            <strong>{{{currency}}}</strong>
+            <strong>{{#if fundingActor}}{{{currency}}}{{else}}—{{/if}}</strong>
           </div>
         </div>
+      </div>
+    {{else if actor}}
+      <div class="mlm-shopper-card">
+        <div class="mlm-shopper-identity">
+          <img src="{{tokenImg}}" alt="{{actor.name}}" class="mlm-shopper-portrait">
+          <div class="mlm-shopper-copy">
+            <span class="mlm-shopper-label">{{#if isGM}}Marketplace for{{else}}Shopping as{{/if}}</span>
+            <strong>{{actor.name}}</strong>
+          </div>
+        </div>
+        <div class="mlm-shopper-wallet">
+          <i class="fa-solid fa-coins"></i>
+          <div><span>Available Coin</span><strong>{{{currency}}}</strong></div>
+        </div>
+      </div>
+    {{/if}}
+
+    {{#if shopperNotice}}
+      <div class="mlm-shopper-notice">
+        <i class="fa-solid fa-user-tag"></i>
+        <span>{{shopperNotice}}</span>
+      </div>
+    {{/if}}
+
+    {{#if shopStale}}
+      <div class="mlm-shopper-notice mlm-shop-stale-notice">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <span>This shop changed after you opened it. Refresh the shop before purchasing. Refreshing clears the cart.</span>
       </div>
     {{/if}}
 

@@ -1,7 +1,12 @@
 import { MODULE_ID } from "../constants.js";
 import { ActorService } from "../services/actor-service.js";
 import { CurrencyService } from "../services/currency-service.js";
+import { TransactionService } from "../services/transaction-service.js";
 import { CompendiumService } from "../services/compendium-service.js";
+import { ShopService } from "../services/shop-service.js";
+import { MorelordShopManagerApp } from "./shop-manager-app.js";
+import { ShopTransactionService } from "../services/shop-transaction-service.js";
+import { EntitlementService } from "../services/entitlement-service.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -27,7 +32,13 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       clearSearch: MorelordMarketplaceApp.clearSearch,
       clearBuyFilters: MorelordMarketplaceApp.clearBuyFilters,
       cycleFacetFilter: MorelordMarketplaceApp.cycleFacetFilter,
-      toggleAffordable: MorelordMarketplaceApp.toggleAffordable
+      toggleAffordable: MorelordMarketplaceApp.toggleAffordable,
+      addToCart: MorelordMarketplaceApp.addToCart,
+      removeFromCart: MorelordMarketplaceApp.removeFromCart,
+      clearCart: MorelordMarketplaceApp.clearCart,
+      checkoutCart: MorelordMarketplaceApp.checkoutCart,
+      manageShops: MorelordMarketplaceApp.manageShops,
+      refreshShop: MorelordMarketplaceApp.refreshShop
     }
   };
 
@@ -38,13 +49,47 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
   };
 
   static instances = new Set();
+  static shopOpening = false;
+
+  static openShop(shopId) {
+    if (this.shopOpening) {
+      ui.notifications.info("A shop is already loading. Please wait.");
+      return null;
+    }
+
+    const existing = [...this.instances].find(app => app.shopId === shopId);
+    if (existing) {
+      // A previous render failure can leave an application instance registered
+      // even though its window is no longer visible. Re-rendering here makes the
+      // actor-sheet fallback deterministic instead of silently doing nothing.
+      void existing.render(true);
+      existing.bringToFront?.();
+      return existing;
+    }
+
+    this.shopOpening = true;
+    const app = new this({ shopId });
+    app.render(true);
+    return app;
+  }
 
   constructor(options = {}) {
     super(options);
     this.actor = ActorService.getMarketplaceActor();
-    this.activeTab = "sell";
+    this.actorId = this.actor?.id ?? null;
+    this.fundingActorId = null;
+    this.shopId = options.shopId ?? null;
+    this.shopSnapshot = this.shopId ? foundry.utils.deepClone(ShopService.getShop(this.shopId)) : null;
+    this.shopRevision = Number(this.shopSnapshot?.revision ?? 1);
+    this.activeTab = this.shopId ? "buy" : "sell";
     this.filters = this.getEmptyFilters();
-    this.isLoadingBuy = false;
+    this.cart = new Map();
+    this.isLoadingBuy = Boolean(this.shopId);
+    this._initialShopLoadStarted = false;
+    this._reservationListener = event => {
+      if (event?.detail?.shopId === this.shopId) void this.render();
+    };
+    window.addEventListener("mlm-shop-reservations", this._reservationListener);
     MorelordMarketplaceApp.instances.add(this);
   }
 
@@ -69,7 +114,17 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
 
   async close(options = {}) {
     MorelordMarketplaceApp.instances.delete(this);
+    window.removeEventListener("mlm-shop-reservations", this._reservationListener);
+    if (this.shopId) await ShopTransactionService.setReservation(this.shopId, {});
+    if (this.shopId && this.isLoadingBuy) MorelordMarketplaceApp.shopOpening = false;
     return super.close(options);
+  }
+
+  async syncCartReservation() {
+    if (!this.shopId) return;
+    const quantities = {};
+    for (const [key, entry] of this.cart.entries()) quantities[key] = Number(entry.quantity ?? 0);
+    await ShopTransactionService.setReservation(this.shopId, quantities);
   }
 
   static refreshForActor(actor) {
@@ -79,7 +134,40 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
   }
 
   async _prepareContext(options) {
-    const actor = this.actor ?? ActorService.getMarketplaceActor();
+    const liveShop = this.shopId ? ShopService.getShop(this.shopId) : null;
+    const shop = this.shopId ? (this.shopSnapshot ?? foundry.utils.deepClone(liveShop)) : null;
+    const shopStale = Boolean(shop && liveShop && Number(liveShop.revision ?? 1) !== Number(this.shopRevision ?? 1));
+    const shopperActors = shop ? ActorService.getShopperActors() : [];
+    const fundingActors = shop ? ActorService.getFundingActors() : [];
+
+    let actor = null;
+    if (shop) {
+      actor = shopperActors.find(candidate => candidate.id === this.actorId) ?? null;
+      if (!actor) {
+        const detected = ActorService.getMarketplaceActor();
+        actor = shopperActors.find(candidate => candidate.id === detected?.id)
+          ?? shopperActors[0]
+          ?? null;
+        this.actorId = actor?.id ?? null;
+      }
+    } else {
+      actor = ActorService.getMarketplaceActor();
+      this.actorId = actor?.id ?? null;
+    }
+    this.actor = actor;
+
+    let fundingActor = null;
+    if (shop) {
+      fundingActor = fundingActors.find(candidate => candidate.id === this.fundingActorId) ?? null;
+      if (!fundingActor && actor && ActorService.hasCurrency(actor)) {
+        fundingActor = fundingActors.find(candidate => candidate.id === actor.id) ?? null;
+      }
+      fundingActor ??= fundingActors[0] ?? null;
+      this.fundingActorId = fundingActor?.id ?? null;
+    } else {
+      fundingActor = actor;
+      this.fundingActorId = fundingActor?.id ?? null;
+    }
 
     const selectedToken = game.canvas?.tokens?.controlled?.find(
       token => token.actor?.id === actor?.id
@@ -95,50 +183,119 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
 
     const context = {
       actor,
+      fundingActor,
+      shop,
+      shopperOptions: shopperActors.map(candidate => ({
+        id: candidate.id,
+        name: candidate.name,
+        selected: candidate.id === actor?.id
+      })),
+      fundingOptions: fundingActors.map(candidate => ({
+        id: candidate.id,
+        name: candidate.name,
+        typeLabel: candidate.type === "group" ? "Group" : "Actor",
+        selected: candidate.id === fundingActor?.id
+      })),
+      showShopperSelector: Boolean(shop && (game.user.isGM || shopperActors.length > 1)),
+      showFundingSelector: Boolean(shop && fundingActors.length),
+      isShop: Boolean(shop),
+      shopName: shop?.name ?? null,
+      shopImg: shop?.img ?? "icons/svg/house.svg",
+      shopReputation: ShopService.getReputationTier(shop)?.label ?? null,
       tokenImg,
       isGM: game.user.isGM,
+      canManageShops: Boolean(game.user.isGM && EntitlementService.hasShopManager()),
+      shopStale,
+      shopRevision: this.shopRevision,
       activeTab: this.activeTab,
       isSellTab: this.activeTab === "sell",
       isBuyTab: this.activeTab === "buy",
       isSearchTab: this.activeTab === "search",
       isLoadingBuy: this.isLoadingBuy,
       filters: this.filters,
-      canSell: game.settings.get(MODULE_ID, "enableSelling"),
-      canBuy: game.settings.get(MODULE_ID, "enableBuying"),
+      canSell: shop ? (shop.allowSelling ?? true) : game.settings.get(MODULE_ID, "enableSelling"),
+      canBuy: shop ? (shop.allowBuying ?? true) : game.settings.get(MODULE_ID, "enableBuying"),
       sellItems: [],
       buyItems: [],
       buyFacets: null,
       buyResultCount: 0,
       hasBuyFilters: this.hasActiveBuyFilters(),
-      currency: null
+      currency: null,
+      cartItems: [],
+      cartTotal: "",
+      cartTotalCp: 0,
+      cartCount: 0,
+      cartRemaining: "",
+      cartRemainingCp: 0,
+      canCheckout: false,
+      isCheckingOut: Boolean(this.isCheckingOut)
     };
 
-    if (!actor) {
+    if (!actor && !shop) {
       context.error = game.user.isGM
         ? "Select a character token before opening the marketplace."
         : "No assigned character found. Please assign a character to your user.";
       return context;
     }
 
-    context.currency = CurrencyService.getCurrencyDisplay(actor);
+    if (!actor && shop) {
+      context.shopperNotice = game.user.isGM
+        ? "Select a character token to buy or sell. You can browse this shop now."
+        : "Select or assign your character to buy or sell. You can browse this shop now.";
+    }
+
+    if (fundingActor) context.currency = CurrencyService.getCurrencyDisplay(fundingActor);
 
     if (context.isSellTab) {
-      context.sellItems = await ActorService.getSellableItems(actor);
+      context.sellItems = actor ? await ActorService.getSellableItems(actor, { shop }) : [];
     }
 
     if (context.isBuyTab && !this.isLoadingBuy) {
-      const catalog = await CompendiumService.getBuyableCatalog();
-      const availableCurrencyCp = CurrencyService.currencyToCp(
-        CurrencyService.getCurrency(actor)
-      );
+      const catalog = await CompendiumService.getBuyableCatalog(shop);
+      const availableCurrencyCp = fundingActor
+        ? CurrencyService.currencyToCp(CurrencyService.getCurrency(fundingActor))
+        : 0;
       const runtimeFilters = {
         ...this.filters,
         availableCurrencyCp
       };
 
-      context.buyItems = CompendiumService.filterRows(catalog, runtimeFilters);
+      context.buyItems = CompendiumService.filterRows(catalog, runtimeFilters)
+        .filter(row => !shop || ShopService.isInStock(shop, row))
+        .map(row => {
+          const key = ShopService.stockKey(row);
+          const cartQty = this.cart.get(key)?.quantity ?? 0;
+          const stock = shop ? ShopService.getStock(shop, row) : Infinity;
+          const cartTotalBefore = [...this.cart.values()].reduce((sum, entry) => sum + entry.row.buyPriceCp * entry.quantity, 0);
+          const canAffordNext = cartTotalBefore + row.buyPriceCp <= availableCurrencyCp;
+          const reservedTotal = shop ? ShopTransactionService.getReserved(shop.id, key) : 0;
+          const effectiveReserved = Math.max(reservedTotal, cartQty);
+          const remainingStock = Number.isFinite(stock) ? Math.max(0, stock - effectiveReserved) : Infinity;
+          const stockAllowsNext = !Number.isFinite(stock) || remainingStock > 0;
+          return {
+            ...row,
+            cartQty,
+            reservedQty: effectiveReserved,
+            stockLabel: Number.isFinite(remainingStock) ? `${remainingStock}${effectiveReserved > 0 ? "*" : ""}` : "∞",
+            stockTitle: effectiveReserved > 0 ? `${effectiveReserved} unit(s) reserved in active shopping cart(s)` : "",
+            canAddToCart: Boolean(actor && fundingActor) && canAffordNext && stockAllowsNext && context.canBuy
+          };
+        });
       context.buyFacets = CompendiumService.buildFacets(catalog, this.filters);
       context.buyResultCount = context.buyItems.length;
+
+      context.cartItems = [...this.cart.values()].map(entry => ({
+        ...entry.row,
+        quantity: entry.quantity,
+        lineTotalCp: entry.row.buyPriceCp * entry.quantity,
+        lineTotal: CurrencyService.formatCp(entry.row.buyPriceCp * entry.quantity)
+      }));
+      context.cartTotalCp = context.cartItems.reduce((sum, entry) => sum + entry.lineTotalCp, 0);
+      context.cartTotal = CurrencyService.formatCp(context.cartTotalCp);
+      context.cartCount = context.cartItems.reduce((sum, entry) => sum + entry.quantity, 0);
+      context.cartRemainingCp = Math.max(0, availableCurrencyCp - context.cartTotalCp);
+      context.cartRemaining = CurrencyService.formatCp(context.cartRemainingCp);
+      context.canCheckout = !this.isCheckingOut && !shopStale && Boolean(actor && fundingActor) && context.cartCount > 0 && context.cartTotalCp <= availableCurrencyCp;
 
       const includedTypes = new Set(this.filters.types.include);
       context.showSubtypeFilters = Boolean(
@@ -157,6 +314,42 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
 
   _onRender(context, options) {
     super._onRender(context, options);
+
+    if (this.shopId && this.isLoadingBuy && !this._initialShopLoadStarted) {
+      this._initialShopLoadStarted = true;
+      queueMicrotask(async () => {
+        try {
+          await CompendiumService.getBuyableCatalog(this.shopSnapshot ?? ShopService.getShop(this.shopId));
+        } catch (error) {
+          console.error(`[${MODULE_ID}] Failed to load shop catalog`, error);
+          ui.notifications.error("Morelord Marketplace could not load this shop's inventory.");
+        } finally {
+          this.isLoadingBuy = false;
+          MorelordMarketplaceApp.shopOpening = false;
+          await this.render();
+        }
+      });
+    }
+
+    const shopperSelect = this.element.querySelector("[data-mlm-shopper-select]");
+    shopperSelect?.addEventListener("change", async event => {
+      const nextId = event.currentTarget.value || null;
+      if (nextId === this.actorId) return;
+      this.actorId = nextId;
+      this.actor = nextId ? game.actors.get(nextId) ?? null : null;
+      if (!this.fundingActorId || !ActorService.getFundingActors().some(candidate => candidate.id === this.fundingActorId)) {
+        this.fundingActorId = ActorService.hasCurrency(this.actor) ? this.actor?.id ?? null : null;
+      }
+      this.cart.clear();
+      await this.syncCartReservation();
+      await this.render();
+    });
+
+    const fundingSelect = this.element.querySelector("[data-mlm-funding-select]");
+    fundingSelect?.addEventListener("change", async event => {
+      this.fundingActorId = event.currentTarget.value || null;
+      await this.render();
+    });
 
     if (this.isLoadingBuy) return;
 
@@ -180,6 +373,11 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
         await this.render();
       });
     }
+  }
+
+  getFundingActor() {
+    if (!this.shopId) return this.actor;
+    return ActorService.getFundingActors().find(actor => actor.id === this.fundingActorId) ?? null;
   }
 
   hasActiveBuyFilters() {
@@ -257,7 +455,7 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
     await this.render();
 
     try {
-      await CompendiumService.getBuyableCatalog();
+      await CompendiumService.getBuyableCatalog(this.shopId ? (this.shopSnapshot ?? ShopService.getShop(this.shopId)) : null);
     } catch (error) {
       console.error(`[${MODULE_ID}] Failed to load the Buy catalog`, error);
       ui.notifications.error(
@@ -270,29 +468,179 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
   }
 
   static async sellOne(event, target) {
+    if (this.shopId && Number(ShopService.getShop(this.shopId)?.revision ?? 1) !== Number(this.shopRevision ?? 1)) { ui.notifications.warn("This shop changed. Refresh it before selling."); return; }
     const itemId = target.dataset.itemId;
-    await ActorService.sellItem(this.actor, itemId, 1);
+    await ActorService.sellItem(this.actor, itemId, 1, { shop: this.shopId ? this.shopSnapshot : null });
     await this.render();
   }
 
   static async sellAll(event, target) {
+    if (this.shopId && Number(ShopService.getShop(this.shopId)?.revision ?? 1) !== Number(this.shopRevision ?? 1)) { ui.notifications.warn("This shop changed. Refresh it before selling."); return; }
     const itemId = target.dataset.itemId;
     const item = this.actor.items.get(itemId);
     const quantity = item?.system.quantity ?? 1;
-    await ActorService.sellItem(this.actor, itemId, quantity);
+    await ActorService.sellItem(this.actor, itemId, quantity, { shop: this.shopId ? this.shopSnapshot : null });
     await this.render();
   }
 
   static async buyItem(event, target) {
     if (this.isLoadingBuy) return;
+    const shop = this.shopId ? this.shopSnapshot : null;
+    if (shop) return MorelordMarketplaceApp.addToCart.call(this, event, target);
+    if (!game.settings.get(MODULE_ID, "enableBuying")) {
+      ui.notifications.warn("Buying through the global Marketplace is disabled.");
+      return;
+    }
 
     await CompendiumService.buyCompendiumItem({
       actor: this.actor,
+      fundingActor: this.actor,
       packId: target.dataset.packId,
       documentId: target.dataset.documentId
     });
-
     await this.render();
+  }
+
+  static async addToCart(event, target) {
+    event?.preventDefault?.();
+    const shop = this.shopSnapshot ?? ShopService.getShop(this.shopId);
+    if (!shop) return;
+    const catalog = await CompendiumService.getBuyableCatalog(shop);
+    const row = catalog.find(entry => entry.packId === target.dataset.packId && entry.documentId === target.dataset.documentId);
+    if (!row || !ShopService.isInStock(shop, row)) return;
+
+    const key = ShopService.stockKey(row);
+    const current = this.cart.get(key) ?? { row, quantity: 0 };
+    const stock = ShopService.getStock(shop, row);
+    const sharedReserved = ShopTransactionService.getReserved(shop.id, key);
+    const effectiveReserved = Math.max(sharedReserved, current.quantity);
+    if (Number.isFinite(stock) && effectiveReserved >= stock) {
+      ui.notifications.warn("That shop does not have any more unreserved stock of this item.");
+      return;
+    }
+
+    const fundingActor = this.getFundingActor();
+    if (!this.actor || !fundingActor) {
+      ui.notifications.warn("Select both a shopper and a source of purchase funds first.");
+      return;
+    }
+    const availableCp = CurrencyService.currencyToCp(CurrencyService.getCurrency(fundingActor));
+    const cartCp = [...this.cart.values()].reduce((sum, entry) => sum + entry.row.buyPriceCp * entry.quantity, 0);
+    if (cartCp + row.buyPriceCp > availableCp) {
+      ui.notifications.warn("You cannot afford to add that item to your cart.");
+      return;
+    }
+
+    this.cart.set(key, { row, quantity: current.quantity + 1 });
+    await this.syncCartReservation();
+    await this.render();
+  }
+
+  static async removeFromCart(event, target) {
+    event.preventDefault();
+    const key = target.dataset.cartKey;
+    const current = this.cart.get(key);
+    if (!current) return;
+    if (current.quantity <= 1) this.cart.delete(key);
+    else this.cart.set(key, { ...current, quantity: current.quantity - 1 });
+    await this.syncCartReservation();
+    await this.render();
+  }
+
+  static async clearCart(event) {
+    event.preventDefault();
+    this.cart.clear();
+    await this.syncCartReservation();
+    await this.render();
+  }
+
+  static async checkoutCart(event) {
+    event.preventDefault();
+    if (this.isCheckingOut) return;
+
+    const shop = this.shopSnapshot ?? ShopService.getShop(this.shopId);
+    const fundingActor = this.getFundingActor();
+    if (!shop || !this.actor || !fundingActor || !this.cart.size) return;
+
+    const requestItems = [...this.cart.values()].map(entry => ({
+      packId: entry.row.packId,
+      documentId: entry.row.documentId,
+      quantity: entry.quantity,
+      priceCp: entry.row.buyPriceCp
+    }));
+
+    this.isCheckingOut = true;
+    await this.render();
+
+    let result;
+    try {
+      result = await ShopTransactionService.checkout({
+        shopId: shop.id,
+        actorId: this.actor.id,
+        fundingActorId: fundingActor.id,
+        items: requestItems,
+        expectedRevision: this.shopRevision
+      });
+    } catch (error) {
+      console.error(`[${MODULE_ID}] Shop checkout failed`, error);
+      result = { ok: false, error: error?.message ?? "The shop purchase failed." };
+    } finally {
+      this.isCheckingOut = false;
+    }
+
+    if (!result?.ok) {
+      ui.notifications.error(result?.error ?? "The shop purchase failed. No changes were kept.");
+      await this.render();
+      return;
+    }
+
+    this.cart.clear();
+    await this.syncCartReservation();
+    if (this.shopSnapshot) {
+      this.shopSnapshot.stock = foundry.utils.deepClone(result.stock ?? this.shopSnapshot.stock ?? {});
+      this.shopSnapshot.revision = Number(result.shopRevision ?? this.shopRevision ?? 1);
+      this.shopRevision = Number(this.shopSnapshot.revision ?? 1);
+    }
+    await TransactionService.postCartPurchase({
+      actor: this.actor,
+      fundingActor,
+      shop,
+      items: result.items ?? []
+    });
+    ui.notifications.info(`Purchased ${(result.items ?? []).reduce((sum, line) => sum + Number(line.quantity ?? 0), 0)} item(s) from ${shop.name}.`);
+    await this.render();
+  }
+
+  static async manageShops(event) {
+    event.preventDefault();
+    if (!EntitlementService.hasShopManager()) {
+      ui.notifications.warn("Shop Manager requires the Marketplace Shop Manager premium feature.");
+      return;
+    }
+    new MorelordShopManagerApp({ shopId: this.shopId }).render(true);
+  }
+
+  static async refreshShop(event) {
+    event?.preventDefault?.();
+    if (!this.shopId || this.isLoadingBuy || this.isCheckingOut) return;
+    const latest = ShopService.getShop(this.shopId);
+    if (!latest) {
+      ui.notifications.error("This shop no longer exists.");
+      return;
+    }
+    this.cart.clear();
+    await this.syncCartReservation();
+    this.shopSnapshot = foundry.utils.deepClone(latest);
+    this.shopRevision = Number(latest.revision ?? 1);
+    this.isLoadingBuy = true;
+    await this.render();
+    try {
+      CompendiumService.clearCatalogCache();
+      await CompendiumService.getBuyableCatalog(this.shopSnapshot);
+    } finally {
+      this.isLoadingBuy = false;
+      await this.render();
+    }
   }
 
   static async cycleFacetFilter(event, target) {

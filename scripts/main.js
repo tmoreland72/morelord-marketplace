@@ -4,9 +4,15 @@ import {
   initializeDefaultCompendiums
 } from "./settings.js";
 import { MorelordMarketplaceApp } from "./apps/marketplace-app.js";
+import { MorelordMarketplaceSettingsApp } from "./apps/marketplace-settings-app.js";
+import { MorelordShopManagerApp } from "./apps/shop-manager-app.js";
+import { ShopService } from "./services/shop-service.js";
+import { ActorService } from "./services/actor-service.js";
+import { CompendiumService } from "./services/compendium-service.js";
 import { TransactionApprovalService } from "./services/transaction-approval-service.js";
 import { Logger } from "./logger.js";
 import { EntitlementService } from "./services/entitlement-service.js";
+import { ShopTransactionService } from "./services/shop-transaction-service.js";
 
 Logger.log("main.js loaded");
 
@@ -18,29 +24,109 @@ Hooks.once("init", async () => {
   await foundry.applications.handlebars.loadTemplates([
     `modules/${MODULE_ID}/templates/parts/buy-tab.hbs`,
     `modules/${MODULE_ID}/templates/parts/sell-tab.hbs`,
-    `modules/${MODULE_ID}/templates/marketplace-settings.hbs`
+    `modules/${MODULE_ID}/templates/marketplace-settings.hbs`,
+    `modules/${MODULE_ID}/templates/shop-manager.hbs`
   ]);
 
   Logger.log("Templates loaded");
 });
 
+function installShopTokenInteraction() {
+  const TokenClass = foundry.canvas.placeables.Token;
+  const proto = TokenClass?.prototype;
+  if (!proto || typeof proto._onClickLeft2 !== "function") {
+    Logger.warn("Unable to install shop token double-click handler: Token._onClickLeft2 not found.");
+    return;
+  }
+
+  if (proto._onClickLeft2?._mlmShopWrapper) return;
+
+  const originalTokenDoubleClick = proto._onClickLeft2;
+  const wrappedShopDoubleClick = function(event) {
+    const shop = ShopService.getShopForToken(this);
+    if (!shop) return originalTokenDoubleClick.call(this, event);
+
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+
+    // Do not allow Foundry's normal actor-sheet path to race the Marketplace.
+    // A shop token always means "open this shop".
+    MorelordMarketplaceApp.openShop(shop.id);
+    return false;
+  };
+  Object.defineProperty(wrappedShopDoubleClick, "_mlmShopWrapper", { value: true });
+  proto._onClickLeft2 = wrappedShopDoubleClick;
+}
+
+
+function installShopActorSheetRedirect(actor) {
+  const ActorClass = foundry.documents.Actor;
+  if (!(actor instanceof ActorClass) || !ShopService.getShopForActor(actor)) return;
+
+  const sheet = actor.sheet;
+  if (!sheet || typeof sheet.render !== "function") return;
+  if (sheet.render?._mlmShopActorRedirect) return;
+
+  const originalRender = sheet.render.bind(sheet);
+  const redirectedRender = function(...args) {
+    const shop = ShopService.getShopForActor(actor);
+    if (!shop) return originalRender(...args);
+
+    // Redirect before Foundry creates or inserts any Actor-sheet HTML. This is
+    // deliberately installed on the generated shop Actor as well as on the
+    // Token double-click path so another module cannot cause a sheet flash by
+    // replacing Token interaction handlers later in startup.
+    MorelordMarketplaceApp.openShop(shop.id);
+    return sheet;
+  };
+  Object.defineProperty(redirectedRender, "_mlmShopActorRedirect", { value: true });
+  sheet.render = redirectedRender;
+}
+
+function installAllShopActorSheetRedirects() {
+  for (const actor of game.actors ?? []) installShopActorSheetRedirect(actor);
+}
+
 Hooks.once("ready", async () => {
   Logger.log("Ready");
 
   await initializeDefaultCompendiums();
+
+  // Warm only the lightweight compendium indexes in the background. This makes
+  // the first shop open much faster without delaying Foundry's ready sequence.
+  void CompendiumService.prewarmIndexes().catch(error =>
+    Logger.warn("Unable to prewarm Marketplace compendium indexes", error)
+  );
+
   TransactionApprovalService.initialize();
+  ShopTransactionService.initialize();
+  installShopTokenInteraction();
 
   if (game.user.isGM) {
     await EntitlementService.refresh({ quiet: true });
+    await ShopService.ensureAllShopActorAccess();
   }
 
+  installAllShopActorSheetRedirects();
+
   game.modules.get(MODULE_ID).api = {
-    openMarketplace: () => new MorelordMarketplaceApp().render(true),
+    openMarketplace: options => new MorelordMarketplaceApp(options ?? {}).render(true),
+    openShop: shopId => MorelordMarketplaceApp.openShop(shopId),
+    manageShops: () => {
+      if (!EntitlementService.hasShopManager()) { ui.notifications.warn("Shop Manager requires the Marketplace Shop Manager premium feature."); return null; }
+      return new MorelordShopManagerApp().render(true);
+    },
     hasPremiumApprovals: () => EntitlementService.hasGmApprovals(),
+    hasShopManager: () => EntitlementService.hasShopManager(),
     refreshEntitlements: options => EntitlementService.refresh(options)
   };
 
   Logger.log("API registered");
+});
+
+Hooks.on("canvasReady", () => {
+  installShopTokenInteraction();
+  installAllShopActorSheetRedirects();
 });
 
 Hooks.on("getSceneControlButtons", controls => {
@@ -56,10 +142,105 @@ Hooks.on("getSceneControlButtons", controls => {
     visible: true,
     onChange: () => new MorelordMarketplaceApp().render(true)
   };
+
+  if (game.user.isGM) {
+    tokenControls.tools.morelordMarketplaceShops = {
+      name: "morelordMarketplaceShops",
+      title: "Manage Marketplace Shops",
+      icon: "fa-solid fa-shop",
+      order: Object.keys(tokenControls.tools).length,
+      button: true,
+      visible: true,
+      onChange: async () => {
+        if (!EntitlementService.hasShopManager()) {
+          // Give Morelord Core one opportunity to refresh before denying access.
+          await EntitlementService.refresh({ quiet: true });
+        }
+        if (!EntitlementService.hasShopManager()) {
+          ui.notifications.warn("Shop Manager requires Marketplace Premium or Champion access.");
+          return;
+        }
+        new MorelordShopManagerApp().render(true);
+      }
+    };
+  }
+});
+
+Hooks.on("renderTokenHUD", (app, html) => {
+  const token = app?.object ?? canvas?.tokens?.get?.(app?.document?.id);
+  const shop = ShopService.getShopForToken(token);
+  if (!shop) return;
+
+  const root = html?.querySelector ? html : html?.[0];
+  if (!root || root.querySelector("[data-mlm-open-shop]")) return;
+
+  const button = document.createElement("div");
+  button.className = "control-icon mlm-token-shop-control";
+  button.dataset.mlmOpenShop = shop.id;
+  button.title = `Shop at ${shop.name}`;
+  button.innerHTML = '<i class="fa-solid fa-cart-shopping"></i>';
+  button.addEventListener("click", event => {
+    event.preventDefault();
+    event.stopPropagation();
+    MorelordMarketplaceApp.openShop(shop.id);
+  });
+
+  const column = root.querySelector(".col.right") ?? root.querySelector(".col.left") ?? root;
+  column.append(button);
+});
+
+const redirectedShopSheets = new WeakSet();
+
+const redirectShopActorSheet = (app, html) => {
+  const actor = app?.actor ?? app?.document ?? app?.object;
+  if (!(actor instanceof foundry.documents.Actor)) return;
+
+  const shop = ShopService.getShopForActor(actor);
+  if (!shop || redirectedShopSheets.has(app)) return;
+  redirectedShopSheets.add(app);
+
+  // A shop token is an interaction point, not a normal NPC sheet. Any Foundry
+  // attempt to open the generated actor is redirected into Marketplace instead.
+  queueMicrotask(async () => {
+    try {
+      await app.close?.({ force: true });
+    } catch (_) {
+      // Some legacy sheets do not accept close options; closing is best effort.
+      try { await app.close?.(); } catch (_) {}
+    }
+
+    MorelordMarketplaceApp.openShop(shop.id);
+  });
+};
+
+Hooks.on("renderActorSheetV2", redirectShopActorSheet);
+Hooks.on("renderActorSheet", redirectShopActorSheet);
+Hooks.on("renderApplicationV2", (app, html) => {
+  const actor = app?.actor ?? app?.document ?? app?.object;
+  if (actor instanceof foundry.documents.Actor && ShopService.getShopForActor(actor)) {
+    redirectShopActorSheet(app, html);
+  }
+});
+
+Hooks.on("controlToken", () => {
+  // Token selection may establish the initial shopper for a newly opened shop,
+  // but an open shop's explicit Shopping As selector is authoritative.
 });
 
 Hooks.on("updateActor", actor => {
+  installShopActorSheetRedirect(actor);
   MorelordMarketplaceApp.refreshForActor(actor);
+});
+
+Hooks.on("createActor", actor => {
+  queueMicrotask(() => installShopActorSheetRedirect(actor));
+});
+
+Hooks.on("updateSetting", setting => {
+  if (setting?.key !== `${MODULE_ID}.shops`) return;
+  for (const app of MorelordMarketplaceApp.instances) {
+    if (app.shopId) void app.render();
+  }
 });
 
 Hooks.on("createItem", item => {

@@ -38,17 +38,14 @@ A modern, immersive marketplace for **Foundry Virtual Tabletop** that allows cha
 
 ---
 
-### 👤 Character Aware
+### 👤 Actor and Funding Aware
 
-Marketplace automatically opens for:
+The global Marketplace uses the active player character or selected token as appropriate. Shops provide explicit selectors when more control is needed:
 
-- the logged-in player's assigned character
+- **Shopping As** determines which player character receives purchased items.
+- **Paying From** determines which player character or Group actor supplies the currency.
 
-or
-
-- the currently selected token (GM)
-
-allowing the GM to quickly shop as any character.
+This allows a character to receive an item while a shared party Group actor pays for it.
 
 ---
 
@@ -70,12 +67,13 @@ Clicking an item opens the original compendium entry.
 
 With an active **Morelord Tools Premium** or **Tools Champion** membership:
 
-- Require GM approval for player purchases
-- Require GM approval for player sales
+- Require GM approval for player purchases in the global Marketplace
+- Require GM approval for player sales in the global Marketplace
+- Use **Shop Manager** to create, configure, restock, place, import, and export scene vendors
 - Manage access through the shared Morelord Core module
 - Continue using cached access during temporary website outages
 
-Standard buying and selling remain free. Existing world data is never removed when premium access expires.
+The global Marketplace remains Standard. Existing world data is never removed when premium access expires.
 
 ---
 
@@ -83,12 +81,13 @@ Standard buying and selling remain free. Existing world data is never removed wh
 
 Game Masters can configure:
 
-- Buying enabled
-- Selling enabled
+- Global Marketplace buying enabled/disabled
+- Global Marketplace selling enabled/disabled
 - Sell percentage
 - Allowed compendiums
-- Shop pricing modifiers *(future)*
-- Shop inventories *(future)*
+- Shop pricing, reputation, inventory, stock, and restocking rules *(Shop Manager premium feature)*
+
+Shop definitions are stored in the Foundry world setting `morelord-marketplace.shops`. Shop Manager can export a shop to a portable JSON definition and import that definition into another world. Actor/token UUIDs are intentionally excluded from exported definitions and are recreated in the destination world.
 
 ---
 
@@ -118,19 +117,17 @@ Install this URL using:
 
 ### Players
 
-Open the Marketplace using the Marketplace button on the Token controls.
+Open the global Marketplace using the Marketplace button on the Token controls, or interact with a placed shop token to browse that vendor.
 
-Browse available items, filter the catalog, and purchase equipment using your character's currency.
-
-Switch to the Sell tab to sell unwanted items.
+The global Marketplace can be used for buying, selling, or lookup depending on the GM's world settings. Shops use their own inventory, stock, pricing, reputation, and buy/sell rules.
 
 ---
 
 ### Game Masters
 
-Select any player token before opening the Marketplace to shop as that character.
+Use the global Marketplace for unrestricted catalog access, or open **Shop Manager** from the scene controls to create and manage premium scene vendors.
 
-Configure available compendiums under:
+Configure available compendiums and global buy/sell behavior under:
 
 ```
 Game Settings
@@ -141,29 +138,27 @@ Game Settings
 
 ---
 
-## Considering Features
+## Shop Manager
 
-- Shopkeepers
-- Multiple shops
-- Regional inventories
-- Reputation discounts
-- Faction pricing
-- Limited stock
-- Restocking
-- Random inventory generation
-- Shopping carts
-- Crafting integration
-- Item Piles integration
-- Roll Tables for shop generation
-- Currency exchange
-- Merchant portraits
-- Buyback inventory
-- Black markets
-- Magic item vendors
-- Price history
-- Shopping journal integration
+Shop Manager is a premium Marketplace feature for building reusable scene vendors without duplicating Marketplace item data. Shops use the same configured catalog as the global Buy tab, then apply vendor-specific filters and rules.
 
----
+A shop can define:
+
+- product types and rarities
+- unlimited, limited, or hybrid inventory
+- randomized stock and restocking rules
+- buy and sell price modifiers
+- party reputation pricing
+- whether buying and/or selling is allowed
+- separate shopper and funding actors
+
+Limited-stock shops support shared cart reservations. Restocks and stock-changing purchases advance the shop revision; stale open shops must be refreshed before another purchase can complete. Refreshing also clears the local cart so the player is always working from current stock.
+
+Shop definitions are world data stored in `morelord-marketplace.shops`. Use **Export Shop** and **Import Shop** to move configured shops between worlds. Exported definitions intentionally omit world-specific Actor and token UUIDs.
+
+### Global Marketplace vs. Shops
+
+The global Marketplace remains available as the Standard catalog/lookup experience. GMs can independently disable global buying and global selling while leaving catalog browsing available to players. Shop Manager is premium and provides constrained scene vendors with stock, pricing, reputation, and restocking rules.
 
 ## Morelord Modules
 
@@ -200,7 +195,7 @@ Before a normal release, create `RELEASE-NOTES-x.y.z.md`. The same Markdown file
 Set the website publishing token once in your PowerShell environment:
 
 ```powershell
-$env:MORELORD_RELEASE_TOKEN = "<release publish token>"
+$env:RELEASE_PUBLISH_TOKEN = "<release publish token>"
 ```
 
 Validate without changing Git, GitHub, or the website:
@@ -225,3 +220,7 @@ If GitHub release creation succeeds but website publication fails, retry only th
 
 Use `-SkipWebsitePublish` only when intentionally creating a normal GitHub/Foundry release that should not appear on the Morelord website.
 
+
+### Limited-stock quantities
+
+Random inventory rarity counts control how many different product listings are selected during a restock. Each selected limited-stock product also receives a randomized quantity: Common 1–6, Uncommon 1–4, Rare 1–2, and Very Rare/Legendary 1. This is independent of the "Allow duplicate random items" option.

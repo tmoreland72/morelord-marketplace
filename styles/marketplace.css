@@ -48,6 +48,16 @@
   opacity: 0.9;
 }
 
+.morelord-marketplace .mlm-shop-brand-image {
+  flex: 0 0 auto;
+  width: 52px;
+  height: 52px;
+  border: 1px solid var(--color-border-light-primary);
+  border-radius: 8px;
+  object-fit: cover;
+  background: rgba(255, 255, 255, 0.04);
+}
+
 .morelord-marketplace .mlm-brand h1 {
   margin: 0;
   font-size: 2rem;
@@ -1138,4 +1148,502 @@
 
 .mlm-inline-account-button i {
   font-size: 0.68rem;
+}
+
+/* Shops / vendors */
+.morelord-marketplace .mlm-brand-row { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.morelord-marketplace .mlm-manage-shops-button { width:auto; white-space:nowrap; }
+.mlm-token-shop-control { cursor:pointer; }
+
+.morelord-marketplace .mlm-buy-layout { grid-template-columns: 230px minmax(0, 1fr); }
+.morelord-marketplace .mlm-buy-layout:has(.mlm-cart-panel) { grid-template-columns: 220px minmax(0, 1fr) 260px; }
+.morelord-marketplace .mlm-cart-panel { display:flex; flex-direction:column; min-width:0; border-left:1px solid var(--color-border-light-primary); background:rgba(0,0,0,.06); }
+.morelord-marketplace .mlm-cart-heading { display:flex; align-items:center; justify-content:space-between; padding:12px; border-bottom:1px solid var(--color-border-light-primary); }
+.morelord-marketplace .mlm-cart-heading h3 { margin:0; }
+.morelord-marketplace .mlm-cart-items { overflow:auto; flex:1; padding:8px; display:flex; flex-direction:column; gap:8px; }
+.morelord-marketplace .mlm-cart-line { display:grid; grid-template-columns:36px 1fr 28px; gap:8px; align-items:center; padding:8px; border:1px solid var(--color-border-light-primary); border-radius:6px; background:rgba(255,255,255,.04); }
+.morelord-marketplace .mlm-cart-line img { width:36px; height:36px; object-fit:cover; border:0; border-radius:4px; }
+.morelord-marketplace .mlm-cart-line div { min-width:0; display:flex; flex-direction:column; }
+.morelord-marketplace .mlm-cart-line strong { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.morelord-marketplace .mlm-cart-line span,.morelord-marketplace .mlm-cart-line small { opacity:.8; }
+.morelord-marketplace .mlm-cart-footer { padding:10px; border-top:1px solid var(--color-border-light-primary); display:flex; flex-direction:column; gap:8px; }
+.morelord-marketplace .mlm-cart-footer > div { display:flex; justify-content:space-between; font-size:1.05em; }
+.morelord-marketplace .mlm-cart-empty { display:flex; flex-direction:column; align-items:center; gap:8px; opacity:.65; padding:32px 8px; text-align:center; }
+.morelord-marketplace .mlm-cart-qty { min-width:18px; height:18px; display:inline-flex; align-items:center; justify-content:center; border-radius:999px; font-size:11px; font-weight:700; background:rgba(255,255,255,.15); }
+
+.mlm-shop-manager .window-content { padding:0; overflow:hidden; }
+.mlm-shop-manager-shell { height:100%; display:grid; grid-template-columns:300px minmax(0,1fr); min-height:0; }
+.mlm-shop-list-panel { padding:14px; overflow:auto; border-right:1px solid var(--color-border-light-primary); background:rgba(0,0,0,.08); }
+.mlm-shop-manager-heading h2,.mlm-shop-editor-header h2 { margin:0; }
+.mlm-shop-manager-heading p,.mlm-shop-editor-header p { margin:4px 0 12px; opacity:.75; }
+.mlm-shop-preset-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:14px; }
+.mlm-shop-preset-grid button { min-height:52px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; }
+.mlm-shop-list { display:flex; flex-direction:column; gap:5px; }
+.mlm-shop-list-item { display:flex; align-items:center; justify-content:flex-start; gap:8px; text-align:left; }
+.mlm-shop-list-item.active { outline:2px solid var(--color-border-highlight); }
+.mlm-shop-empty { padding:20px 8px; text-align:center; opacity:.7; }
+.mlm-shop-editor-panel { min-width:0; overflow:auto; padding:16px; }
+.mlm-shop-editor-header { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:12px; }
+.mlm-shop-editor-actions { display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end; }
+.mlm-shop-editor-actions button { width:auto; white-space:nowrap; }
+.mlm-shop-section-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.mlm-shop-config-card { border:1px solid var(--color-border-light-primary); border-radius:8px; padding:12px; display:flex; flex-direction:column; gap:9px; background:rgba(255,255,255,.025); }
+.mlm-shop-config-card h3 { margin:0 0 4px; }
+.mlm-shop-config-card > label { display:grid; gap:4px; }
+.mlm-shop-config-wide { grid-column:1/-1; }
+.mlm-two-column-fields,.mlm-option-columns { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.mlm-inline-checks { display:flex; gap:14px; flex-wrap:wrap; }
+.mlm-option-columns > div { display:flex; flex-direction:column; gap:5px; }
+.mlm-stock-counts { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
+.mlm-stock-counts label { display:grid; gap:3px; }
+.mlm-shop-editor-footer { margin-top:12px; display:flex; justify-content:flex-end; }
+.mlm-shop-editor-footer button { width:auto; }
+.mlm-shop-editor-empty { height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; opacity:.7; text-align:center; }
+.mlm-shop-editor-empty i { font-size:42px; }
+button.primary { font-weight:700; }
+button.danger { border-color:#9b3b3b; }
+
+
+/* Shop-first browsing state: the vendor opens even before a customer is selected. */
+.mlm-shopper-notice {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0.6rem 0 0.8rem;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--color-border-light-2, rgba(0,0,0,0.22));
+  border-radius: 6px;
+  background: rgba(0,0,0,0.05);
+}
+.mlm-shopper-notice i { flex: 0 0 auto; }
+
+/* Shop customer and purchase-funds selectors */
+.morelord-marketplace .mlm-shop-context-card {
+  align-items: stretch;
+}
+
+.morelord-marketplace .mlm-shop-selector-block {
+  display: flex;
+  flex: 1 1 260px;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.morelord-marketplace .mlm-shop-selector-block select {
+  width: 100%;
+  min-width: 180px;
+}
+
+.morelord-marketplace .mlm-shop-selector-block small {
+  opacity: 0.65;
+  line-height: 1.2;
+}
+
+.morelord-marketplace .mlm-funding-selector-block {
+  padding-left: 1rem;
+  border-left: 1px solid var(--color-border-light-primary);
+}
+
+@media (max-width: 760px) {
+  .morelord-marketplace .mlm-shop-context-card {
+    flex-direction: column;
+  }
+  .morelord-marketplace .mlm-funding-selector-block,
+  .morelord-marketplace .mlm-shopper-wallet {
+    padding-left: 0;
+    border-left: 0;
+  }
+}
+
+/* Phase 2 shop loading / compact layout refinements */
+.mlm-shop-manager-shell {
+  position: relative;
+}
+
+.mlm-shop-working-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  background: rgba(10, 9, 14, 0.72);
+  backdrop-filter: blur(2px);
+  pointer-events: all;
+}
+
+.mlm-shop-working-card {
+  display: flex;
+  min-width: 300px;
+  max-width: 440px;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 1.4rem 1.7rem;
+  border: 1px solid var(--color-border-highlight, #8064a2);
+  border-radius: 10px;
+  background: var(--color-cool-5, #23212a);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
+  text-align: center;
+}
+
+.mlm-shop-working-card i {
+  font-size: 1.8rem;
+}
+
+.mlm-shop-working-card span {
+  opacity: 0.72;
+}
+
+.mlm-file-picker-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 38px;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.mlm-file-picker-row button {
+  width: 38px;
+  min-width: 38px;
+  padding: 0;
+}
+
+.morelord-marketplace .mlm-buy-loading {
+  min-height: 260px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2rem;
+  text-align: left;
+}
+
+.morelord-marketplace .mlm-buy-loading > i {
+  font-size: 2rem;
+}
+
+.morelord-marketplace .mlm-buy-loading > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.morelord-marketplace .mlm-buy-loading strong {
+  font-size: 1.1rem;
+}
+
+.morelord-marketplace .mlm-buy-loading span {
+  opacity: 0.7;
+}
+
+/* Shops trade three metadata columns for breathing room and a better cart. */
+.morelord-marketplace .mlm-buy-layout:has(.mlm-cart-panel) {
+  grid-template-columns: 220px minmax(430px, 1fr) 285px;
+}
+
+.morelord-marketplace .mlm-cart-panel {
+  min-width: 285px;
+  border-left: 1px solid var(--color-border-light-primary);
+}
+
+.morelord-marketplace .mlm-cart-heading {
+  min-height: 48px;
+  padding: 10px 12px;
+}
+
+.morelord-marketplace .mlm-cart-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 1rem;
+}
+
+.morelord-marketplace .mlm-cart-title i {
+  font-size: 1.15rem;
+}
+
+.morelord-marketplace .mlm-cart-count {
+  display: inline-flex;
+  min-width: 24px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.morelord-marketplace .mlm-cart-items {
+  padding: 10px;
+  gap: 7px;
+}
+
+.morelord-marketplace .mlm-cart-line {
+  grid-template-columns: 42px minmax(0, 1fr) 30px;
+  gap: 9px;
+  padding: 8px;
+}
+
+.morelord-marketplace .mlm-cart-line img {
+  width: 42px;
+  height: 42px;
+}
+
+.morelord-marketplace .mlm-cart-line button {
+  width: 30px;
+  min-width: 30px;
+  height: 30px;
+  padding: 0;
+}
+
+.morelord-marketplace .mlm-cart-footer {
+  position: sticky;
+  bottom: 0;
+  padding: 10px 12px;
+  background: var(--color-cool-5, #23212a);
+}
+
+.morelord-marketplace .mlm-cart-footer button {
+  width: 100%;
+}
+
+@media (max-width: 1050px) {
+  .morelord-marketplace .mlm-buy-layout:has(.mlm-cart-panel) {
+    grid-template-columns: 190px minmax(360px, 1fr) 245px;
+  }
+  .morelord-marketplace .mlm-cart-panel {
+    min-width: 245px;
+  }
+}
+
+/* Consolidated shop purchase chat cards */
+.morelord-marketplace-card .mlm-cart-chat-items {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 8px 0;
+}
+
+.morelord-marketplace-card .mlm-cart-chat-line {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.morelord-marketplace-card .mlm-cart-chat-line:last-child {
+  border-bottom: 0;
+}
+
+.morelord-marketplace-card .mlm-cart-chat-line img {
+  width: 30px;
+  height: 30px;
+  object-fit: cover;
+  border: 0;
+}
+
+/* Shop cart refinements */
+.morelord-marketplace .mlm-cart-line img[data-link],
+.morelord-marketplace .mlm-cart-item-name[data-link] { cursor: pointer; }
+.morelord-marketplace .mlm-cart-item-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.morelord-marketplace .mlm-cart-footer > div { gap: 12px; }
+.morelord-marketplace .mlm-cart-footer > div span { opacity: .82; }
+.morelord-marketplace .mlm-cart-footer > div strong { text-align: right; }
+
+/* Phase 2 shop cart sizing and refresh/state controls */
+.morelord-marketplace .mlm-buy-layout:has(.mlm-cart-panel) {
+  grid-template-columns: 220px minmax(440px, 1fr) 235px;
+}
+.morelord-marketplace .mlm-cart-panel { min-width: 235px; }
+.morelord-marketplace .mlm-cart-line {
+  grid-template-columns: 34px minmax(0, 1fr) 26px;
+  gap: 7px;
+  padding: 7px;
+}
+.morelord-marketplace .mlm-cart-line img { width: 34px; height: 34px; }
+.morelord-marketplace .mlm-cart-line button { width: 26px; min-width: 26px; height: 26px; }
+.morelord-marketplace .mlm-cart-items { padding: 7px; }
+.morelord-marketplace .mlm-cart-footer { padding: 8px 9px; }
+.morelord-marketplace .mlm-cart-footer > div { font-size: .95em; }
+.morelord-marketplace .mlm-shop-header-actions { display:flex; gap:8px; align-items:center; }
+.morelord-marketplace .mlm-shop-stale-notice {
+  border-color: var(--color-level-warning-border, #a36b00);
+  background: color-mix(in srgb, var(--color-level-warning-bg, #5b3b00) 72%, transparent);
+}
+.mlm-shop-manager .mlm-shop-manager-heading { gap: 10px; align-items: flex-start; }
+.mlm-shop-manager .mlm-shop-manager-heading > button { flex: 0 0 auto; }
+.mlm-shop-manager .mlm-shop-editor-footer { display:flex; justify-content:space-between; gap:10px; }
+@media (max-width: 1050px) {
+  .morelord-marketplace .mlm-buy-layout:has(.mlm-cart-panel) {
+    grid-template-columns: 185px minmax(360px, 1fr) 215px;
+  }
+  .morelord-marketplace .mlm-cart-panel { min-width: 215px; }
+}
+
+/* Shop Manager library cleanup */
+.mlm-shop-manager-shell { grid-template-columns: 340px minmax(0,1fr); }
+.mlm-shop-list-panel { padding: 16px; }
+.mlm-shop-manager .mlm-shop-manager-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: start;
+  margin-bottom: 14px;
+}
+.mlm-shop-manager-title { min-width: 0; }
+.mlm-shop-manager-eyebrow {
+  display: block;
+  margin-bottom: 3px;
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  opacity: .58;
+}
+.mlm-shop-manager .mlm-shop-manager-heading h2 {
+  font-size: 1.65rem;
+  line-height: 1.05;
+}
+.mlm-shop-manager .mlm-shop-manager-heading p {
+  margin: 6px 0 0;
+  font-size: .88rem;
+  line-height: 1.35;
+}
+.mlm-shop-import-button {
+  width: auto;
+  min-width: 0;
+  height: 34px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.mlm-shop-preset-grid {
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+  margin-bottom: 18px;
+}
+.mlm-shop-preset-grid .mlm-shop-preset-card {
+  min-height: 54px;
+  padding: 8px 10px;
+  display: grid;
+  grid-template-columns: 30px minmax(0,1fr);
+  gap: 8px;
+  align-items: center;
+  justify-items: start;
+  text-align: left;
+  line-height: 1.15;
+}
+.mlm-shop-preset-icon {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+  background: rgba(255,255,255,.06);
+  font-size: .95rem;
+}
+.mlm-shop-library-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 2px 2px 8px;
+  border-bottom: 1px solid var(--color-border-light-primary);
+  margin-bottom: 8px;
+}
+.mlm-shop-library-heading h3 { margin: 0; font-size: 1rem; }
+.mlm-shop-count {
+  min-width: 24px;
+  height: 22px;
+  padding: 0 7px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(255,255,255,.08);
+  font-size: .75rem;
+  font-weight: 700;
+  opacity: .82;
+}
+.mlm-shop-list { gap: 8px; }
+.mlm-shop-list-item.mlm-shop-card {
+  width: 100%;
+  min-height: 78px;
+  padding: 8px;
+  display: grid;
+  grid-template-columns: 58px minmax(0,1fr) 14px;
+  gap: 10px;
+  align-items: center;
+  text-align: left;
+  border-radius: 9px;
+  overflow: hidden;
+}
+.mlm-shop-list-item.mlm-shop-card.active {
+  outline: 1px solid var(--color-border-highlight);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-border-highlight) 35%, transparent), 0 0 12px color-mix(in srgb, var(--color-border-highlight) 18%, transparent);
+}
+.mlm-shop-card-image {
+  width: 58px;
+  height: 58px;
+  object-fit: cover;
+  border: 0;
+  border-radius: 7px;
+  background: rgba(255,255,255,.05);
+}
+.mlm-shop-card-body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.mlm-shop-card-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 700;
+  font-size: .96rem;
+}
+.mlm-shop-card-type {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: .76rem;
+  opacity: .68;
+}
+.mlm-shop-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+.mlm-shop-card-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 18px;
+  padding: 1px 6px;
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 999px;
+  background: rgba(255,255,255,.045);
+  font-size: .64rem;
+  font-weight: 600;
+  line-height: 1;
+  opacity: .82;
+}
+.mlm-shop-card-tag i { font-size: .62rem; }
+.mlm-shop-card-chevron { font-size: .7rem; opacity: .35; }
+.mlm-shop-card:hover .mlm-shop-card-chevron,
+.mlm-shop-card.active .mlm-shop-card-chevron { opacity: .8; }
+
+@media (max-width: 980px) {
+  .mlm-shop-manager-shell { grid-template-columns: 300px minmax(0,1fr); }
+  .mlm-shop-manager .mlm-shop-manager-heading { grid-template-columns: 1fr; }
+  .mlm-shop-import-button { width: 100%; justify-content: center; }
 }
