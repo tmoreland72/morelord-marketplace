@@ -62,7 +62,8 @@ export class CompendiumService {
         inventoryMode: currentShop.inventoryMode,
         compendiums: [...(currentShop.compendiums ?? [])].sort(),
         itemTypes: [...(currentShop.itemTypes ?? [])].sort(),
-        rarities: [...(currentShop.rarities ?? [])].map(value => ShopService.normalizeRarity(value)).sort()
+        rarities: [...(currentShop.rarities ?? [])].map(value => ShopService.normalizeRarity(value)).sort(),
+        prefabItemUuids: [...(currentShop.prefabItemUuids ?? [])].sort()
       } : null
     });
 

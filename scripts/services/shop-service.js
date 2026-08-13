@@ -1,5 +1,6 @@
 import { MODULE_ID, FLAGS } from "../constants.js";
 import { SHOP_TYPES, REPUTATION_TIERS, ShopProfileModel } from "../models/shop-profile.js";
+import { PrefabShopService } from "./prefab-shop-service.js";
 
 export class ShopService {
   static normalizeShop(shop) {
@@ -8,6 +9,7 @@ export class ShopService {
       ...shop,
       revision: Math.max(1, Number(shop.revision ?? 1)),
       stock: { ...(shop.stock ?? {}) },
+      prefabItemUuids: [...(shop.prefabItemUuids ?? [])],
       tokenUuids: [...(shop.tokenUuids ?? [])]
     };
   }
@@ -76,6 +78,45 @@ export class ShopService {
 
   static async createShop({ name, type = "general" } = {}) {
     const shop = ShopProfileModel.create({ name, type });
+    return this.saveShop(shop);
+  }
+
+
+  static async getPrefabStores() {
+    return PrefabShopService.getAvailablePrefabs({ minimumMatches: 8 });
+  }
+
+  static async createPrefabShop(prefabId) {
+    const prefab = await PrefabShopService.getPrefab(prefabId);
+    if (!prefab || prefab.matchedCount < 8) {
+      throw new Error("That prefab shop no longer has enough matching Marketplace items.");
+    }
+
+    const shop = ShopProfileModel.create({
+      name: prefab.name,
+      type: "custom"
+    });
+
+    shop.prefabId = prefab.id;
+    shop.prefabSource = {
+      name: prefab.source,
+      page: prefab.page,
+      shopkeeper: prefab.shopkeeper
+    };
+    shop.prefabItemUuids = prefab.matches.map(match => match.uuid);
+    shop.compendiums = [...new Set(prefab.matches.map(match => match.packId))];
+    shop.itemTypes = [];
+    shop.rarities = [];
+    shop.inventoryMode = "unlimited";
+    shop.randomInventory = {
+      ...(shop.randomInventory ?? {}),
+      enabled: false
+    };
+    shop.restock = {
+      ...(shop.restock ?? {}),
+      rule: "never"
+    };
+
     return this.saveShop(shop);
   }
 
@@ -221,6 +262,17 @@ export class ShopService {
 
   static entryPassesShop(entry, shop, packId) {
     if (!shop) return true;
+
+    if (shop.prefabItemUuids?.length) {
+      const documentId = entry?.documentId ?? entry?._id;
+      const uuid = entry?.uuid ?? (
+        packId && documentId
+          ? `Compendium.${packId}.Item.${documentId}`
+          : ""
+      );
+      return Boolean(uuid && shop.prefabItemUuids.includes(uuid));
+    }
+
     if (shop.compendiums?.length && !shop.compendiums.includes(packId)) return false;
     const type = String(entry?.typeKey ?? entry?.type ?? "").toLowerCase();
     if (shop.itemTypes?.length && !shop.itemTypes.map(value => String(value).toLowerCase()).includes(type)) return false;

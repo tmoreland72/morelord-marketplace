@@ -15,6 +15,7 @@
     "templates"
   ],
   "optionalPaths": [
+    "data",
     "assets",
     "lang",
     "LICENSE",

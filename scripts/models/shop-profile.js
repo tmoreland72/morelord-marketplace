@@ -118,6 +118,9 @@ export class ShopProfileModel {
       reputation: "neutral",
       inventoryMode: "hybrid",
       stock: {},
+      prefabId: null,
+      prefabSource: null,
+      prefabItemUuids: [],
       randomInventory: {
         enabled: true,
         counts: { common: 6, uncommon: 3, rare: 1, veryrare: 0, legendary: 0 },

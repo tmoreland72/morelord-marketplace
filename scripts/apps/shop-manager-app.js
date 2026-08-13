@@ -14,6 +14,7 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
     position: { width: 980, height: 720 },
     actions: {
       createShop: MorelordShopManagerApp.createShop,
+      createPrefabShop: MorelordShopManagerApp.createPrefabShop,
       selectShop: MorelordShopManagerApp.selectShop,
       saveShop: MorelordShopManagerApp.saveShop,
       deleteShop: MorelordShopManagerApp.deleteShop,
@@ -41,6 +42,13 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
     const selected = ShopService.getShop(this.selectedShopId) ?? shops[0] ?? null;
     if (selected && !this.selectedShopId) this.selectedShopId = selected.id;
 
+    let prefabs = [];
+    try {
+      prefabs = await ShopService.getPrefabStores();
+    } catch (error) {
+      console.warn(`[${MODULE_ID}] Unable to load prefab shops`, error);
+    }
+
     const itemTypeOptions = ["weapon", "equipment", "consumable", "tool", "loot", "container"];
     const rarityOptions = ["common", "uncommon", "rare", "veryrare", "legendary", "artifact"];
     const checked = (values, key) => values?.includes(key);
@@ -56,7 +64,9 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
       return {
         ...shop,
         selected: shop.id === selected?.id,
-        typeLabel: preset?.label ?? (shop.type ? shop.type.charAt(0).toUpperCase() + shop.type.slice(1) : "Custom"),
+        typeLabel: shop.prefabId
+          ? "Prefab Store"
+          : (preset?.label ?? (shop.type ? shop.type.charAt(0).toUpperCase() + shop.type.slice(1) : "Custom")),
         tags
       };
     });
@@ -88,6 +98,15 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
         ].map(behavior => ({ ...behavior, selected: behavior.key === selected.restock?.behavior }))
       } : null,
       presets: ShopService.getPresets(),
+      prefabs: prefabs.map(prefab => ({
+        id: prefab.id,
+        name: prefab.name,
+        shopkeeper: prefab.shopkeeper,
+        matchedCount: prefab.matchedCount,
+        totalItems: prefab.totalItems,
+        source: prefab.source,
+        page: prefab.page
+      })),
       isWorking: this.isWorking,
       workingMessage: this.workingMessage || "Working…"
     };
@@ -117,6 +136,36 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
     } catch (error) {
       console.error(`[${MODULE_ID}] Failed to create shop`, error);
       ui.notifications.error("Morelord Marketplace could not create that shop.");
+    } finally {
+      this.isWorking = false;
+      this.workingMessage = "";
+      await this.render();
+    }
+  }
+
+  static async createPrefabShop(event, target) {
+    event.preventDefault();
+    if (!EntitlementService.hasShopManager()) {
+      ui.notifications.warn("Shop Manager requires a premium Marketplace entitlement.");
+      return;
+    }
+    if (this.isWorking) return;
+
+    const prefabId = target.dataset.prefabId;
+    if (!prefabId) return;
+
+    this.isWorking = true;
+    this.workingMessage = "Creating prefab store…";
+    await this.render();
+
+    try {
+      const shop = await ShopService.createPrefabShop(prefabId);
+      this.selectedShopId = shop.id;
+      CompendiumService.clearCatalogCache();
+      ui.notifications.info(`${shop.name} created from prefab inventory.`);
+    } catch (error) {
+      console.error(`[${MODULE_ID}] Failed to create prefab shop`, error);
+      ui.notifications.error(error?.message ?? "Morelord Marketplace could not create that prefab store.");
     } finally {
       this.isWorking = false;
       this.workingMessage = "";

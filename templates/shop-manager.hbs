@@ -12,50 +12,97 @@
     <div class="mlm-shop-manager-heading">
       <div class="mlm-shop-manager-title">
         <span class="mlm-shop-manager-eyebrow">Vendor Library</span>
-        <h2>Shop Templates</h2>
-        <p>Start with a ready-made vendor type, then customize only what you need.</p>
+        <h2>Marketplace Shops</h2>
+        <p>Manage existing stores or start from a template or prefab.</p>
       </div>
       <button type="button" class="mlm-shop-import-button" data-action="importShop" title="Import a portable shop definition">
         <i class="fa-solid fa-file-import"></i><span>Import Shop</span>
       </button>
     </div>
 
-    <div class="mlm-shop-preset-grid">
-      {{#each presets}}
-        <button type="button" class="mlm-shop-preset-card" data-action="createShop" data-shop-type="{{key}}" title="Create {{label}}">
-          <span class="mlm-shop-preset-icon"><i class="fa-solid {{icon}}"></i></span>
-          <span>{{label}}</span>
-        </button>
-      {{/each}}
-    </div>
-
-    <div class="mlm-shop-library-heading">
-      <div>
-        <span class="mlm-shop-manager-eyebrow">Current World</span>
-        <h3>Shops</h3>
+    <section class="mlm-shop-library-section">
+      <div class="mlm-shop-library-heading">
+        <div>
+          <span class="mlm-shop-manager-eyebrow">Current World</span>
+          <h3>Existing Stores</h3>
+        </div>
+        <span class="mlm-shop-count">{{shops.length}}</span>
       </div>
-      <span class="mlm-shop-count">{{shops.length}}</span>
-    </div>
 
-    <div class="mlm-shop-list">
-      {{#each shops}}
-        <button type="button" class="mlm-shop-list-item mlm-shop-card {{#if selected}}active{{/if}}" data-action="selectShop" data-shop-id="{{id}}">
-          <img class="mlm-shop-card-image" src="{{img}}" alt="">
-          <span class="mlm-shop-card-body">
-            <span class="mlm-shop-card-name">{{name}}</span>
-            <span class="mlm-shop-card-type">{{typeLabel}}</span>
-            <span class="mlm-shop-card-tags">
-              {{#each tags}}
-                <span class="mlm-shop-card-tag"><i class="fa-solid {{icon}}"></i>{{label}}</span>
-              {{/each}}
+      <div class="mlm-shop-list">
+        {{#each shops}}
+          <button type="button" class="mlm-shop-list-item mlm-shop-card {{#if selected}}active{{/if}}" data-action="selectShop" data-shop-id="{{id}}">
+            <img class="mlm-shop-card-image" src="{{img}}" alt="">
+            <span class="mlm-shop-card-body">
+              <span class="mlm-shop-card-name">{{name}}</span>
+              <span class="mlm-shop-card-type">{{typeLabel}}</span>
+              <span class="mlm-shop-card-tags">
+                {{#each tags}}
+                  <span class="mlm-shop-card-tag"><i class="fa-solid {{icon}}"></i>{{label}}</span>
+                {{/each}}
+              </span>
             </span>
-          </span>
-          <i class="fa-solid fa-chevron-right mlm-shop-card-chevron"></i>
-        </button>
-      {{else}}
-        <div class="mlm-shop-empty">Choose a Shop Template above to create your first shop.</div>
-      {{/each}}
-    </div>
+            <i class="fa-solid fa-chevron-right mlm-shop-card-chevron"></i>
+          </button>
+        {{else}}
+          <div class="mlm-shop-empty">No stores have been created in this world yet.</div>
+        {{/each}}
+      </div>
+    </section>
+
+    <section class="mlm-shop-library-section">
+      <div class="mlm-shop-library-heading">
+        <div>
+          <span class="mlm-shop-manager-eyebrow">Quick Start</span>
+          <h3>Store Templates</h3>
+        </div>
+      </div>
+
+      <div class="mlm-shop-preset-grid">
+        {{#each presets}}
+          <button type="button" class="mlm-shop-preset-card" data-action="createShop" data-shop-type="{{key}}" title="Create {{label}}">
+            <span class="mlm-shop-preset-icon"><i class="fa-solid {{icon}}"></i></span>
+            <span>{{label}}</span>
+          </button>
+        {{/each}}
+      </div>
+    </section>
+
+    <section class="mlm-shop-library-section mlm-prefab-library-section">
+      <div class="mlm-shop-library-heading">
+        <div>
+          <span class="mlm-shop-manager-eyebrow">Shop Compendium</span>
+          <h3>Prefab Stores</h3>
+        </div>
+        <span class="mlm-shop-count">{{prefabs.length}}</span>
+      </div>
+
+      <p class="mlm-prefab-help">
+        Prefabs are shown only when at least 8 inventory items match the enabled Player's Handbook, Dungeon Master's Guide, SRD 5.1, or SRD 5.2 compendiums.
+      </p>
+
+      <div class="mlm-prefab-list">
+        {{#each prefabs}}
+          <button
+            type="button"
+            class="mlm-prefab-card"
+            data-action="createPrefabShop"
+            data-prefab-id="{{id}}"
+            title="Create {{name}} with {{matchedCount}} matched items">
+            <span class="mlm-prefab-card-icon"><i class="fa-solid fa-shop"></i></span>
+            <span class="mlm-prefab-card-body">
+              <strong>{{name}}</strong>
+              {{#if shopkeeper}}<small>{{shopkeeper}}</small>{{/if}}
+            </span>
+            <span class="mlm-prefab-match-count">{{matchedCount}} items</span>
+          </button>
+        {{else}}
+          <div class="mlm-shop-empty">
+            No prefab stores currently have at least 8 matching items in the supported enabled compendiums.
+          </div>
+        {{/each}}
+      </div>
+    </section>
   </aside>
 
   <main class="mlm-shop-editor-panel">

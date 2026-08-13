@@ -145,6 +145,7 @@ Shop Manager is a premium Marketplace feature for building reusable scene vendor
 A shop can define:
 
 - product types and rarities
+- prefab inventories generated from the Shop Compendium when at least 8 listed products match enabled Player's Handbook, Dungeon Master's Guide, SRD 5.1, or SRD 5.2 item compendiums
 - unlimited, limited, or hybrid inventory
 - randomized stock and restocking rules
 - buy and sell price modifiers

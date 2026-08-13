@@ -1647,3 +1647,81 @@ button.danger { border-color:#9b3b3b; }
   .mlm-shop-manager .mlm-shop-manager-heading { grid-template-columns: 1fr; }
   .mlm-shop-import-button { width: 100%; justify-content: center; }
 }
+
+/* Shop Manager library ordering and prefab stores */
+.mlm-shop-library-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.mlm-shop-library-section + .mlm-shop-library-section {
+  padding-top: 14px;
+  border-top: 1px solid var(--color-border-light-primary);
+}
+
+.mlm-prefab-help {
+  margin: -2px 0 4px;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  opacity: 0.68;
+}
+
+.mlm-prefab-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mlm-prefab-card {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  padding: 8px 9px;
+  text-align: left;
+}
+
+.mlm-prefab-card-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.mlm-prefab-card-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 2px;
+}
+
+.mlm-prefab-card-body strong,
+.mlm-prefab-card-body small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mlm-prefab-card-body small {
+  opacity: 0.65;
+}
+
+.mlm-prefab-match-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 54px;
+  padding: 3px 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 0.7rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
