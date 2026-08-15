@@ -8,6 +8,7 @@ import { TransactionService } from "./transaction-service.js";
 import { Logger } from "../logger.js";
 import { PurchaseEligibilityService } from "./purchase-eligibility-service.js";
 import { ShopService } from "./shop-service.js";
+import { EntitlementService } from "./entitlement-service.js";
 
 export class TransactionApprovalService {
   static initialized = false;
@@ -57,6 +58,12 @@ export class TransactionApprovalService {
 
   static requiresApproval(type) {
     if (game.user.isGM) return false;
+
+    // GM approvals are optional premium behavior. A saved approval setting
+    // must never block Standard buying or selling when no entitled account is
+    // connected; preserve the setting so it becomes active again if premium
+    // access returns.
+    if (!EntitlementService.hasGmApprovals()) return false;
 
     const setting = type === "sell"
       ? "requireSellApproval"
