@@ -14,9 +14,12 @@ A modern, immersive marketplace for **Foundry Virtual Tabletop** that allows cha
 - Filter by:
   - Item Type
   - Category
+  - Weapon Class
+  - Weapon Range
   - Rarity
   - Source Book
   - Weapon Properties
+  - Weapon Masteries
   - Attunement
   - Price Range
 - Show only items the current character can afford
@@ -34,6 +37,8 @@ A modern, immersive marketplace for **Foundry Virtual Tabletop** that allows cha
 - Sell one
 - Sell all
 - Configurable sell percentage
+- Sort inventory by name, type, quantity, list price, or sell price
+- Linked item names on transaction and approval chat cards
 - Automatically deposits currency into the character sheet
 
 ---

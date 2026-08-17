@@ -1,5 +1,15 @@
 <section class="mlm-tab mlm-sell-tab">
-    <h3>Available Inventory</h3>
+    <div class="mlm-sell-heading">
+        <h3>Available Inventory</h3>
+        <label class="mlm-sell-sort">
+            <span>Sort by</span>
+            <select data-mlm-sell-sort aria-label="Sort sell inventory">
+                {{#each sellSortOptions}}
+                    <option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>
+                {{/each}}
+            </select>
+        </label>
+    </div>
 
     <div class="mlm-table-container">
     <table>

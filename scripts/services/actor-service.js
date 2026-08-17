@@ -162,6 +162,7 @@ export class ActorService {
       return;
     }
     const totalSellCp = unitPriceCp * sellQty;
+    const itemUuid = item.getFlag("core", "sourceId") ?? item.uuid;
 
     if (!shop && TransactionApprovalService.requiresApproval("sell")) {
       await TransactionApprovalService.requestSell({
@@ -186,6 +187,7 @@ export class ActorService {
       type: "sell",
       actor,
       itemName: item.name,
+      itemUuid,
       quantity: sellQty,
       priceCp: totalSellCp,
       shop

@@ -14,7 +14,7 @@
   </div>
 
   <div class="mlm-buy-layout">
-    <aside class="mlm-filter-sidebar" aria-label="Buy item filters">
+    <aside class="mlm-filter-sidebar" aria-label="Buy item filters" data-mlm-preserve-scroll="buy-filters">
       <div class="mlm-filter-search">
         <label for="mlm-buy-search">Search</label>
         <div class="mlm-search">
@@ -95,6 +95,32 @@
         </section>
       {{/if}}
 
+      {{#if showWeaponFilters}}
+        <section class="mlm-filter-group">
+          <h4>Weapon Class</h4>
+          <div class="mlm-filter-options">
+            {{#each buyFacets.weaponCategories}}
+              <button type="button" class="mlm-tristate-filter state-{{state}}" data-action="cycleFacetFilter" data-filter-group="weaponCategories" data-filter-value="{{value}}" title="{{stateTitle}}">
+                {{#if isIncluded}}<i class="fa-solid fa-square-check"></i>{{else if isExcluded}}<i class="fa-solid fa-square-minus"></i>{{else}}<i class="fa-regular fa-square"></i>{{/if}}
+                <span>{{label}}</span><small>{{count}}</small>
+              </button>
+            {{/each}}
+          </div>
+        </section>
+
+        <section class="mlm-filter-group">
+          <h4>Weapon Range</h4>
+          <div class="mlm-filter-options">
+            {{#each buyFacets.weaponRanges}}
+              <button type="button" class="mlm-tristate-filter state-{{state}}" data-action="cycleFacetFilter" data-filter-group="weaponRanges" data-filter-value="{{value}}" title="{{stateTitle}}">
+                {{#if isIncluded}}<i class="fa-solid fa-square-check"></i>{{else if isExcluded}}<i class="fa-solid fa-square-minus"></i>{{else}}<i class="fa-regular fa-square"></i>{{/if}}
+                <span>{{label}}</span><small>{{count}}</small>
+              </button>
+            {{/each}}
+          </div>
+        </section>
+      {{/if}}
+
       {{#if showPropertyFilters}}
         <section class="mlm-filter-group">
           <h4>Weapon Properties</h4>
@@ -116,6 +142,20 @@
                 {{/if}}
                 <span>{{label}}</span>
                 <small>{{count}}</small>
+              </button>
+            {{/each}}
+          </div>
+        </section>
+      {{/if}}
+
+      {{#if showMasteryFilters}}
+        <section class="mlm-filter-group">
+          <h4>Weapon Masteries</h4>
+          <div class="mlm-filter-options">
+            {{#each buyFacets.masteries}}
+              <button type="button" class="mlm-tristate-filter state-{{state}}" data-action="cycleFacetFilter" data-filter-group="masteries" data-filter-value="{{value}}" title="{{stateTitle}}">
+                {{#if isIncluded}}<i class="fa-solid fa-square-check"></i>{{else if isExcluded}}<i class="fa-solid fa-square-minus"></i>{{else}}<i class="fa-regular fa-square"></i>{{/if}}
+                <span>{{label}}</span><small>{{count}}</small>
               </button>
             {{/each}}
           </div>

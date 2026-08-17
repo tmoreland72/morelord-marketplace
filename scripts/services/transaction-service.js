@@ -22,6 +22,16 @@ export class TransactionService {
     return `<a class="content-link" data-link data-uuid="${this.escape(uuid)}">${safeLabel}</a>`;
   }
 
+  static getItemUuid(transaction) {
+    if (transaction?.itemUuid) return transaction.itemUuid;
+    if (transaction?.payload?.itemUuid) return transaction.payload.itemUuid;
+
+    const { packId, documentId } = transaction?.payload ?? {};
+    return packId && documentId
+      ? `Compendium.${packId}.Item.${documentId}`
+      : null;
+  }
+
   static getTransaction(message) {
     return message?.getFlag(MODULE_ID, FLAGS.TRANSACTION) ?? null;
   }
@@ -49,7 +59,7 @@ export class TransactionService {
     );
   }
 
-  static async post({ type, actor, fundingActor = actor, itemName, quantity, priceCp, shop = null }) {
+  static async post({ type, actor, fundingActor = actor, itemName, itemUuid = null, quantity, priceCp, shop = null }) {
     const enabled = game.settings.get(MODULE_ID, "postTransactionCards");
     if (!enabled) return null;
 
@@ -80,7 +90,7 @@ export class TransactionService {
       content: `
         <div class="morelord-marketplace-card mlm-transaction-card mlm-transaction-complete">
           <div class="mlm-transaction-source">Morelord Marketplace</div>
-          <p><strong>${this.escape(actor.name)}</strong> ${verb} <strong>${quantity} × ${this.escape(itemName)}</strong>.</p>
+          <p><strong>${this.escape(actor.name)}</strong> ${verb} <strong>${quantity} ×</strong> ${this.contentLink(itemUuid, itemName)}.</p>
           ${shopNotice}
           <p><strong>Total:</strong> ${this.escape(price)}</p>
           ${fundingNotice}
@@ -126,6 +136,7 @@ export class TransactionService {
     fundingActor = actor,
     requestedByUserId,
     itemName,
+    itemUuid = null,
     itemImg,
     quantity,
     unitPriceCp,
@@ -142,6 +153,7 @@ export class TransactionService {
       fundingActorUuid: fundingActor?.uuid ?? actor.uuid,
       fundingActorName: fundingActor?.name ?? actor.name,
       itemName,
+      itemUuid,
       itemImg,
       quantity,
       unitPriceCp,
@@ -184,7 +196,7 @@ export class TransactionService {
         <div class="mlm-transaction-summary">
           ${transaction.itemImg ? `<img src="${this.escape(transaction.itemImg)}" alt="${this.escape(transaction.itemName)}">` : ""}
           <div>
-            <p><strong>${this.escape(transaction.actorName)}</strong> requested to ${action} <strong>${transaction.quantity} × ${this.escape(transaction.itemName)}</strong>.</p>
+            <p><strong>${this.escape(transaction.actorName)}</strong> requested to ${action} <strong>${transaction.quantity} ×</strong> ${this.contentLink(this.getItemUuid(transaction), transaction.itemName)}.</p>
             <p><strong>Total:</strong> ${this.escape(price)}</p>
             ${transaction.type === "buy" && transaction.fundingActorUuid !== transaction.actorUuid ? `<p><strong>Paying from:</strong> ${this.escape(transaction.fundingActorName)}</p>` : ""}
           </div>
@@ -211,7 +223,7 @@ export class TransactionService {
     return `
       <div class="morelord-marketplace-card mlm-approval-card">
         <div class="mlm-transaction-source">Morelord Marketplace</div>
-        <p><strong>${this.escape(transaction.actorName)}</strong>'s request for <strong>${transaction.quantity} × ${this.escape(transaction.itemName)}</strong> is being processed.</p>
+        <p><strong>${this.escape(transaction.actorName)}</strong>'s request for <strong>${transaction.quantity} ×</strong> ${this.contentLink(this.getItemUuid(transaction), transaction.itemName)} is being processed.</p>
         <div class="mlm-approval-status mlm-status-processing">
           <i class="fa-solid fa-spinner fa-spin"></i>
           <span>Processing by ${this.escape(gmName)}</span>
@@ -244,7 +256,7 @@ export class TransactionService {
           <i class="fa-solid ${icon}"></i>
           <span>${label}</span>
         </div>
-        <p><strong>${this.escape(transaction.actorName)}</strong>'s request to ${action} <strong>${transaction.quantity} × ${this.escape(transaction.itemName)}</strong> was ${approved ? "approved" : denied ? "denied" : "not completed"}.</p>
+        <p><strong>${this.escape(transaction.actorName)}</strong>'s request to ${action} <strong>${transaction.quantity} ×</strong> ${this.contentLink(this.getItemUuid(transaction), transaction.itemName)} was ${approved ? "approved" : denied ? "denied" : "not completed"}.</p>
         <p><strong>Total:</strong> ${this.escape(price)}</p>
         ${transaction.type === "buy" && transaction.fundingActorUuid !== transaction.actorUuid ? `<p><strong>Paid from:</strong> ${this.escape(transaction.fundingActorName)}</p>` : ""}
         ${reason ? `<p class="mlm-resolution-reason">${this.escape(reason)}</p>` : ""}

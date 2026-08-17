@@ -4,7 +4,7 @@ description: Browse, buy, and sell items through the global Marketplace and GM-c
 slug: morelord-marketplace/player
 product: morelord-marketplace
 audience: player
-version: 0.5.2
+version: 0.6.0
 foundry: 14
 ---
 
@@ -12,7 +12,7 @@ foundry: 14
 
 Morelord Marketplace lets you browse, buy, and sell dnd5e items from your character in Foundry VTT. Your GM may also place individual vendors with their own products, prices, reputation, and stock.
 
-This manual applies to Morelord Marketplace 0.5.2.
+This manual applies to Morelord Marketplace 0.6.0.
 
 ## Contents
 
@@ -73,12 +73,15 @@ Depending on the available items, you can filter by:
 
 - Item Type
 - Category
+- Weapon Class: Martial or Simple
+- Weapon Range: Melee or Ranged
 - Weapon Properties
+- Weapon Masteries
 - Rarity
 - Attunement
 - Source
 
-Item Type, Category, Weapon Properties, Rarity, and Source use three states:
+Item Type, Category, Weapon Class, Weapon Range, Weapon Properties, Weapon Masteries, Rarity, and Source use three states:
 
 | Symbol | State | Meaning |
 | --- | --- | --- |
@@ -87,6 +90,8 @@ Item Type, Category, Weapon Properties, Rarity, and Source use three states:
 | Minus square | Exclude | Hide items matching the selected value. |
 
 Select a facet repeatedly to cycle through Any, Include, and Exclude. Select **Clear all filters** to reset the complete sidebar.
+
+The filter sidebar keeps its scroll position as you change options, including in scene shops.
 
 Select an item's linked name to open its source compendium entry and read its full description.
 
@@ -106,7 +111,8 @@ The purchase button may be unavailable when global buying is disabled. Marketpla
 1. Confirm the correct character is shown.
 2. Open **Sell**.
 3. Review each item's quantity, list price, and offered sell price.
-4. Select the coin button to **Sell One**, or the sack button to **Sell All**.
+4. Optionally use **Sort by** to order the list by name, type, quantity, list price, or sell price.
+5. Select the coin button to **Sell One**, or the sack button to **Sell All**.
 
 When the sale completes, Marketplace removes the sold quantity and deposits the proceeds into the character's currency. If GM approval is enabled, the item and payment remain unchanged until the GM approves the request.
 
@@ -197,7 +203,7 @@ When approval is required:
 
 Marketplace validates the transaction again during approval. An approved request can still report **Unable to Complete** if your currency, inventory, item price, source compendium, or Marketplace settings changed while it was waiting.
 
-Completed transaction cards may also be posted to chat when the GM enables that setting.
+Completed transaction cards may also be posted to chat when the GM enables that setting. Item names on pending, processing, resolved, and completed transaction cards are links that open the associated Foundry item when it remains available to you.
 
 ## Troubleshooting
 

@@ -118,6 +118,7 @@ export class CompendiumService {
       if (includedTypes.size && !includedTypes.has(row.typeKey)) return false;
       return true;
     });
+    const weaponRows = baseRows.filter(row => row.typeKey === "weapon");
 
     return {
       types: this.buildFacetOptions(
@@ -137,15 +138,32 @@ export class CompendiumService {
         filters.sources
       ),
       subtypes: this.buildFacetOptions(
-        baseRows,
+        baseRows.filter(row => row.typeKey !== "weapon"),
         "subtypeKey",
         "subtypeLabel",
         filters.subtypes
       ),
+      weaponCategories: this.buildFacetOptions(
+        weaponRows,
+        "weaponCategoryKey",
+        "weaponCategoryLabel",
+        filters.weaponCategories
+      ),
+      weaponRanges: this.buildFacetOptions(
+        weaponRows,
+        "weaponRangeKey",
+        "weaponRangeLabel",
+        filters.weaponRanges
+      ),
       properties: this.buildArrayFacetOptions(
-        baseRows,
+        weaponRows,
         "properties",
         filters.properties
+      ),
+      masteries: this.buildArrayFacetOptions(
+        weaponRows,
+        "masteries",
+        filters.masteries
       )
     };
   }
@@ -265,6 +283,7 @@ export class CompendiumService {
         "system.type",
         "system.armor",
         "system.properties",
+        "system.mastery",
         "system.attunement",
         "system.identifier",
         "system.source",
@@ -356,6 +375,7 @@ export class CompendiumService {
       typeKey,
       system
     );
+    const weaponClassification = this.getWeaponClassification(typeKey, subtypeKey);
 
     const source = this.getSourceBook(
       system.source,
@@ -383,6 +403,8 @@ export class CompendiumService {
         subtypeKey
       ),
 
+      ...weaponClassification,
+
       rarityKey,
       rarityLabel:
         this.getRarityLabel(rarityKey),
@@ -396,6 +418,9 @@ export class CompendiumService {
 
       properties:
         this.getProperties(system),
+
+      masteries:
+        this.getMasteries(system),
 
       requiresAttunement:
         this.requiresAttunement(system)
@@ -450,6 +475,36 @@ export class CompendiumService {
     }
 
     return this.titleCase(subtypeKey);
+  }
+
+  static getWeaponClassification(typeKey, subtypeKey) {
+    if (typeKey !== "weapon") {
+      return {
+        weaponCategoryKey: "",
+        weaponCategoryLabel: "",
+        weaponRangeKey: "",
+        weaponRangeLabel: ""
+      };
+    }
+
+    const normalized = this.normalize(subtypeKey);
+    const categoryKey = normalized.startsWith("martial")
+      ? "martial"
+      : normalized.startsWith("simple")
+        ? "simple"
+        : "";
+    const rangeKey = normalized.endsWith("r")
+      ? "ranged"
+      : normalized.endsWith("m")
+        ? "melee"
+        : "";
+
+    return {
+      weaponCategoryKey: categoryKey,
+      weaponCategoryLabel: this.titleCase(categoryKey),
+      weaponRangeKey: rangeKey,
+      weaponRangeLabel: this.titleCase(rangeKey)
+    };
   }
 
   static getItemTypeLabel(typeKey) {
@@ -651,6 +706,23 @@ export class CompendiumService {
     }));
   }
 
+  static getMasteries(system) {
+    const rawMastery = system.mastery;
+    const values = rawMastery instanceof Set
+      ? [...rawMastery]
+      : Array.isArray(rawMastery)
+        ? rawMastery
+        : [this.extractValue(rawMastery)];
+
+    return [...new Set(values.map(value => this.normalize(value)).filter(Boolean))]
+      .map(value => ({
+        value,
+        label: this.extractLabel(CONFIG.DND5E?.weaponMasteries?.[value])
+          || this.extractLabel(CONFIG.DND5E?.masteries?.[value])
+          || this.titleCase(value)
+      }));
+  }
+
   static requiresAttunement(system) {
     const attunement = this.extractValue(
       system.attunement
@@ -731,7 +803,10 @@ export class CompendiumService {
       value => this.normalizeSourceKey(value)
     )) return false;
     if (!this.passesScalarFacet(row.subtypeKey, filters.subtypes)) return false;
+    if (!this.passesScalarFacet(row.weaponCategoryKey, filters.weaponCategories)) return false;
+    if (!this.passesScalarFacet(row.weaponRangeKey, filters.weaponRanges)) return false;
     if (!this.passesArrayFacet(row.properties, filters.properties)) return false;
+    if (!this.passesArrayFacet(row.masteries, filters.masteries)) return false;
 
     if (filters.attunement === "required" && !row.requiresAttunement) return false;
     if (filters.attunement === "not-required" && row.requiresAttunement) return false;
@@ -866,8 +941,9 @@ export class CompendiumService {
       priceCp
     );
 
+    let createdItems;
     try {
-      await actor.createEmbeddedDocuments(
+      createdItems = await actor.createEmbeddedDocuments(
         "Item",
         [item.toObject()]
       );
@@ -882,6 +958,7 @@ export class CompendiumService {
         actor,
         fundingActor,
         itemName: item.name,
+        itemUuid: createdItems?.[0]?.uuid ?? item.uuid,
         quantity: 1,
         priceCp,
         shop

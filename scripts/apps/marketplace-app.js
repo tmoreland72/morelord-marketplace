@@ -82,7 +82,9 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
     this.shopSnapshot = this.shopId ? foundry.utils.deepClone(ShopService.getShop(this.shopId)) : null;
     this.shopRevision = Number(this.shopSnapshot?.revision ?? 1);
     this.activeTab = this.shopId ? "buy" : "sell";
+    this.sellSort = "name";
     this.filters = this.getEmptyFilters();
+    this.panelScrollPositions = new Map();
     this.cart = new Map();
     this.isLoadingBuy = Boolean(this.shopId);
     this._initialShopLoadStarted = false;
@@ -104,7 +106,10 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       rarities: this.getEmptyFacet(),
       sources: this.getEmptyFacet(),
       subtypes: this.getEmptyFacet(),
+      weaponCategories: this.getEmptyFacet(),
+      weaponRanges: this.getEmptyFacet(),
       properties: this.getEmptyFacet(),
+      masteries: this.getEmptyFacet(),
       attunement: "",
       affordableOnly: false,
       minPrice: "",
@@ -215,6 +220,7 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       filters: this.filters,
       canSell: shop ? (shop.allowSelling ?? true) : game.settings.get(MODULE_ID, "enableSelling"),
       canBuy: shop ? (shop.allowBuying ?? true) : game.settings.get(MODULE_ID, "enableBuying"),
+      sellSortOptions: this.getSellSortOptions(),
       sellItems: [],
       buyItems: [],
       buyFacets: null,
@@ -247,7 +253,8 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
     if (fundingActor) context.currency = CurrencyService.getCurrencyDisplay(fundingActor);
 
     if (context.isSellTab) {
-      context.sellItems = actor ? await ActorService.getSellableItems(actor, { shop }) : [];
+      const sellItems = actor ? await ActorService.getSellableItems(actor, { shop }) : [];
+      context.sellItems = this.sortSellItems(sellItems);
     }
 
     if (context.isBuyTab && !this.isLoadingBuy) {
@@ -298,11 +305,20 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       context.canCheckout = !this.isCheckingOut && !shopStale && Boolean(actor && fundingActor) && context.cartCount > 0 && context.cartTotalCp <= availableCurrencyCp;
 
       const includedTypes = new Set(this.filters.types.include);
+      const excludedTypes = new Set(this.filters.types.exclude);
+      const weaponsInScope = !excludedTypes.has("weapon")
+        && (!includedTypes.size || includedTypes.has("weapon"));
       context.showSubtypeFilters = Boolean(
-        includedTypes.size && context.buyFacets.subtypes.length
+        includedTypes.size
+        && (!includedTypes.has("weapon") || includedTypes.size > 1)
+        && context.buyFacets.subtypes.length
       );
       context.showPropertyFilters = Boolean(
-        includedTypes.has("weapon") && context.buyFacets.properties.length
+        weaponsInScope && context.buyFacets.properties.length
+      );
+      context.showWeaponFilters = Boolean(weaponsInScope);
+      context.showMasteryFilters = Boolean(
+        weaponsInScope && context.buyFacets.masteries.length
       );
       context.attunementAny = !this.filters.attunement;
       context.attunementRequired = this.filters.attunement === "required";
@@ -314,6 +330,14 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
 
   _onRender(context, options) {
     super._onRender(context, options);
+
+    for (const panel of this.element.querySelectorAll("[data-mlm-preserve-scroll]")) {
+      const key = panel.dataset.mlmPreserveScroll;
+      panel.scrollTop = this.panelScrollPositions.get(key) ?? 0;
+      panel.addEventListener("scroll", () => {
+        this.panelScrollPositions.set(key, panel.scrollTop);
+      }, { passive: true });
+    }
 
     if (this.shopId && this.isLoadingBuy && !this._initialShopLoadStarted) {
       this._initialShopLoadStarted = true;
@@ -351,6 +375,12 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       await this.render();
     });
 
+    const sellSortSelect = this.element.querySelector("[data-mlm-sell-sort]");
+    sellSortSelect?.addEventListener("change", async event => {
+      this.sellSort = event.currentTarget.value || "name";
+      await this.render();
+    });
+
     if (this.isLoadingBuy) return;
 
     const buyLayout = this.element.querySelector(".mlm-buy-layout");
@@ -380,6 +410,40 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
     return ActorService.getFundingActors().find(actor => actor.id === this.fundingActorId) ?? null;
   }
 
+  getSellSortOptions() {
+    return [
+      { value: "name", label: "Name" },
+      { value: "type", label: "Type" },
+      { value: "quantity", label: "Quantity" },
+      { value: "listPriceCp", label: "List Price" },
+      { value: "sellPriceCp", label: "Sell Price" }
+    ].map(option => ({
+      ...option,
+      selected: option.value === this.sellSort
+    }));
+  }
+
+  sortSellItems(items) {
+    const numericFields = new Set(["quantity", "listPriceCp", "sellPriceCp"]);
+    const field = this.getSellSortOptions().some(option => option.value === this.sellSort)
+      ? this.sellSort
+      : "name";
+
+    return [...items].sort((left, right) => {
+      const comparison = numericFields.has(field)
+        ? Number(left[field] ?? 0) - Number(right[field] ?? 0)
+        : String(left[field] ?? "").localeCompare(String(right[field] ?? ""), undefined, {
+            numeric: true,
+            sensitivity: "base"
+          });
+
+      return comparison || String(left.name ?? "").localeCompare(String(right.name ?? ""), undefined, {
+        numeric: true,
+        sensitivity: "base"
+      });
+    });
+  }
+
   hasActiveBuyFilters() {
     const facetActive = facet =>
       facet.include.length > 0 || facet.exclude.length > 0;
@@ -390,7 +454,10 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       || facetActive(this.filters.rarities)
       || facetActive(this.filters.sources)
       || facetActive(this.filters.subtypes)
+      || facetActive(this.filters.weaponCategories)
+      || facetActive(this.filters.weaponRanges)
       || facetActive(this.filters.properties)
+      || facetActive(this.filters.masteries)
       || this.filters.attunement
       || this.filters.affordableOnly
       || this.filters.minPrice !== ""
@@ -431,7 +498,10 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
 
     if (group === "types") {
       this.filters.subtypes = this.getEmptyFacet();
+      this.filters.weaponCategories = this.getEmptyFacet();
+      this.filters.weaponRanges = this.getEmptyFacet();
       this.filters.properties = this.getEmptyFacet();
+      this.filters.masteries = this.getEmptyFacet();
     }
   }
 

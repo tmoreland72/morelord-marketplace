@@ -4,7 +4,7 @@ description: Install, configure, and operate Morelord Marketplace, including pre
 slug: morelord-marketplace/gm
 product: morelord-marketplace
 audience: game-master
-version: 0.5.2
+version: 0.6.0
 foundry: 14
 ---
 
@@ -12,7 +12,7 @@ foundry: 14
 
 Morelord Marketplace gives a Foundry VTT world a global catalog for buying and selling dnd5e items. With Tools Premium or Tools Champion access, it also provides GM transaction approvals and Shop Manager for configurable scene vendors.
 
-This manual applies to Morelord Marketplace 0.5.2, Foundry VTT v14, and the dnd5e system.
+This manual applies to Morelord Marketplace 0.6.0, Foundry VTT v14, and the dnd5e system.
 
 ## Contents
 
@@ -50,7 +50,7 @@ The global Marketplace remains usable if premium access expires. Saved premium s
 - Foundry Virtual Tabletop v14
 - The dnd5e game system
 - Morelord Core v0.1.0 or later
-- Morelord Marketplace v0.5.2 or later
+- Morelord Marketplace v0.6.0 or later
 
 ### Install with the manifest
 
@@ -113,6 +113,8 @@ Changing the enabled compendiums clears the catalog cache and refreshes open Mar
 4. Open **Buy** and confirm that items from the enabled compendiums load.
 5. Open **Sell** and confirm that priced, sellable inventory appears.
 
+The Buy sidebar separates weapon class (Martial or Simple) from weapon range (Melee or Ranged), exposes weapon mastery filters when weapons are in scope, and preserves its scroll position after filter changes. The Sell tab can sort its visible inventory by name, type, quantity, list price, or sell price in both global and shop views.
+
 For the global Marketplace, the selected token's actor is used when the user owns it. Otherwise, Marketplace uses the character assigned to that user. GMs may operate an eligible selected actor directly.
 
 ## Manage GM approvals
@@ -137,6 +139,8 @@ Approvals apply only to player-initiated transactions in the unrestricted global
 3. A GM selects **Approve** or **Deny**.
 4. Marketplace validates the transaction again before completing it.
 5. The chat card changes to **Approved**, **Denied**, or **Unable to Complete**.
+
+Item names on Marketplace transaction and approval cards are Foundry document links when an item UUID is available. Sale cards prefer the item's original compendium source so links can remain valid after the final owned copy is sold.
 
 Revalidation protects against changed currency, inventory, item prices, disabled settings, unavailable compendiums, and other world changes made while a request was pending.
 
@@ -282,7 +286,7 @@ When **Allow duplicate random items** is enabled, the same listing may be select
 
 Select **Restock Now** to perform a manual restock. Restocking advances the shop revision, so anyone with an older open shop must refresh it before completing a transaction.
 
-Restock rules such as daily or weekly schedules are stored for automation hooks and future world-time integration. In version 0.5.2, they do not run automatically; use **Restock Now**.
+Restock rules such as daily or weekly schedules are stored for automation hooks and future world-time integration. In version 0.6.0, they do not run automatically; use **Restock Now**.
 
 ### Carts, reservations, and stale shops
 
