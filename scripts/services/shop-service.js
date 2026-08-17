@@ -1,17 +1,34 @@
 import { MODULE_ID, FLAGS } from "../constants.js";
-import { SHOP_TYPES, REPUTATION_TIERS, ShopProfileModel } from "../models/shop-profile.js";
+import { SHOP_ITEM_OPTIONS, SHOP_TYPES, REPUTATION_TIERS, ShopProfileModel, getItemTypesForOptions } from "../models/shop-profile.js";
 import { PrefabShopService } from "./prefab-shop-service.js";
 
 export class ShopService {
   static normalizeShop(shop) {
     if (!shop) return null;
+    const itemOptions = Array.isArray(shop.itemOptions)
+      ? [...shop.itemOptions]
+      : this.getLegacyItemOptions(shop.itemTypes);
     return {
       ...shop,
+      itemOptions,
+      itemTypes: getItemTypesForOptions(itemOptions),
       revision: Math.max(1, Number(shop.revision ?? 1)),
       stock: { ...(shop.stock ?? {}) },
       prefabItemUuids: [...(shop.prefabItemUuids ?? [])],
       tokenUuids: [...(shop.tokenUuids ?? [])]
     };
+  }
+
+  static getLegacyItemOptions(itemTypes = []) {
+    const legacyOptions = {
+      weapon: ["weapon"],
+      equipment: ["armor", "equipment"],
+      consumable: ["potion", "spellScroll", "consumable"],
+      tool: ["artisanTool", "tool"],
+      loot: ["loot"],
+      container: ["container"]
+    };
+    return [...new Set(itemTypes.flatMap(type => legacyOptions[String(type).toLowerCase()] ?? []))];
   }
 
   static getShops() {
@@ -106,6 +123,7 @@ export class ShopService {
     shop.prefabItemUuids = prefab.matches.map(match => match.uuid);
     shop.compendiums = [...new Set(prefab.matches.map(match => match.packId))];
     shop.itemTypes = [];
+    shop.itemOptions = [];
     shop.rarities = [];
     shop.inventoryMode = "unlimited";
     shop.randomInventory = {
@@ -274,11 +292,36 @@ export class ShopService {
     }
 
     if (shop.compendiums?.length && !shop.compendiums.includes(packId)) return false;
-    const type = String(entry?.typeKey ?? entry?.type ?? "").toLowerCase();
-    if (shop.itemTypes?.length && !shop.itemTypes.map(value => String(value).toLowerCase()).includes(type)) return false;
+    if (!this.entryMatchesItemOptions(entry, shop)) return false;
     const rarity = this.normalizeRarity(entry?.rarityKey ?? entry?.system?.rarity);
     if (shop.rarities?.length && !shop.rarities.map(value => this.normalizeRarity(value)).includes(rarity)) return false;
     return true;
+  }
+
+  static entryMatchesItemOptions(entry, shop) {
+    const selected = shop?.itemOptions ?? [];
+    const type = String(entry?.typeKey ?? entry?.type ?? "").toLowerCase();
+    if (!selected.length) {
+      return !shop?.itemTypes?.length || shop.itemTypes.map(value => String(value).toLowerCase()).includes(type);
+    }
+
+    const subtype = this.normalizeItemSubtype(entry, type);
+    return selected.some(key => {
+      const option = SHOP_ITEM_OPTIONS[key];
+      if (!option?.itemTypes?.includes(type)) return false;
+      if (option.subtypes?.length) return option.subtypes.includes(subtype);
+      if (option.excludeSubtypes?.length) return !option.excludeSubtypes.includes(subtype);
+      return true;
+    });
+  }
+
+  static normalizeItemSubtype(entry, type = String(entry?.typeKey ?? entry?.type ?? "").toLowerCase()) {
+    const system = entry?.system ?? {};
+    const rawType = typeof system.type === "object"
+      ? (system.type?.value ?? system.type?.id ?? system.type?.key ?? "")
+      : system.type;
+    const raw = entry?.subtypeKey ?? (rawType || (type === "equipment" ? system.armor?.type || system.baseItem : ""));
+    return String(raw ?? "").toLowerCase().replace(/[\s_-]+/g, "");
   }
 
   static normalizeRarity(value) {

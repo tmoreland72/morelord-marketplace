@@ -1,8 +1,25 @@
+export const SHOP_ITEM_OPTIONS = {
+  weapon: { label: "Weapons", itemTypes: ["weapon"] },
+  armor: { label: "Armor", itemTypes: ["equipment"], subtypes: ["light", "medium", "heavy", "shield", "armor"] },
+  equipment: { label: "Other Equipment", itemTypes: ["equipment"], excludeSubtypes: ["light", "medium", "heavy", "shield", "armor"] },
+  potion: { label: "Potions", itemTypes: ["consumable"], subtypes: ["potion"] },
+  spellScroll: { label: "Spell Scrolls", itemTypes: ["consumable"], subtypes: ["scroll"] },
+  consumable: { label: "Other Consumables", itemTypes: ["consumable"], excludeSubtypes: ["potion", "scroll"] },
+  artisanTool: { label: "Artisan Tools", itemTypes: ["tool"], subtypes: ["art"] },
+  tool: { label: "Other Tools", itemTypes: ["tool"], excludeSubtypes: ["art"] },
+  loot: { label: "Loot", itemTypes: ["loot"] },
+  container: { label: "Containers", itemTypes: ["container"] }
+};
+
+export function getItemTypesForOptions(optionKeys = []) {
+  return [...new Set(optionKeys.flatMap(key => SHOP_ITEM_OPTIONS[key]?.itemTypes ?? []))];
+}
+
 export const SHOP_TYPES = {
   general: {
     label: "General Store",
     icon: "fa-basket-shopping",
-    itemTypes: ["weapon", "equipment", "consumable", "tool", "loot", "container"],
+    itemOptions: ["weapon", "armor", "equipment", "potion", "spellScroll", "consumable", "artisanTool", "tool", "loot", "container"],
     rarities: ["common", "uncommon"],
     buyModifier: 1,
     sellModifier: 0.5
@@ -10,7 +27,7 @@ export const SHOP_TYPES = {
   weaponsmith: {
     label: "Weaponsmith",
     icon: "fa-hammer",
-    itemTypes: ["weapon"],
+    itemOptions: ["weapon"],
     rarities: ["common", "uncommon", "rare"],
     buyModifier: 1,
     sellModifier: 0.5
@@ -18,7 +35,7 @@ export const SHOP_TYPES = {
   armorer: {
     label: "Armorer",
     icon: "fa-shield-halved",
-    itemTypes: ["equipment"],
+    itemOptions: ["armor"],
     rarities: ["common", "uncommon", "rare"],
     buyModifier: 1,
     sellModifier: 0.5
@@ -26,7 +43,7 @@ export const SHOP_TYPES = {
   apothecary: {
     label: "Apothecary",
     icon: "fa-flask",
-    itemTypes: ["consumable", "loot"],
+    itemOptions: ["potion", "consumable", "loot"],
     rarities: ["common", "uncommon", "rare"],
     buyModifier: 1.05,
     sellModifier: 0.5
@@ -34,7 +51,7 @@ export const SHOP_TYPES = {
   magic: {
     label: "Magic Shop",
     icon: "fa-wand-sparkles",
-    itemTypes: ["weapon", "equipment", "consumable", "tool"],
+    itemOptions: ["weapon", "armor", "equipment", "potion", "spellScroll", "artisanTool", "tool"],
     rarities: ["uncommon", "rare", "veryrare", "legendary"],
     buyModifier: 1.15,
     sellModifier: 0.55
@@ -42,7 +59,7 @@ export const SHOP_TYPES = {
   temple: {
     label: "Temple / Healer",
     icon: "fa-hands-praying",
-    itemTypes: ["consumable", "equipment"],
+    itemOptions: ["potion", "spellScroll", "equipment"],
     rarities: ["common", "uncommon", "rare"],
     buyModifier: 1,
     sellModifier: 0.45
@@ -50,7 +67,7 @@ export const SHOP_TYPES = {
   arcane: {
     label: "Arcane Supplier",
     icon: "fa-book-sparkles",
-    itemTypes: ["consumable", "equipment", "tool"],
+    itemOptions: ["spellScroll", "potion", "equipment", "artisanTool", "tool"],
     rarities: ["common", "uncommon", "rare", "veryrare"],
     buyModifier: 1.1,
     sellModifier: 0.5
@@ -58,7 +75,7 @@ export const SHOP_TYPES = {
   adventuring: {
     label: "Adventuring Gear",
     icon: "fa-backpack",
-    itemTypes: ["equipment", "tool", "container", "consumable"],
+    itemOptions: ["equipment", "artisanTool", "tool", "container", "consumable"],
     rarities: ["common", "uncommon"],
     buyModifier: 1,
     sellModifier: 0.45
@@ -66,7 +83,7 @@ export const SHOP_TYPES = {
   tavern: {
     label: "Tavern / Provisioner",
     icon: "fa-mug-hot",
-    itemTypes: ["consumable", "loot"],
+    itemOptions: ["potion", "consumable", "loot"],
     rarities: ["common"],
     buyModifier: 1,
     sellModifier: 0.35
@@ -74,7 +91,7 @@ export const SHOP_TYPES = {
   exotic: {
     label: "Exotic Goods",
     icon: "fa-gem",
-    itemTypes: ["weapon", "equipment", "consumable", "tool", "loot"],
+    itemOptions: ["weapon", "armor", "equipment", "potion", "spellScroll", "consumable", "artisanTool", "tool", "loot"],
     rarities: ["uncommon", "rare", "veryrare", "legendary"],
     buyModifier: 1.25,
     sellModifier: 0.6
@@ -82,7 +99,7 @@ export const SHOP_TYPES = {
   custom: {
     label: "Custom",
     icon: "fa-sliders",
-    itemTypes: [],
+    itemOptions: [],
     rarities: [],
     buyModifier: 1,
     sellModifier: 0.5
@@ -110,7 +127,8 @@ export class ShopProfileModel {
       icon: preset.icon,
       img: "icons/svg/house.svg",
       compendiums: [],
-      itemTypes: [...preset.itemTypes],
+      itemOptions: [...preset.itemOptions],
+      itemTypes: getItemTypesForOptions(preset.itemOptions),
       rarities: [...preset.rarities],
       categories: [],
       buyModifier: preset.buyModifier,

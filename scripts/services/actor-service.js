@@ -3,6 +3,7 @@ import { PricingService } from "./pricing-service.js";
 import { CurrencyService } from "./currency-service.js";
 import { TransactionService } from "./transaction-service.js";
 import { TransactionApprovalService } from "./transaction-approval-service.js";
+import { ShopService } from "./shop-service.js";
 
 export class ActorService {
   /**
@@ -102,7 +103,7 @@ export class ActorService {
 
     return actor.items
       .filter(item => ITEM_TYPES.SELLABLE.includes(item.type))
-      .filter(item => !shop?.itemTypes?.length || shop.itemTypes.includes(item.type))
+      .filter(item => ShopService.entryMatchesItemOptions(item, shop))
       .filter(item => !item.getFlag(MODULE_ID, "unsellable"))
       .map(item => {
         const quantity = Number(item.system?.quantity ?? 1);

@@ -2,6 +2,7 @@ import { MODULE_ID } from "../constants.js";
 import { ShopService } from "../services/shop-service.js";
 import { CompendiumService } from "../services/compendium-service.js";
 import { EntitlementService } from "../services/entitlement-service.js";
+import { SHOP_ITEM_OPTIONS, getItemTypesForOptions } from "../models/shop-profile.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -49,7 +50,7 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
       console.warn(`[${MODULE_ID}] Unable to load prefab shops`, error);
     }
 
-    const itemTypeOptions = ["weapon", "equipment", "consumable", "tool", "loot", "container"];
+    const itemTypeOptions = Object.entries(SHOP_ITEM_OPTIONS).map(([key, option]) => ({ key, label: option.label }));
     const rarityOptions = ["common", "uncommon", "rare", "veryrare", "legendary", "artifact"];
     const checked = (values, key) => values?.includes(key);
 
@@ -76,7 +77,7 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
       shops: shopCards,
       selected: selected ? {
         ...selected,
-        itemTypeOptions: itemTypeOptions.map(key => ({ key, checked: checked(selected.itemTypes, key), label: key.charAt(0).toUpperCase() + key.slice(1) })),
+        itemTypeOptions: itemTypeOptions.map(option => ({ ...option, checked: checked(selected.itemOptions, option.key) })),
         rarityOptions: rarityOptions.map(key => ({ key, checked: checked((selected.rarities ?? []).map(ShopService.normalizeRarity), key), label: key === "veryrare" ? "Very Rare" : key.charAt(0).toUpperCase() + key.slice(1) })),
         reputations: ShopService.getReputationTiers().map(tier => ({ ...tier, selected: tier.key === selected.reputation })),
         inventoryModes: [
@@ -197,7 +198,8 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
     shop.sellModifier = Number(data.get("sellModifier") ?? 0.5);
     shop.allowBuying = data.get("allowBuying") === "on";
     shop.allowSelling = data.get("allowSelling") === "on";
-    shop.itemTypes = data.getAll("itemTypes").map(String);
+    shop.itemOptions = data.getAll("itemOptions").map(String);
+    shop.itemTypes = getItemTypesForOptions(shop.itemOptions);
     shop.rarities = data.getAll("rarities").map(String);
     shop.randomInventory = {
       ...(shop.randomInventory ?? {}),

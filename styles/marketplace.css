@@ -1673,7 +1673,7 @@ button.danger { border-color:#9b3b3b; }
 .mlm-prefab-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .mlm-prefab-card {
@@ -1682,7 +1682,10 @@ button.danger { border-color:#9b3b3b; }
   align-items: center;
   gap: 8px;
   width: 100%;
+  height: auto;
+  min-height: 56px;
   min-width: 0;
+  margin: 0;
   padding: 8px 9px;
   text-align: left;
 }
