@@ -13,6 +13,18 @@ Game Masters control which Item compendiums supply the catalog, whether global b
 
 The global Marketplace provides a broad world catalog, while scene shops create individual vendors with their own inventory and trading rules. Purchased items are added directly to the chosen character, payment can come from an owned character or shared Group actor, and completed sales deposit currency automatically.
 
+## Marketplace demo
+
+<div class="docs-video">
+	<iframe
+		src="https://www.youtube-nocookie.com/embed/UeHIy5t6FGs"
+		title="Morelord Marketplace demo"
+		loading="lazy"
+		allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+		allowfullscreen
+	></iframe>
+</div>
+
 ## Choose a manual
 
 Choose the guide that matches your role:
