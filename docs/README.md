@@ -13,7 +13,11 @@ Game Masters control which Item compendiums supply the catalog, whether global b
 
 The global Marketplace provides a broad world catalog, while scene shops create individual vendors with their own inventory and trading rules. Purchased items are added directly to the chosen character, payment can come from an owned character or shared Group actor, and completed sales deposit currency automatically.
 
-## Marketplace demo
+## See Marketplace in action
+
+<p class="docs-video-intro">
+	Take a guided tour of the Marketplace setup, catalog, and Game Master workflow.
+</p>
 
 <div class="docs-video">
 	<iframe
