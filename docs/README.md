@@ -7,6 +7,8 @@ version: 0.6.0
 
 # Morelord Marketplace Documentation
 
+## Overview
+
 Morelord Marketplace is a shopping and selling system for Foundry Virtual Tabletop and the dnd5e game system. It gives players a searchable global item catalog, direct character purchases and sales, automatic currency handling, and detailed filters for item type, category, weapon class, weapon range, weapon properties, weapon masteries, rarity, source, attunement, price, and affordability.
 
 Game Masters control which Item compendiums supply the catalog, whether global buying and selling are enabled, the default sale value, transaction chat cards, and optional approval requirements. With Tools Premium or Tools Champion access, GMs can also build scene vendors with custom products, prices, reputation, limited or unlimited stock, randomized restocking, separate shopper and funding actors, portable shop definitions, and interactive shop tokens.
