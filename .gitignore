@@ -3,3 +3,8 @@ node_modules
 *.zip
 .release-*
 .env
+
+# Locally rendered video-demo artifacts (published through YouTube)
+video-demo/*.mp4
+video-demo/.render/
+video-demo/.gm-render/

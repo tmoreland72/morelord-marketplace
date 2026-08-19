@@ -1,0 +1,67 @@
+1
+00:00:00,500 --> 00:00:05,000
+Morelord Marketplace brings flexible, immersive shopping directly into your Foundry VTT world.
+
+2
+00:00:05,000 --> 00:00:13,000
+Game Masters choose how the global marketplace behaves: buying, selling, or catalog browsing.
+
+3
+00:00:13,000 --> 00:00:21,200
+Set the value players receive when selling gear, and choose which compendiums supply the catalog.
+
+4
+00:00:21,200 --> 00:00:31,500
+Players shop as their active character and always see the currency available to them.
+
+5
+00:00:31,500 --> 00:00:43,500
+Fast search and detailed tri-state filters make even large compendium libraries easy to explore.
+
+6
+00:00:43,500 --> 00:00:55,500
+Filter by type, rarity, source, price, weapon details, attunement, or only what the character can afford.
+
+7
+00:00:56,000 --> 00:00:59,000
+Premium Shop Manager tools turn that catalog into a living part of the world.
+
+8
+00:00:59,000 --> 00:01:10,500
+Start with a ready-made vendor prefab or manage an existing store.
+
+9
+00:01:10,500 --> 00:01:29,000
+Each shop has its own identity, access rules, buying and selling controls, and a recognizable scene token.
+
+10
+00:01:29,000 --> 00:01:42,500
+Choose which products and rarities the shop can offer, then shape its economy with reputation-aware pricing.
+
+11
+00:01:42,500 --> 00:02:06,500
+Use unlimited inventory, randomized limited stock, or a hybrid, with automatic restocking or direct GM control.
+
+12
+00:02:07,000 --> 00:02:10,000
+Place the finished vendor on the scene and let the party shop in character.
+
+13
+00:02:10,000 --> 00:02:24,500
+Players choose who receives the equipment and which character or shared group actor pays.
+
+14
+00:02:24,500 --> 00:02:47,500
+The cart tracks stock, purchase totals, and remaining currency before anything is committed.
+
+15
+00:02:48,000 --> 00:03:02,500
+Every item keeps its artwork, rarity, source, and original compendium link close at hand.
+
+16
+00:03:02,500 --> 00:03:16,500
+Marketplace handles currency and inventory transfers, with optional GM approval for global transactions.
+
+17
+00:03:17,000 --> 00:03:22,000
+Morelord Marketplace. Because every adventure has a price.
