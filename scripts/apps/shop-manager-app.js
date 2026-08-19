@@ -2,6 +2,7 @@ import { MODULE_ID } from "../constants.js";
 import { ShopService } from "../services/shop-service.js";
 import { CompendiumService } from "../services/compendium-service.js";
 import { EntitlementService } from "../services/entitlement-service.js";
+import { ShopTransactionService } from "../services/shop-transaction-service.js";
 import { SHOP_ITEM_OPTIONS, getItemTypesForOptions } from "../models/shop-profile.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
@@ -256,11 +257,20 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
     event.preventDefault();
     if (!EntitlementService.hasShopManager()) { ui.notifications.warn("Shop Manager requires a premium Marketplace entitlement."); return; }
     if (this.isWorking) return;
+    // Restock the configuration currently visible in the editor. This avoids
+    // rerolling the previously saved mode/counts when the GM adjusted them and
+    // clicked Restock Now without clicking Save first.
+    await MorelordShopManagerApp.saveShop.call(this, event);
     const shop = ShopService.getShop(this.selectedShopId);
     if (!shop) return;
     const catalog = await CompendiumService.getBuyableCatalog(shop);
-    await ShopService.restock(shop.id, catalog);
-    ui.notifications.info(`${shop.name} restocked.`);
+    const restocked = await ShopService.restock(shop.id, catalog);
+    ShopTransactionService.broadcastInventoryChanged(shop.id);
+    if (restocked?.inventoryMode === "unlimited") {
+      ui.notifications.warn(`${shop.name} uses an unlimited catalog, so restocking does not change its ${catalog.length} listings. Choose Limited or Hybrid inventory to rotate stock.`);
+    } else {
+      ui.notifications.info(`${shop.name} restocked.`);
+    }
     await this.render();
   }
 

@@ -3,6 +3,7 @@ import { CurrencyService } from "./currency-service.js";
 import { PricingService } from "./pricing-service.js";
 import { PurchaseEligibilityService } from "./purchase-eligibility-service.js";
 import { ShopService } from "./shop-service.js";
+import { CompendiumService } from "./compendium-service.js";
 
 const SOCKET_NAME = `module.${MODULE_ID}`;
 const REQUEST_TIMEOUT_MS = 30000;
@@ -32,6 +33,13 @@ export class ShopTransactionService {
     if (payload.kind === "shop-reservation-state") {
       this.reservationTotals.set(payload.shopId, { ...(payload.totals ?? {}) });
       window.dispatchEvent(new CustomEvent("mlm-shop-reservations", { detail: { shopId: payload.shopId } }));
+      return;
+    }
+
+    if (payload.kind === "shop-inventory-changed") {
+      window.dispatchEvent(new CustomEvent("mlm-shop-reservations", {
+        detail: { shopId: payload.shopId, inventoryChanged: true }
+      }));
       return;
     }
 
@@ -94,6 +102,18 @@ export class ShopTransactionService {
 
   static getReserved(shopId, stockKey) {
     return Math.max(0, Number(this.reservationTotals.get(shopId)?.[stockKey] ?? 0));
+  }
+
+  static broadcastInventoryChanged(shopId) {
+    if (!game.user.isGM || !shopId) return;
+    game.socket.emit(SOCKET_NAME, {
+      module: MODULE_ID,
+      kind: "shop-inventory-changed",
+      shopId
+    });
+    window.dispatchEvent(new CustomEvent("mlm-shop-reservations", {
+      detail: { shopId, inventoryChanged: true }
+    }));
   }
 
   static async setReservation(shopId, quantities = {}) {
@@ -203,13 +223,21 @@ export class ShopTransactionService {
       if (livePriceCp === null) throw new Error(`${shop.name} will not trade with you at your current reputation.`);
       if (livePriceCp !== line.quotedPriceCp) throw new Error(`${item.name}'s price changed. Refresh the shop and review your cart.`);
 
+      // Normalize the full document with the same helpers used to build the
+      // visible catalog. Do not depend on a second GM-side catalog cache: the
+      // requesting client and GM can have differently hydrated pack indexes.
+      const typeKey = CompendiumService.normalize(item.type);
       const row = {
         packId: line.packId,
         documentId: line.documentId,
-        rarityKey: ShopService.normalizeRarity(item.system?.rarity),
-        typeKey: String(item.type ?? "").toLowerCase()
+        uuid: `Compendium.${line.packId}.Item.${line.documentId}`,
+        typeKey,
+        subtypeKey: CompendiumService.getSubtypeKey(typeKey, item.system ?? {}),
+        rarityKey: CompendiumService.normalizeRarity(item.system?.rarity)
       };
-      if (!ShopService.entryPassesShop(row, shop, line.packId)) throw new Error(`${item.name} is not sold by ${shop.name}.`);
+      if (!ShopService.entryPassesShop(row, shop, line.packId)) {
+        throw new Error(`${item.name} is not sold by ${shop.name}. Refresh the shop and review your cart.`);
+      }
 
       const key = ShopService.stockKey(row);
       stockNeeded.set(key, (stockNeeded.get(key) ?? 0) + line.quantity);

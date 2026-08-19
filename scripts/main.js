@@ -239,7 +239,7 @@ Hooks.on("createActor", actor => {
 Hooks.on("updateSetting", setting => {
   if (setting?.key !== `${MODULE_ID}.shops`) return;
   for (const app of MorelordMarketplaceApp.instances) {
-    if (app.shopId) void app.render();
+    if (app.shopId) void app.refreshShopSnapshot();
   }
 });
 

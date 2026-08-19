@@ -72,13 +72,16 @@ export class ActorService {
     return Boolean(actor?.system?.currency && typeof actor.system.currency === "object");
   }
 
-  /** Return player-character actors the current user can use as the shopper/recipient. */
+  /** Return characters and groups the current user can shop, sell, or receive items as. */
   static getShopperActors() {
     return game.actors
-      .filter(actor => actor.type === "character")
-      .filter(actor => !game.user.isGM || actor.hasPlayerOwner)
+      .filter(actor => actor.type === "character" || actor.type === "group")
       .filter(actor => this.canUserOperateActor(actor))
-      .sort((a, b) => a.name.localeCompare(b.name));
+      .sort((a, b) => {
+        const aGroup = a.type === "group" ? 0 : 1;
+        const bGroup = b.type === "group" ? 0 : 1;
+        return aGroup - bGroup || a.name.localeCompare(b.name);
+      });
   }
 
   /** Return player characters and Group actors whose currency may fund a purchase. */

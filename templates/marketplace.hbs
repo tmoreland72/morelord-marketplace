@@ -23,14 +23,13 @@
       {{/if}}
     </div>
 
-    {{#if isShop}}
-      <div class="mlm-shopper-card mlm-shop-context-card">
+    <div class="mlm-shopper-card mlm-shop-context-card">
         <div class="mlm-shop-selector-block">
           <span class="mlm-shopper-label">Shopping As</span>
           {{#if showShopperSelector}}
             <select data-mlm-shopper-select aria-label="Shopping As">
               {{#each shopperOptions}}
-                <option value="{{id}}" {{#if selected}}selected{{/if}}>{{name}}</option>
+                <option value="{{id}}" {{#if selected}}selected{{/if}}>{{name}} · {{typeLabel}}</option>
               {{/each}}
             </select>
           {{else if actor}}
@@ -38,13 +37,13 @@
           {{else}}
             <strong>No character selected</strong>
           {{/if}}
-          <small>Purchased items go to this actor.</small>
+          <small>Purchases go to and sales come from this actor or group.</small>
         </div>
 
         <div class="mlm-shop-selector-block mlm-funding-selector-block">
-          <span class="mlm-shopper-label">Paying From</span>
+          <span class="mlm-shopper-label">Paying As</span>
           {{#if showFundingSelector}}
-            <select data-mlm-funding-select aria-label="Paying From">
+            <select data-mlm-funding-select aria-label="Paying As">
               {{#each fundingOptions}}
                 <option value="{{id}}" {{#if selected}}selected{{/if}}>{{name}}{{#if typeLabel}} · {{typeLabel}}{{/if}}</option>
               {{/each}}
@@ -63,21 +62,6 @@
           </div>
         </div>
       </div>
-    {{else if actor}}
-      <div class="mlm-shopper-card">
-        <div class="mlm-shopper-identity">
-          <img src="{{tokenImg}}" alt="{{actor.name}}" class="mlm-shopper-portrait">
-          <div class="mlm-shopper-copy">
-            <span class="mlm-shopper-label">{{#if isGM}}Marketplace for{{else}}Shopping as{{/if}}</span>
-            <strong>{{actor.name}}</strong>
-          </div>
-        </div>
-        <div class="mlm-shopper-wallet">
-          <i class="fa-solid fa-coins"></i>
-          <div><span>Available Coin</span><strong>{{{currency}}}</strong></div>
-        </div>
-      </div>
-    {{/if}}
 
     {{#if shopperNotice}}
       <div class="mlm-shopper-notice">

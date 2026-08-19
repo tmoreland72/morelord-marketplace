@@ -241,7 +241,7 @@
     </aside>
 
     <main class="mlm-buy-results">
-      <div class="mlm-table-container">
+      <div class="mlm-table-container" data-mlm-preserve-scroll="buy-results">
         <table>
           <thead>
             <tr>
@@ -276,10 +276,17 @@
                 {{#if ../isShop}}<td title="{{stockTitle}}">{{stockLabel}}</td>{{/if}}
                 <td>
                   <div class="mlm-actions">
-                    <button type="button" class="mlm-buy-button" title="{{#if ../isShop}}Add {{name}} to cart{{else}}Buy {{name}}{{/if}}" data-action="buyItem" data-pack-id="{{packId}}" data-document-id="{{documentId}}" {{#if ../isShop}}{{#unless canAddToCart}}disabled{{/unless}}{{else}}{{#unless ../canBuy}}disabled{{/unless}}{{/if}}>
-                      <i class="fa-solid fa-cart-plus"></i>
-                    </button>
-                    {{#if cartQty}}<span class="mlm-cart-qty">{{cartQty}}</span>{{/if}}
+                    {{#if cartQty}}
+                      <div class="mlm-quantity-stepper" aria-label="{{name}} cart quantity">
+                        <button type="button" data-action="removeFromCart" data-cart-key="{{packId}}:{{documentId}}" title="Remove one {{name}} from cart"><i class="fa-solid fa-minus"></i></button>
+                        <span class="mlm-cart-qty" aria-label="Quantity">{{cartQty}}</span>
+                        <button type="button" data-action="buyItem" data-pack-id="{{packId}}" data-document-id="{{documentId}}" title="Add one {{name}} to cart" {{#unless canAddToCart}}disabled{{/unless}}><i class="fa-solid fa-plus"></i></button>
+                      </div>
+                    {{else}}
+                      <button type="button" class="mlm-buy-button" title="{{#if ../isShop}}Add {{name}} to cart{{else}}Buy {{name}}{{/if}}" data-action="buyItem" data-pack-id="{{packId}}" data-document-id="{{documentId}}" {{#if ../isShop}}{{#unless canAddToCart}}disabled{{/unless}}{{else}}{{#unless ../canBuy}}disabled{{/unless}}{{/if}}>
+                        <i class="fa-solid fa-cart-plus"></i>
+                      </button>
+                    {{/if}}
                   </div>
                 </td>
               </tr>
@@ -302,16 +309,25 @@
           <div class="mlm-cart-title"><i class="fa-solid fa-cart-shopping"></i><strong>Cart</strong></div>
           <span class="mlm-cart-count">{{cartCount}}</span>
         </div>
-        <div class="mlm-cart-items">
+        <div class="mlm-cart-items" data-mlm-preserve-scroll="buy-cart">
           {{#each cartItems}}
             <div class="mlm-cart-line">
               <img src="{{img}}" alt="{{name}}" data-link data-uuid="{{uuid}}" title="Open {{name}}">
-              <div>
+              <div class="mlm-cart-line-details">
                 <a class="content-link mlm-cart-item-name" data-link data-uuid="{{uuid}}">{{name}}</a>
-                <span>{{quantity}} × {{buyPrice}}</span>
-                <small>{{lineTotal}}</small>
+                <div class="mlm-cart-line-pricing">
+                  <span>{{buyPrice}} each</span>
+                  <strong>{{lineTotal}}</strong>
+                </div>
+                <div class="mlm-cart-quantity-row">
+                  <span>Qty</span>
+                  <div class="mlm-quantity-stepper mlm-cart-stepper" aria-label="{{name}} cart quantity">
+                    <button type="button" data-action="removeFromCart" data-cart-key="{{packId}}:{{documentId}}" title="Remove one {{name}} from cart"><i class="fa-solid fa-minus"></i></button>
+                    <span class="mlm-cart-qty" aria-label="Quantity">{{quantity}}</span>
+                    <button type="button" data-action="addToCart" data-pack-id="{{packId}}" data-document-id="{{documentId}}" title="Add one {{name}} to cart"><i class="fa-solid fa-plus"></i></button>
+                  </div>
+                </div>
               </div>
-              <button type="button" data-action="removeFromCart" data-cart-key="{{packId}}:{{documentId}}" title="Remove one"><i class="fa-solid fa-minus"></i></button>
             </div>
           {{else}}
             <div class="mlm-cart-empty"><i class="fa-solid fa-basket-shopping"></i><span>Your cart is empty.</span></div>

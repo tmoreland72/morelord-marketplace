@@ -89,7 +89,9 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
     this.isLoadingBuy = Boolean(this.shopId);
     this._initialShopLoadStarted = false;
     this._reservationListener = event => {
-      if (event?.detail?.shopId === this.shopId) void this.render();
+      if (event?.detail?.shopId !== this.shopId) return;
+      if (event?.detail?.inventoryChanged) void this.refreshShopSnapshot();
+      else void this.render();
     };
     window.addEventListener("mlm-shop-reservations", this._reservationListener);
     MorelordMarketplaceApp.instances.add(this);
@@ -134,45 +136,55 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
 
   static refreshForActor(actor) {
     for (const app of MorelordMarketplaceApp.instances) {
-      if (app.actor?.id === actor?.id) app.render();
+      if (app.actor?.id === actor?.id || app.fundingActorId === actor?.id) app.render();
     }
   }
 
+  async refreshShopSnapshot() {
+    if (!this.shopId) return;
+    const latest = ShopService.getShop(this.shopId);
+    if (!latest) return void this.render();
+
+    // Keep an active cart reviewable, but never leave an idle shop displaying
+    // inventory from before a restock or settings change.
+    if (!this.cart.size) {
+      this.shopSnapshot = foundry.utils.deepClone(latest);
+      this.shopRevision = Number(latest.revision ?? 1);
+    }
+    await this.render();
+  }
+
   async _prepareContext(options) {
+    // ApplicationV2 prepares the next context while the previous DOM is still
+    // mounted, so capture exact positions even if the browser has not delivered
+    // the latest passive scroll event yet.
+    for (const panel of this.element?.querySelectorAll?.("[data-mlm-preserve-scroll]") ?? []) {
+      this.panelScrollPositions.set(panel.dataset.mlmPreserveScroll, panel.scrollTop);
+    }
+
     const liveShop = this.shopId ? ShopService.getShop(this.shopId) : null;
     const shop = this.shopId ? (this.shopSnapshot ?? foundry.utils.deepClone(liveShop)) : null;
     const shopStale = Boolean(shop && liveShop && Number(liveShop.revision ?? 1) !== Number(this.shopRevision ?? 1));
-    const shopperActors = shop ? ActorService.getShopperActors() : [];
-    const fundingActors = shop ? ActorService.getFundingActors() : [];
+    const shopperActors = ActorService.getShopperActors();
+    const fundingActors = ActorService.getFundingActors();
 
-    let actor = null;
-    if (shop) {
-      actor = shopperActors.find(candidate => candidate.id === this.actorId) ?? null;
-      if (!actor) {
-        const detected = ActorService.getMarketplaceActor();
-        actor = shopperActors.find(candidate => candidate.id === detected?.id)
-          ?? shopperActors[0]
-          ?? null;
-        this.actorId = actor?.id ?? null;
-      }
-    } else {
-      actor = ActorService.getMarketplaceActor();
+    let actor = shopperActors.find(candidate => candidate.id === this.actorId) ?? null;
+    if (!actor) {
+      const detected = ActorService.getMarketplaceActor();
+      actor = shopperActors.find(candidate => candidate.id === detected?.id)
+        ?? shopperActors[0]
+        ?? null;
       this.actorId = actor?.id ?? null;
     }
     this.actor = actor;
 
     let fundingActor = null;
-    if (shop) {
-      fundingActor = fundingActors.find(candidate => candidate.id === this.fundingActorId) ?? null;
-      if (!fundingActor && actor && ActorService.hasCurrency(actor)) {
-        fundingActor = fundingActors.find(candidate => candidate.id === actor.id) ?? null;
-      }
-      fundingActor ??= fundingActors[0] ?? null;
-      this.fundingActorId = fundingActor?.id ?? null;
-    } else {
-      fundingActor = actor;
-      this.fundingActorId = fundingActor?.id ?? null;
+    fundingActor = fundingActors.find(candidate => candidate.id === this.fundingActorId) ?? null;
+    if (!fundingActor && actor && ActorService.hasCurrency(actor)) {
+      fundingActor = fundingActors.find(candidate => candidate.id === actor.id) ?? null;
     }
+    fundingActor ??= fundingActors[0] ?? null;
+    this.fundingActorId = fundingActor?.id ?? null;
 
     const selectedToken = game.canvas?.tokens?.controlled?.find(
       token => token.actor?.id === actor?.id
@@ -193,6 +205,7 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       shopperOptions: shopperActors.map(candidate => ({
         id: candidate.id,
         name: candidate.name,
+        typeLabel: candidate.type === "group" ? "Group" : "Character",
         selected: candidate.id === actor?.id
       })),
       fundingOptions: fundingActors.map(candidate => ({
@@ -201,8 +214,8 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
         typeLabel: candidate.type === "group" ? "Group" : "Actor",
         selected: candidate.id === fundingActor?.id
       })),
-      showShopperSelector: Boolean(shop && (game.user.isGM || shopperActors.length > 1)),
-      showFundingSelector: Boolean(shop && fundingActors.length),
+      showShopperSelector: shopperActors.length > 0,
+      showFundingSelector: fundingActors.length > 0,
       isShop: Boolean(shop),
       shopName: shop?.name ?? null,
       shopImg: shop?.img ?? "icons/svg/house.svg",
@@ -237,10 +250,10 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       isCheckingOut: Boolean(this.isCheckingOut)
     };
 
-    if (!actor && !shop) {
+    if (!actor && !shop && context.isBuyTab) {
       context.error = game.user.isGM
-        ? "Select a character token before opening the marketplace."
-        : "No assigned character found. Please assign a character to your user.";
+        ? "No eligible character or group actor is available."
+        : "You do not own an eligible character or group actor.";
       return context;
     }
 
@@ -406,7 +419,6 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
   }
 
   getFundingActor() {
-    if (!this.shopId) return this.actor;
     return ActorService.getFundingActors().find(actor => actor.id === this.fundingActorId) ?? null;
   }
 
@@ -547,7 +559,7 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
   static async sellAll(event, target) {
     if (this.shopId && Number(ShopService.getShop(this.shopId)?.revision ?? 1) !== Number(this.shopRevision ?? 1)) { ui.notifications.warn("This shop changed. Refresh it before selling."); return; }
     const itemId = target.dataset.itemId;
-    const item = this.actor.items.get(itemId);
+    const item = this.actor?.items.get(itemId);
     const quantity = item?.system.quantity ?? 1;
     await ActorService.sellItem(this.actor, itemId, quantity, { shop: this.shopId ? this.shopSnapshot : null });
     await this.render();
@@ -564,7 +576,7 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
 
     await CompendiumService.buyCompendiumItem({
       actor: this.actor,
-      fundingActor: this.actor,
+      fundingActor: this.getFundingActor(),
       packId: target.dataset.packId,
       documentId: target.dataset.documentId
     });
