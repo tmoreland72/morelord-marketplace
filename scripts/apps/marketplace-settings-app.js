@@ -16,8 +16,8 @@ export class MorelordMarketplaceSettingsApp extends HandlebarsApplicationMixin(A
       resizable: true
     },
     position: {
-      width: 650,
-      height: 600
+      width: 800,
+      height: 700
     },
     actions: {
       save: MorelordMarketplaceSettingsApp.save,
@@ -41,7 +41,7 @@ export class MorelordMarketplaceSettingsApp extends HandlebarsApplicationMixin(A
       .filter(p => p.metadata.type === "Item")
       .map(p => ({
         collection: p.collection,
-        label: p.metadata.label ?? p.collection,
+        label: CompendiumService.getPackSourceLabel(p),
         packageName: p.metadata.packageName ?? "",
         selected: selected.includes(p.collection)
       }))

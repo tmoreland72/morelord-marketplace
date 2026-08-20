@@ -21,8 +21,8 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       resizable: true
     },
     position: {
-      width: 1100,
-      height: 700
+      width: 1280,
+      height: 820
     },
     actions: {
       switchTab: MorelordMarketplaceApp.switchTab,
@@ -74,7 +74,17 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
   }
 
   constructor(options = {}) {
-    super(options);
+    const applicationOptions = options.shopId
+      ? {
+          ...options,
+          position: {
+            width: 1480,
+            height: 860,
+            ...(options.position ?? {})
+          }
+        }
+      : options;
+    super(applicationOptions);
     this.actor = ActorService.getMarketplaceActor();
     this.actorId = this.actor?.id ?? null;
     this.fundingActorId = null;
@@ -159,7 +169,10 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
     // mounted, so capture exact positions even if the browser has not delivered
     // the latest passive scroll event yet.
     for (const panel of this.element?.querySelectorAll?.("[data-mlm-preserve-scroll]") ?? []) {
-      this.panelScrollPositions.set(panel.dataset.mlmPreserveScroll, panel.scrollTop);
+      this.panelScrollPositions.set(panel.dataset.mlmPreserveScroll, {
+        top: panel.scrollTop,
+        left: panel.scrollLeft
+      });
     }
 
     const liveShop = this.shopId ? ShopService.getShop(this.shopId) : null;
@@ -346,9 +359,14 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
 
     for (const panel of this.element.querySelectorAll("[data-mlm-preserve-scroll]")) {
       const key = panel.dataset.mlmPreserveScroll;
-      panel.scrollTop = this.panelScrollPositions.get(key) ?? 0;
+      const position = this.panelScrollPositions.get(key);
+      panel.scrollTop = typeof position === "number" ? position : position?.top ?? 0;
+      panel.scrollLeft = typeof position === "object" ? position?.left ?? 0 : 0;
       panel.addEventListener("scroll", () => {
-        this.panelScrollPositions.set(key, panel.scrollTop);
+        this.panelScrollPositions.set(key, {
+          top: panel.scrollTop,
+          left: panel.scrollLeft
+        });
       }, { passive: true });
     }
 

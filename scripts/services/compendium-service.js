@@ -64,7 +64,12 @@ export class CompendiumService {
         itemTypes: [...(currentShop.itemTypes ?? [])].sort(),
         itemOptions: [...(currentShop.itemOptions ?? [])].sort(),
         rarities: [...(currentShop.rarities ?? [])].map(value => ShopService.normalizeRarity(value)).sort(),
-        prefabItemUuids: [...(currentShop.prefabItemUuids ?? [])].sort()
+        prefabItemUuids: [...(currentShop.prefabItemUuids ?? [])].sort(),
+        inventoryOverrides: {
+          included: [...(currentShop.inventoryOverrides?.included ?? [])].sort(),
+          excluded: [...(currentShop.inventoryOverrides?.excluded ?? [])].sort(),
+          limited: [...(currentShop.inventoryOverrides?.limited ?? [])].sort()
+        }
       } : null
     });
 
@@ -99,6 +104,21 @@ export class CompendiumService {
   static async getBuyableItems(filters = {}, shop = null) {
     const catalog = await this.getBuyableCatalog(shop);
     return this.filterRows(catalog, filters);
+  }
+
+  static async getInventorySearchCatalog() {
+    return this.getBuyableCatalog({
+      id: "inventory-search",
+      buyModifier: 1,
+      reputation: "neutral",
+      inventoryMode: "unlimited",
+      compendiums: [],
+      itemTypes: [],
+      itemOptions: [],
+      rarities: [],
+      prefabItemUuids: [],
+      inventoryOverrides: { included: [], excluded: [], limited: [] }
+    });
   }
 
   static filterRows(rows, filters = {}) {
@@ -599,13 +619,52 @@ export class CompendiumService {
     );
 
     if (candidate !== "") {
-      return this.resolveSourceBookLabel(candidate);
+      const resolved = this.resolveSourceBookLabel(candidate);
+      if (!this.isGenericSourceLabel(resolved)) return resolved;
     }
 
-    return (
-      pack.metadata.label ??
-      pack.collection
-    );
+    return this.getPackSourceLabel(pack);
+  }
+
+  static getPackSourceLabel(pack) {
+    const metadata = pack?.metadata ?? {};
+    const packageId = String(metadata.packageName ?? pack?.collection?.split?.(".")?.[0] ?? "");
+    const moduleTitle = game.modules?.get?.(packageId)?.title;
+    const systemTitle = game.system?.id === packageId ? game.system?.title : "";
+    const candidates = [
+      metadata.packageTitle,
+      moduleTitle,
+      systemTitle,
+      metadata.label,
+      pack?.title,
+      metadata.name,
+      packageId,
+      pack?.collection
+    ].filter(Boolean).map(String);
+    const identity = candidates.join(" ").toLowerCase().replace(/[’‘`]/g, "'");
+
+    if (identity.includes("morelord-craftworks") || identity.includes("morelord craftworks")) {
+      return "Craftworks";
+    }
+    if (identity.includes("player's handbook") || identity.includes("players handbook") || identity.includes("dnd-players-handbook")) {
+      return "Player's Handbook";
+    }
+    if (identity.includes("dungeon master's guide") || identity.includes("dungeon masters guide") || identity.includes("dnd-dungeon-masters-guide")) {
+      return "Dungeon Master's Guide";
+    }
+    if (/srd[\s._-]*5[\s._-]*2/.test(identity)) return "SRD 5.2";
+    if (/srd[\s._-]*5[\s._-]*1/.test(identity) || packageId === "dnd5e") return "SRD 5.1";
+
+    const meaningful = candidates.find(candidate => !this.isGenericSourceLabel(candidate));
+    return meaningful || "Unknown Source";
+  }
+
+  static isGenericSourceLabel(value) {
+    const normalized = this.normalize(value);
+    if (!normalized || /^\d+$/.test(normalized)) return true;
+    return new Set([
+      "item", "items", "equipment", "weapon", "weapons", "armor", "tool", "tools", "loot", "consumable", "consumables"
+    ]).has(normalized);
   }
 
   static extractSourceCandidate(sourceData) {

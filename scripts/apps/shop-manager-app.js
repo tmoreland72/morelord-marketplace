@@ -3,7 +3,7 @@ import { ShopService } from "../services/shop-service.js";
 import { CompendiumService } from "../services/compendium-service.js";
 import { EntitlementService } from "../services/entitlement-service.js";
 import { ShopTransactionService } from "../services/shop-transaction-service.js";
-import { SHOP_ITEM_OPTIONS, getItemTypesForOptions } from "../models/shop-profile.js";
+import { SHOP_ITEM_OPTIONS, ShopProfileModel, getItemTypesForOptions } from "../models/shop-profile.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -13,7 +13,7 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
     classes: ["morelord-marketplace", "mlm-shop-manager"],
     tag: "section",
     window: { title: "Marketplace Shops", icon: "fa-solid fa-store", resizable: true },
-    position: { width: 980, height: 720 },
+    position: { width: 1240, height: 820 },
     actions: {
       createShop: MorelordShopManagerApp.createShop,
       createPrefabShop: MorelordShopManagerApp.createPrefabShop,
@@ -24,7 +24,12 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
       restockShop: MorelordShopManagerApp.restockShop,
       browseImage: MorelordShopManagerApp.browseImage,
       exportShop: MorelordShopManagerApp.exportShop,
-      importShop: MorelordShopManagerApp.importShop
+      importShop: MorelordShopManagerApp.importShop,
+      openInventoryLookup: MorelordShopManagerApp.openInventoryLookup,
+      closeInventoryLookup: MorelordShopManagerApp.closeInventoryLookup,
+      addInventoryItem: MorelordShopManagerApp.addInventoryItem,
+      adjustInventoryQuantity: MorelordShopManagerApp.adjustInventoryQuantity,
+      removeInventoryItem: MorelordShopManagerApp.removeInventoryItem
     }
   };
 
@@ -37,11 +42,26 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
     this.selectedShopId = options.shopId ?? ShopService.getShops()[0]?.id ?? null;
     this.isWorking = false;
     this.workingMessage = "";
+    this.inventoryLookupOpen = false;
+    this.inventorySearchQuery = "";
+    this.draftShop = null;
+    this.panelScrollPositions = new Map();
+    this.inventorySearchTimer = null;
+    this.restoreInventorySearchFocus = false;
   }
 
   async _prepareContext() {
+    for (const panel of this.element?.querySelectorAll?.("[data-mlm-preserve-scroll]") ?? []) {
+      this.panelScrollPositions.set(panel.dataset.mlmPreserveScroll, {
+        top: panel.scrollTop,
+        left: panel.scrollLeft
+      });
+    }
+
     const shops = ShopService.getShops();
-    const selected = ShopService.getShop(this.selectedShopId) ?? shops[0] ?? null;
+    const selected = this.draftShop?.id === this.selectedShopId
+      ? ShopService.normalizeShop(this.draftShop)
+      : ShopService.getShop(this.selectedShopId) ?? shops[0] ?? null;
     if (selected && !this.selectedShopId) this.selectedShopId = selected.id;
 
     let prefabs = [];
@@ -54,6 +74,23 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
     const itemTypeOptions = Object.entries(SHOP_ITEM_OPTIONS).map(([key, option]) => ({ key, label: option.label }));
     const rarityOptions = ["common", "uncommon", "rare", "veryrare", "legendary", "artifact"];
     const checked = (values, key) => values?.includes(key);
+    let inventory = [];
+    let inventorySearchResults = [];
+    if (selected) {
+      const catalog = await CompendiumService.getBuyableCatalog(selected);
+      inventory = catalog
+        .filter(row => ShopService.isInStock(selected, row))
+        .map(row => {
+          const quantity = ShopService.getStock(selected, row);
+          return { ...row, quantity, quantityLabel: Number.isFinite(quantity) ? quantity : "∞", finite: Number.isFinite(quantity) };
+        });
+      const query = this.inventorySearchQuery.trim().toLowerCase();
+      if (this.inventoryLookupOpen && query.length >= 2) {
+        inventorySearchResults = (await CompendiumService.getInventorySearchCatalog())
+          .filter(row => row.name.toLowerCase().includes(query))
+          .slice(0, 30);
+      }
+    }
 
     const shopCards = shops.map(shop => {
       const preset = ShopService.getPresets().find(entry => entry.key === shop.type);
@@ -78,6 +115,7 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
       shops: shopCards,
       selected: selected ? {
         ...selected,
+        isDraft: selected.id === this.draftShop?.id,
         itemTypeOptions: itemTypeOptions.map(option => ({ ...option, checked: checked(selected.itemOptions, option.key) })),
         rarityOptions: rarityOptions.map(key => ({ key, checked: checked((selected.rarities ?? []).map(ShopService.normalizeRarity), key), label: key === "veryrare" ? "Very Rare" : key.charAt(0).toUpperCase() + key.slice(1) })),
         reputations: ShopService.getReputationTiers().map(tier => ({ ...tier, selected: tier.key === selected.reputation })),
@@ -88,16 +126,14 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
         ].map(mode => ({ ...mode, selected: mode.key === selected.inventoryMode })),
         restockRules: [
           { key: "manual", label: "GM Restock" },
-          { key: "daily", label: "Daily" },
-          { key: "three-days", label: "Every 3 Days" },
-          { key: "weekly", label: "Weekly" },
-          { key: "long-rest", label: "After Long Rest" },
           { key: "never", label: "Never" }
         ].map(rule => ({ ...rule, selected: rule.key === selected.restock?.rule })),
         restockBehaviors: [
           { key: "replace", label: "Reroll / replace inventory" },
           { key: "topup", label: "Top up inventory" }
-        ].map(behavior => ({ ...behavior, selected: behavior.key === selected.restock?.behavior }))
+        ].map(behavior => ({ ...behavior, selected: behavior.key === selected.restock?.behavior })),
+        inventory,
+        inventoryCount: inventory.length
       } : null,
       presets: ShopService.getPresets(),
       prefabs: prefabs.map(prefab => ({
@@ -110,12 +146,51 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
         page: prefab.page
       })),
       isWorking: this.isWorking,
-      workingMessage: this.workingMessage || "Working…"
+      workingMessage: this.workingMessage || "Working…",
+      inventoryLookupOpen: this.inventoryLookupOpen,
+      inventorySearchQuery: this.inventorySearchQuery,
+      inventorySearchReady: this.inventorySearchQuery.trim().length >= 2,
+      inventorySearchResults
     };
   }
 
   _form() {
     return this.element?.querySelector("form[data-shop-form]");
+  }
+
+  _onRender(context, options) {
+    super._onRender(context, options);
+
+    for (const panel of this.element.querySelectorAll("[data-mlm-preserve-scroll]")) {
+      const key = panel.dataset.mlmPreserveScroll;
+      const position = this.panelScrollPositions.get(key);
+      if (position) {
+        panel.scrollTop = position.top;
+        panel.scrollLeft = position.left;
+      }
+      panel.addEventListener("scroll", () => {
+        this.panelScrollPositions.set(key, {
+          top: panel.scrollTop,
+          left: panel.scrollLeft
+        });
+      }, { passive: true });
+    }
+
+    const search = this.element.querySelector('[name="inventorySearch"]');
+    search?.addEventListener("input", event => {
+      this.inventorySearchQuery = event.currentTarget.value;
+      clearTimeout(this.inventorySearchTimer);
+      this.inventorySearchTimer = setTimeout(async () => {
+        this.restoreInventorySearchFocus = true;
+        await this.render();
+      }, 200);
+    });
+
+    if (this.restoreInventorySearchFocus && search) {
+      search.focus({ preventScroll: true });
+      search.setSelectionRange(search.value.length, search.value.length);
+      this.restoreInventorySearchFocus = false;
+    }
   }
 
   static async createShop(event, target) {
@@ -125,24 +200,12 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
 
     const type = target.dataset.shopType ?? "general";
     const preset = ShopService.getPresets().find(entry => entry.key === type);
-    this.isWorking = true;
-    this.workingMessage = `Creating ${preset?.label ?? "shop"}…`;
+    this.draftShop = ShopProfileModel.create({ name: preset?.label, type });
+    this.selectedShopId = this.draftShop.id;
+    this.inventoryLookupOpen = false;
+    this.inventorySearchQuery = "";
+    CompendiumService.clearCatalogCache();
     await this.render();
-
-    try {
-      const shop = await ShopService.createShop({ name: preset?.label, type });
-      this.selectedShopId = shop.id;
-      CompendiumService.clearCatalogCache();
-      const catalog = await CompendiumService.getBuyableCatalog(shop);
-      await ShopService.restock(shop.id, catalog);
-    } catch (error) {
-      console.error(`[${MODULE_ID}] Failed to create shop`, error);
-      ui.notifications.error("Morelord Marketplace could not create that shop.");
-    } finally {
-      this.isWorking = false;
-      this.workingMessage = "";
-      await this.render();
-    }
   }
 
   static async createPrefabShop(event, target) {
@@ -161,10 +224,10 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
     await this.render();
 
     try {
-      const shop = await ShopService.createPrefabShop(prefabId);
+      const shop = await ShopService.createPrefabShop(prefabId, { save: false });
+      this.draftShop = shop;
       this.selectedShopId = shop.id;
       CompendiumService.clearCatalogCache();
-      ui.notifications.info(`${shop.name} created from prefab inventory.`);
     } catch (error) {
       console.error(`[${MODULE_ID}] Failed to create prefab shop`, error);
       ui.notifications.error(error?.message ?? "Morelord Marketplace could not create that prefab store.");
@@ -178,7 +241,10 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
   static async selectShop(event, target) {
     event.preventDefault();
     if (this.isWorking) return;
+    this.draftShop = null;
     this.selectedShopId = target.dataset.shopId;
+    this.inventoryLookupOpen = false;
+    this.inventorySearchQuery = "";
     await this.render();
   }
 
@@ -187,8 +253,11 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
     if (!EntitlementService.hasShopManager()) { ui.notifications.warn("Shop Manager requires a premium Marketplace entitlement."); return; }
     if (this.isWorking) return;
     const form = this._form();
-    const shop = ShopService.getShop(this.selectedShopId);
+    const shop = this.draftShop?.id === this.selectedShopId
+      ? foundry.utils.deepClone(this.draftShop)
+      : ShopService.getShop(this.selectedShopId);
     if (!form || !shop) return;
+    const isDraft = shop.id === this.draftShop?.id;
 
     const data = new FormData(form);
     shop.name = String(data.get("name") ?? shop.name).trim() || shop.name;
@@ -220,10 +289,16 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
       behavior: String(data.get("restockBehavior") ?? "replace")
     };
 
-    const saved = await ShopService.saveShop(shop, { bumpRevision: true });
+    const saved = await ShopService.saveShop(shop, { bumpRevision: !isDraft });
+    this.draftShop = null;
     await ShopService.syncShopIdentity(saved);
     CompendiumService.clearCatalogCache();
-    ui.notifications.info(`${shop.name} saved.`);
+    if (isDraft) {
+      const catalog = await CompendiumService.getBuyableCatalog(saved);
+      await ShopService.restock(saved.id, catalog);
+      CompendiumService.clearCatalogCache();
+    }
+    ui.notifications.info(isDraft ? `${shop.name} created.` : `${shop.name} saved.`);
     await this.render();
   }
 
@@ -352,6 +427,62 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
       }
     }, { once: true });
     input.click();
+  }
+
+  static async openInventoryLookup(event) {
+    event.preventDefault();
+    this.inventoryLookupOpen = true;
+    await this.render();
+    this.element?.querySelector('[name="inventorySearch"]')?.focus();
+  }
+
+  static async closeInventoryLookup(event) {
+    event.preventDefault();
+    this.inventoryLookupOpen = false;
+    this.inventorySearchQuery = "";
+    await this.render();
+  }
+
+  static async addInventoryItem(event, target) {
+    event.preventDefault();
+    if (!game.user.isGM || !EntitlementService.hasShopManager()) return;
+    const row = (await CompendiumService.getInventorySearchCatalog()).find(entry => entry.uuid === target.dataset.itemUuid);
+    if (!row) return ui.notifications.warn("That item is no longer available in an enabled compendium.");
+    await ShopService.addInventoryItem(this.selectedShopId, row, 1);
+    CompendiumService.clearCatalogCache();
+    ShopTransactionService.broadcastInventoryChanged(this.selectedShopId);
+    this.inventoryLookupOpen = false;
+    this.inventorySearchQuery = "";
+    ui.notifications.info(`${row.name} added to the shop with quantity 1.`);
+    await this.render();
+  }
+
+  static async adjustInventoryQuantity(event, target) {
+    event.preventDefault();
+    if (!game.user.isGM || !EntitlementService.hasShopManager()) return;
+    const shop = ShopService.getShop(this.selectedShopId);
+    const row = (await CompendiumService.getBuyableCatalog(shop)).find(entry => ShopService.stockKey(entry) === target.dataset.stockKey);
+    if (!row) return;
+    const quantity = ShopService.getStock(shop, row);
+    if (!Number.isFinite(quantity)) return;
+    const delta = Number(target.dataset.delta ?? 0);
+    await ShopService.setStock(shop.id, row, Math.max(0, quantity + delta));
+    CompendiumService.clearCatalogCache();
+    ShopTransactionService.broadcastInventoryChanged(shop.id);
+    await this.render();
+  }
+
+  static async removeInventoryItem(event, target) {
+    event.preventDefault();
+    if (!game.user.isGM || !EntitlementService.hasShopManager()) return;
+    const shop = ShopService.getShop(this.selectedShopId);
+    const row = (await CompendiumService.getBuyableCatalog(shop)).find(entry => ShopService.stockKey(entry) === target.dataset.stockKey);
+    if (!row) return;
+    await ShopService.removeInventoryItem(shop.id, row);
+    CompendiumService.clearCatalogCache();
+    ShopTransactionService.broadcastInventoryChanged(shop.id);
+    ui.notifications.info(`${row.name} removed from the shop.`);
+    await this.render();
   }
 
 }

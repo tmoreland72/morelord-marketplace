@@ -8,7 +8,7 @@
       </div>
     </div>
   {{/if}}
-  <aside class="mlm-shop-list-panel">
+  <aside class="mlm-shop-list-panel" data-mlm-preserve-scroll="shop-library">
     <div class="mlm-shop-manager-heading">
       <div class="mlm-shop-manager-title">
         <span class="mlm-shop-manager-eyebrow">Vendor Library</span>
@@ -109,15 +109,18 @@
     {{#if selected}}
       <form data-shop-form>
         <header class="mlm-shop-editor-header">
-          <div><h2>{{selected.name}}</h2><p>{{selected.type}} shop</p></div>
+          <div><h2>{{selected.name}}</h2><p>{{#if selected.isDraft}}Unsaved {{/if}}{{selected.type}} shop</p></div>
           <div class="mlm-shop-editor-actions">
-            <button type="button" data-action="placeShop"><i class="fa-solid fa-location-dot"></i> Place on Scene</button>
-            <button type="button" data-action="restockShop"><i class="fa-solid fa-rotate"></i> Restock Now</button>
-            <button type="button" data-action="saveShop" class="primary"><i class="fa-solid fa-floppy-disk"></i> Save</button>
+            {{#unless selected.isDraft}}
+              <button type="button" data-action="placeShop"><i class="fa-solid fa-location-dot"></i> Place on Scene</button>
+              <button type="button" data-action="restockShop"><i class="fa-solid fa-rotate"></i> Restock Now</button>
+            {{/unless}}
+            <button type="button" data-action="saveShop" class="primary"><i class="fa-solid fa-floppy-disk"></i> {{#if selected.isDraft}}Create Shop{{else}}Save{{/if}}</button>
           </div>
         </header>
 
-        <div class="mlm-shop-section-grid">
+        <div class="mlm-shop-editor-scroll" data-mlm-preserve-scroll="shop-editor">
+          <div class="mlm-shop-section-grid">
           <section class="mlm-shop-config-card">
             <h3>Identity & Access</h3>
             <label>Name <input type="text" name="name" value="{{selected.name}}"></label>
@@ -145,14 +148,6 @@
             <p class="hint">Reputation modifies both values automatically. Hostile parties cannot trade.</p>
           </section>
 
-          <section class="mlm-shop-config-card mlm-shop-config-wide">
-            <h3>Products</h3>
-            <div class="mlm-option-columns">
-              <div><strong>Item Options</strong>{{#each selected.itemTypeOptions}}<label><input type="checkbox" name="itemOptions" value="{{key}}" {{#if checked}}checked{{/if}}> {{label}}</label>{{/each}}</div>
-              <div><strong>Rarities</strong>{{#each selected.rarityOptions}}<label><input type="checkbox" name="rarities" value="{{key}}" {{#if checked}}checked{{/if}}> {{label}}</label>{{/each}}</div>
-            </div>
-          </section>
-
           <section class="mlm-shop-config-card">
             <h3>Inventory</h3>
             <label>Mode
@@ -177,11 +172,78 @@
             <label>Behavior
               <select name="restockBehavior">{{#each selected.restockBehaviors}}<option value="{{key}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}</select>
             </label>
-            <p class="hint">Manual restocking works now. Scheduled rules are stored for automation hooks and future world-time integration.</p>
+            <p class="hint">Restock manually with <strong>Restock Now</strong>, or choose Never for shops whose inventory is managed entirely by the GM.</p>
           </section>
-        </div>
 
-        <footer class="mlm-shop-editor-footer"><button type="button" data-action="exportShop"><i class="fa-solid fa-file-export"></i> Export Shop</button><button type="button" class="danger" data-action="deleteShop"><i class="fa-solid fa-trash"></i> Delete Shop</button></footer>
+          <section class="mlm-shop-config-card mlm-shop-config-wide">
+            <h3>Products</h3>
+            <div class="mlm-option-columns">
+              <div><strong>Item Options</strong>{{#each selected.itemTypeOptions}}<label><input type="checkbox" name="itemOptions" value="{{key}}" {{#if checked}}checked{{/if}}> {{label}}</label>{{/each}}</div>
+              <div><strong>Rarities</strong>{{#each selected.rarityOptions}}<label><input type="checkbox" name="rarities" value="{{key}}" {{#if checked}}checked{{/if}}> {{label}}</label>{{/each}}</div>
+            </div>
+          </section>
+
+          <section class="mlm-shop-config-card mlm-shop-config-wide mlm-shop-inventory-card">
+            <div class="mlm-shop-inventory-heading">
+              <div>
+                <h3>Current Inventory <span class="mlm-shop-count">{{selected.inventoryCount}}</span></h3>
+                <p class="hint">{{#if selected.isDraft}}Preview the catalog produced by these settings. Save the shop before overriding individual listings.{{else}}Override this shop's live listings. Restocking may change generated stock, but manually added and removed items remain overridden.{{/if}}</p>
+              </div>
+              {{#unless selected.isDraft}}<button type="button" data-action="openInventoryLookup"><i class="fa-solid fa-plus"></i> Add Item</button>{{/unless}}
+            </div>
+
+            {{#if inventoryLookupOpen}}
+              <div class="mlm-shop-item-lookup">
+                <div class="mlm-shop-item-lookup-header">
+                  <div><strong>Add an Item</strong><small>Search enabled Item compendiums.</small></div>
+                  <button type="button" data-action="closeInventoryLookup" title="Close item search"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="mlm-shop-item-search">
+                  <i class="fa-solid fa-magnifying-glass"></i>
+                  <input type="search" name="inventorySearch" value="{{inventorySearchQuery}}" placeholder="Type at least 2 characters…" autocomplete="off">
+                </div>
+                {{#if inventorySearchResults.length}}
+                  <div class="mlm-shop-item-search-results">
+                    {{#each inventorySearchResults}}
+                      <button type="button" data-action="addInventoryItem" data-item-uuid="{{uuid}}">
+                        <img src="{{img}}" alt=""><span><strong>{{name}}</strong><small>{{source}} · {{typeLabel}}</small></span><i class="fa-solid fa-plus"></i>
+                      </button>
+                    {{/each}}
+                  </div>
+                {{else}}
+                  <p class="hint">{{#if inventorySearchReady}}No matching items found.{{else}}Enter at least 2 characters to search.{{/if}}</p>
+                {{/if}}
+              </div>
+            {{/if}}
+
+            <div class="mlm-shop-inventory-list">
+              {{#each selected.inventory}}
+                <article class="mlm-shop-inventory-row">
+                  <img src="{{img}}" alt="">
+                  <div class="mlm-shop-inventory-details">
+                    <strong>{{name}}</strong>
+                    <small>{{source}} · {{rarityLabel}} {{typeLabel}}</small>
+                  </div>
+                  {{#if finite}}
+                    <div class="mlm-shop-inventory-quantity" aria-label="Quantity for {{name}}">
+                      <button type="button" data-action="adjustInventoryQuantity" data-delta="-1" data-stock-key="{{packId}}:{{documentId}}" title="Decrease {{name}} quantity"><i class="fa-solid fa-minus"></i></button>
+                      <span aria-label="Current quantity">{{quantity}}</span>
+                      <button type="button" data-action="adjustInventoryQuantity" data-delta="1" data-stock-key="{{packId}}:{{documentId}}" title="Increase {{name}} quantity"><i class="fa-solid fa-plus"></i></button>
+                    </div>
+                  {{else}}
+                    <span class="mlm-shop-inventory-infinite" title="This listing is unlimited"><i class="fa-solid fa-infinity"></i> Unlimited</span>
+                  {{/if}}
+                  {{#unless ../selected.isDraft}}<button type="button" class="danger mlm-shop-inventory-remove" data-action="removeInventoryItem" data-stock-key="{{packId}}:{{documentId}}" title="Remove {{name}} from this shop"><i class="fa-solid fa-trash"></i></button>{{/unless}}
+                </article>
+              {{else}}
+                <div class="mlm-shop-empty">This shop currently has no available inventory. Add an item or restock it.</div>
+              {{/each}}
+            </div>
+          </section>
+          </div>
+
+          {{#unless selected.isDraft}}<footer class="mlm-shop-editor-footer"><button type="button" data-action="exportShop"><i class="fa-solid fa-file-export"></i> Export Shop</button><button type="button" class="danger" data-action="deleteShop"><i class="fa-solid fa-trash"></i> Delete Shop</button></footer>{{/unless}}
+        </div>
       </form>
     {{else}}
       <div class="mlm-shop-editor-empty"><i class="fa-solid fa-shop-lock"></i><h2>No Shop Selected</h2><p>Create a shop from one of the Shop Templates.</p></div>

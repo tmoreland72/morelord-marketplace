@@ -14,6 +14,11 @@ export class ShopService {
       itemTypes: getItemTypesForOptions(itemOptions),
       revision: Math.max(1, Number(shop.revision ?? 1)),
       stock: { ...(shop.stock ?? {}) },
+      inventoryOverrides: {
+        included: [...(shop.inventoryOverrides?.included ?? [])],
+        excluded: [...(shop.inventoryOverrides?.excluded ?? [])],
+        limited: [...(shop.inventoryOverrides?.limited ?? [])]
+      },
       prefabItemUuids: [...(shop.prefabItemUuids ?? [])],
       tokenUuids: [...(shop.tokenUuids ?? [])]
     };
@@ -103,7 +108,7 @@ export class ShopService {
     return PrefabShopService.getAvailablePrefabs({ minimumMatches: 8 });
   }
 
-  static async createPrefabShop(prefabId) {
+  static async createPrefabShop(prefabId, { save = true } = {}) {
     const prefab = await PrefabShopService.getPrefab(prefabId);
     if (!prefab || prefab.matchedCount < 8) {
       throw new Error("That prefab shop no longer has enough matching Marketplace items.");
@@ -135,7 +140,7 @@ export class ShopService {
       rule: "never"
     };
 
-    return this.saveShop(shop);
+    return save ? this.saveShop(shop) : this.normalizeShop(shop);
   }
 
   static getPortableDefinition(shop) {
@@ -281,13 +286,16 @@ export class ShopService {
   static entryPassesShop(entry, shop, packId) {
     if (!shop) return true;
 
+    const documentId = entry?.documentId ?? entry?._id;
+    const uuid = entry?.uuid ?? (
+      packId && documentId
+        ? `Compendium.${packId}.Item.${documentId}`
+        : ""
+    );
+    if (uuid && shop.inventoryOverrides?.excluded?.includes(uuid)) return false;
+    if (uuid && shop.inventoryOverrides?.included?.includes(uuid)) return true;
+
     if (shop.prefabItemUuids?.length) {
-      const documentId = entry?.documentId ?? entry?._id;
-      const uuid = entry?.uuid ?? (
-        packId && documentId
-          ? `Compendium.${packId}.Item.${documentId}`
-          : ""
-      );
       return Boolean(uuid && shop.prefabItemUuids.includes(uuid));
     }
 
@@ -336,6 +344,7 @@ export class ShopService {
 
   static isLimited(shop, row) {
     if (!shop) return false;
+    if (row?.uuid && shop.inventoryOverrides?.limited?.includes(row.uuid)) return true;
     if (shop.inventoryMode === "limited") return true;
     if (shop.inventoryMode === "unlimited") return false;
     return this.normalizeRarity(row.rarityKey) !== "common";
@@ -359,6 +368,45 @@ export class ShopService {
     await this.saveShop(shop, { bumpRevision: true });
   }
 
+  static async setStock(shopId, row, quantity) {
+    const shop = this.getShop(shopId);
+    if (!shop || !this.isLimited(shop, row)) return null;
+    const key = this.stockKey(row);
+    shop.stock = { ...(shop.stock ?? {}), [key]: Math.max(0, Math.floor(Number(quantity) || 0)) };
+    return this.saveShop(shop, { bumpRevision: true });
+  }
+
+  static async addInventoryItem(shopId, row, quantity = 1) {
+    const shop = this.getShop(shopId);
+    if (!shop?.id || !row?.uuid) return null;
+    const overrides = shop.inventoryOverrides ?? {};
+    shop.inventoryOverrides = {
+      included: [...new Set([...(overrides.included ?? []), row.uuid])],
+      excluded: (overrides.excluded ?? []).filter(uuid => uuid !== row.uuid),
+      limited: [...new Set([...(overrides.limited ?? []), row.uuid])]
+    };
+    shop.stock = {
+      ...(shop.stock ?? {}),
+      [this.stockKey(row)]: Math.max(1, Math.floor(Number(quantity) || 1))
+    };
+    return this.saveShop(shop, { bumpRevision: true });
+  }
+
+  static async removeInventoryItem(shopId, row) {
+    const shop = this.getShop(shopId);
+    if (!shop?.id || !row?.uuid) return null;
+    const overrides = shop.inventoryOverrides ?? {};
+    shop.inventoryOverrides = {
+      included: (overrides.included ?? []).filter(uuid => uuid !== row.uuid),
+      excluded: [...new Set([...(overrides.excluded ?? []), row.uuid])],
+      limited: (overrides.limited ?? []).filter(uuid => uuid !== row.uuid)
+    };
+    const stock = { ...(shop.stock ?? {}) };
+    delete stock[this.stockKey(row)];
+    shop.stock = stock;
+    return this.saveShop(shop, { bumpRevision: true });
+  }
+
   static randomStockQuantity(rarity) {
     // The configured rarity counts represent how many different product
     // listings a restock should choose. Each chosen listing can itself have
@@ -376,6 +424,7 @@ export class ShopService {
 
     for (const row of catalog) {
       if (!this.isLimited(shop, row)) continue;
+      if (shop.inventoryOverrides?.limited?.includes(row.uuid)) continue;
       const rarity = this.normalizeRarity(row.rarityKey);
       const rows = groups.get(rarity) ?? [];
       rows.push(row);
@@ -402,11 +451,19 @@ export class ShopService {
     const shop = this.getShop(shopId);
     if (!shop) return null;
 
+    const manualStock = Object.fromEntries(
+      catalog
+        .filter(row => shop.inventoryOverrides?.limited?.includes(row.uuid))
+        .map(row => [this.stockKey(row), Math.max(0, Number(shop.stock?.[this.stockKey(row)] ?? 0))])
+    );
+
     if (shop.inventoryMode === "unlimited") {
-      shop.stock = {};
+      shop.stock = manualStock;
     } else if (shop.randomInventory?.enabled) {
       const generated = this.buildRandomStock(shop, catalog);
-      shop.stock = shop.restock?.behavior === "topup" ? { ...(shop.stock ?? {}), ...generated } : generated;
+      shop.stock = shop.restock?.behavior === "topup"
+        ? { ...(shop.stock ?? {}), ...generated, ...manualStock }
+        : { ...generated, ...manualStock };
     }
 
     shop.restock = { ...(shop.restock ?? {}), lastRestockedAt: Date.now() };
