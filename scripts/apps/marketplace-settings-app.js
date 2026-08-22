@@ -8,7 +8,7 @@ const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 export class MorelordMarketplaceSettingsApp extends HandlebarsApplicationMixin(ApplicationV2) {
   static DEFAULT_OPTIONS = {
     id: "morelord-marketplace-settings",
-    classes: ["morelord-marketplace", "morelord-marketplace-settings"],
+    classes: ["ml-window", "ml-marketplace-module", "ml-marketplace-settings-window"],
     tag: "section",
     window: {
       title: "Morelord Marketplace Settings",
@@ -51,6 +51,14 @@ export class MorelordMarketplaceSettingsApp extends HandlebarsApplicationMixin(A
 
     return {
       packs,
+      settings: {
+        sellRate: game.settings.get(MODULE_ID, "sellRate"),
+        enableSelling: game.settings.get(MODULE_ID, "enableSelling"),
+        enableBuying: game.settings.get(MODULE_ID, "enableBuying"),
+        requireSellApproval: game.settings.get(MODULE_ID, "requireSellApproval"),
+        requireBuyApproval: game.settings.get(MODULE_ID, "requireBuyApproval"),
+        postTransactionCards: game.settings.get(MODULE_ID, "postTransactionCards")
+      },
       premium: {
         ...premium,
         tierLabel: premium.tier === "champion"
@@ -84,21 +92,38 @@ export class MorelordMarketplaceSettingsApp extends HandlebarsApplicationMixin(A
 
   static async save(event, target) {
     event.preventDefault();
+    target.disabled = true;
 
-    const checked = Array.from(
-      this.element.querySelectorAll("input[name='compendium']:checked")
-    ).map(input => input.value);
+    try {
+      const checked = Array.from(
+        this.element.querySelectorAll("input[name='compendium']:checked")
+      ).map(input => input.value);
+      const settingValues = {
+        sellRate: Number(this.element.querySelector("[name='sellRate']")?.value),
+        enableSelling: Boolean(this.element.querySelector("[name='enableSelling']")?.checked),
+        enableBuying: Boolean(this.element.querySelector("[name='enableBuying']")?.checked),
+        requireSellApproval: Boolean(this.element.querySelector("[name='requireSellApproval']")?.checked),
+        requireBuyApproval: Boolean(this.element.querySelector("[name='requireBuyApproval']")?.checked),
+        postTransactionCards: Boolean(this.element.querySelector("[name='postTransactionCards']")?.checked)
+      };
+      if (!Number.isFinite(settingValues.sellRate) || settingValues.sellRate < 0 || settingValues.sellRate > 1) {
+        ui.notifications.error("Default Sell Rate must be between 0 and 1.");
+        return;
+      }
+      await game.settings.set(MODULE_ID, "allowedCompendiums", checked);
+      for (const [key, value] of Object.entries(settingValues)) {
+        await game.settings.set(MODULE_ID, key, value);
+      }
 
-    await game.settings.set(MODULE_ID, "allowedCompendiums", checked);
+      CompendiumService.clearCache?.();
 
-    CompendiumService.clearCache?.();
+      for (const app of MorelordMarketplaceApp.instances) app.render();
 
-    for (const app of MorelordMarketplaceApp.instances) {
-      app.render();
+      ui.notifications.info("Morelord Marketplace settings saved.");
+      await this.close();
+    } finally {
+      target.disabled = false;
     }
-
-    ui.notifications.info("Morelord Marketplace compendiums saved.");
-    await this.close();
   }
 
   static async selectAll(event, target) {

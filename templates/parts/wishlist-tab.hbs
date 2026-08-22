@@ -1,0 +1,28 @@
+<section class="ml-marketplace-tab ml-marketplace-wishlist-tab">
+  <div class="ml-marketplace-buy-heading">
+    <div><h3>Your Wishlist</h3><span class="ml-marketplace-result-count">{{wishlistCount}} items</span></div>
+  </div>
+  <p class="ml-marketplace-wishlist-help">Saved items belong to {{actor.name}}. Switch “Shopping As” to view another character or group's wishlist. Shops that can carry these items will prefer them during random restocks.</p>
+  <div class="ml-marketplace-table-container" data-ml-marketplace-preserve-scroll="wishlist-results">
+    <table>
+      <thead><tr><th>Item</th><th>Type</th><th>Rarity</th><th>Price</th><th>Status</th><th aria-label="Actions"></th></tr></thead>
+      <tbody>
+        {{#each wishlistItems}}
+          <tr>
+            <td><div class="ml-marketplace-item-cell"><img src="{{img}}" alt="{{name}}">{{#if isAvailable}}<a class="content-link" data-link data-uuid="{{uuid}}">{{name}}</a>{{else}}<span>{{name}}</span>{{/if}}</div></td>
+            <td>{{typeLabel}}{{#if subtypeLabel}} · {{subtypeLabel}}{{/if}}</td>
+            <td>{{rarityLabel}}</td>
+            <td>{{buyPrice}}</td>
+<td><span class="ml-badge ml-marketplace-wishlist-status {{#if canBuyNow}}available{{/if}}" data-tone="{{#if canBuyNow}}success{{else}}warning{{/if}}">{{availabilityLabel}}</span></td>
+<td><div class="ml-actions ml-marketplace-row-actions ml-marketplace-actions">
+              <button type="button" class="ml-marketplace-buy-button" title="Buy {{name}}" data-action="buyItem" data-pack-id="{{packId}}" data-document-id="{{documentId}}" {{#unless canBuyNow}}disabled{{/unless}}><i class="fa-solid fa-cart-plus"></i></button>
+              <button type="button" title="Remove {{name}} from wishlist" data-action="removeFromWishlist" data-uuid="{{uuid}}"><i class="fa-solid fa-trash"></i></button>
+            </div></td>
+          </tr>
+        {{else}}
+          <tr><td colspan="6" class="ml-marketplace-empty-results"><i class="fa-regular fa-heart"></i> Your wishlist is empty. Add items from the Buy tab.</td></tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+</section>

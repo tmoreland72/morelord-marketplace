@@ -1,9 +1,9 @@
-<section class="mlm-tab mlm-sell-tab">
-    <div class="mlm-sell-heading">
+<section class="ml-marketplace-tab ml-marketplace-sell-tab">
+    <div class="ml-marketplace-sell-heading">
         <h3>Available Inventory</h3>
-        <label class="mlm-sell-sort">
+        <label class="ml-marketplace-sell-sort">
             <span>Sort by</span>
-            <select data-mlm-sell-sort aria-label="Sort sell inventory">
+            <select data-ml-marketplace-sell-sort aria-label="Sort sell inventory">
                 {{#each sellSortOptions}}
                     <option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>
                 {{/each}}
@@ -11,7 +11,7 @@
         </label>
     </div>
 
-    <div class="mlm-table-container" data-mlm-preserve-scroll="sell-results">
+    <div class="ml-marketplace-table-container" data-ml-marketplace-preserve-scroll="sell-results">
     <table>
         <thead>
             <tr>
@@ -28,7 +28,7 @@
             {{#each sellItems}}
             <tr>
                 <td>
-                    <div class="mlm-item-cell">
+                    <div class="ml-marketplace-item-cell">
                         <img src="{{img}}" alt="{{name}}" />
                         <a class="content-link"
                             data-link
@@ -42,7 +42,7 @@
                 <td>{{listPrice}}</td>
                 <td>{{sellPrice}}</td>
                 <td>
-                    <div class="mlm-actions">
+            <div class="ml-actions ml-marketplace-row-actions ml-marketplace-actions">
                         <button type="button" data-action="sellOne" data-item-id="{{ownedItemId}}" title="Sell One" {{#unless ../canSell}}disabled{{/unless}}>
                         <i class="fa-solid fa-coin"></i>
                         </button>

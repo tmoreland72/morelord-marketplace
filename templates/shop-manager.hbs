@@ -1,103 +1,103 @@
-<section class="mlm-shop-manager-shell {{#if isWorking}}is-working{{/if}}">
+<section class="ml-app ml-app-shell ml-marketplace-shop-manager ml-marketplace-shop-manager-shell {{#if isWorking}}is-working{{/if}}">
   {{#if isWorking}}
-    <div class="mlm-shop-working-overlay" aria-live="polite" aria-busy="true">
-      <div class="mlm-shop-working-card">
+    <div class="ml-marketplace-shop-working-overlay" aria-live="polite" aria-busy="true">
+      <div class="ml-marketplace-shop-working-card">
         <i class="fa-solid fa-spinner fa-spin"></i>
         <strong>{{workingMessage}}</strong>
         <span>Please wait while Marketplace prepares the shop.</span>
       </div>
     </div>
   {{/if}}
-  <aside class="mlm-shop-list-panel" data-mlm-preserve-scroll="shop-library">
-    <div class="mlm-shop-manager-heading">
-      <div class="mlm-shop-manager-title">
-        <span class="mlm-shop-manager-eyebrow">Vendor Library</span>
+  <aside class="ml-marketplace-shop-list-panel" data-ml-marketplace-preserve-scroll="shop-library">
+    <div class="ml-marketplace-shop-manager-heading">
+      <div class="ml-marketplace-shop-manager-title">
+        <span class="ml-marketplace-shop-manager-eyebrow">Vendor Library</span>
         <h2>Marketplace Shops</h2>
         <p>Manage existing stores or start from a template or prefab.</p>
       </div>
-      <button type="button" class="mlm-shop-import-button" data-action="importShop" title="Import a portable shop definition">
+      <button type="button" class="ml-marketplace-shop-import-button" data-action="importShop" title="Import a portable shop definition">
         <i class="fa-solid fa-file-import"></i><span>Import Shop</span>
       </button>
     </div>
 
-    <section class="mlm-shop-library-section">
-      <div class="mlm-shop-library-heading">
+    <section class="ml-marketplace-shop-library-section">
+      <div class="ml-marketplace-shop-library-heading">
         <div>
-          <span class="mlm-shop-manager-eyebrow">Current World</span>
+          <span class="ml-marketplace-shop-manager-eyebrow">Current World</span>
           <h3>Existing Stores</h3>
         </div>
-        <span class="mlm-shop-count">{{shops.length}}</span>
+        <span class="ml-marketplace-shop-count">{{shops.length}}</span>
       </div>
 
-      <div class="mlm-shop-list">
+      <div class="ml-marketplace-shop-list">
         {{#each shops}}
-          <button type="button" class="mlm-shop-list-item mlm-shop-card {{#if selected}}active{{/if}}" data-action="selectShop" data-shop-id="{{id}}">
-            <img class="mlm-shop-card-image" src="{{img}}" alt="">
-            <span class="mlm-shop-card-body">
-              <span class="mlm-shop-card-name">{{name}}</span>
-              <span class="mlm-shop-card-type">{{typeLabel}}</span>
-              <span class="mlm-shop-card-tags">
+          <button type="button" class="ml-marketplace-shop-list-item ml-marketplace-shop-card {{#if selected}}active{{/if}}" data-action="selectShop" data-shop-id="{{id}}">
+            <img class="ml-marketplace-shop-card-image" src="{{img}}" alt="">
+            <span class="ml-marketplace-shop-card-body">
+              <span class="ml-marketplace-shop-card-name">{{name}}</span>
+              <span class="ml-marketplace-shop-card-type">{{typeLabel}}</span>
+              <span class="ml-marketplace-shop-card-tags">
                 {{#each tags}}
-                  <span class="mlm-shop-card-tag"><i class="fa-solid {{icon}}"></i>{{label}}</span>
+                  <span class="ml-marketplace-shop-card-tag"><i class="fa-solid {{icon}}"></i>{{label}}</span>
                 {{/each}}
               </span>
             </span>
-            <i class="fa-solid fa-chevron-right mlm-shop-card-chevron"></i>
+            <i class="fa-solid fa-chevron-right ml-marketplace-shop-card-chevron"></i>
           </button>
         {{else}}
-          <div class="mlm-shop-empty">No stores have been created in this world yet.</div>
+      <div class="ml-empty-message ml-marketplace-shop-empty">No stores have been created in this world yet.</div>
         {{/each}}
       </div>
     </section>
 
-    <section class="mlm-shop-library-section">
-      <div class="mlm-shop-library-heading">
+    <section class="ml-marketplace-shop-library-section">
+      <div class="ml-marketplace-shop-library-heading">
         <div>
-          <span class="mlm-shop-manager-eyebrow">Quick Start</span>
+          <span class="ml-marketplace-shop-manager-eyebrow">Quick Start</span>
           <h3>Store Templates</h3>
         </div>
       </div>
 
-      <div class="mlm-shop-preset-grid">
+      <div class="ml-marketplace-shop-preset-grid">
         {{#each presets}}
-          <button type="button" class="mlm-shop-preset-card" data-action="createShop" data-shop-type="{{key}}" title="Create {{label}}">
-            <span class="mlm-shop-preset-icon"><i class="fa-solid {{icon}}"></i></span>
+          <button type="button" class="ml-marketplace-shop-preset-card" data-action="createShop" data-shop-type="{{key}}" title="Create {{label}}">
+            <span class="ml-marketplace-shop-preset-icon"><i class="fa-solid {{icon}}"></i></span>
             <span>{{label}}</span>
           </button>
         {{/each}}
       </div>
     </section>
 
-    <section class="mlm-shop-library-section mlm-prefab-library-section">
-      <div class="mlm-shop-library-heading">
+    <section class="ml-marketplace-shop-library-section ml-marketplace-prefab-library-section">
+      <div class="ml-marketplace-shop-library-heading">
         <div>
-          <span class="mlm-shop-manager-eyebrow">Shop Compendium</span>
+          <span class="ml-marketplace-shop-manager-eyebrow">Shop Compendium</span>
           <h3>Prefab Stores</h3>
         </div>
-        <span class="mlm-shop-count">{{prefabs.length}}</span>
+        <span class="ml-marketplace-shop-count">{{prefabs.length}}</span>
       </div>
 
-      <p class="mlm-prefab-help">
+      <p class="ml-marketplace-prefab-help">
         Prefabs are shown only when at least 8 inventory items match the enabled Player's Handbook, Dungeon Master's Guide, SRD 5.1, or SRD 5.2 compendiums.
       </p>
 
-      <div class="mlm-prefab-list">
+      <div class="ml-marketplace-prefab-list">
         {{#each prefabs}}
           <button
             type="button"
-            class="mlm-prefab-card"
+            class="ml-marketplace-prefab-card"
             data-action="createPrefabShop"
             data-prefab-id="{{id}}"
             title="Create {{name}} with {{matchedCount}} matched items">
-            <span class="mlm-prefab-card-icon"><i class="fa-solid fa-shop"></i></span>
-            <span class="mlm-prefab-card-body">
+            <span class="ml-marketplace-prefab-card-icon"><i class="fa-solid fa-shop"></i></span>
+            <span class="ml-marketplace-prefab-card-body">
               <strong>{{name}}</strong>
               {{#if shopkeeper}}<small>{{shopkeeper}}</small>{{/if}}
             </span>
-            <span class="mlm-prefab-match-count">{{matchedCount}} items</span>
+            <span class="ml-marketplace-prefab-match-count">{{matchedCount}} items</span>
           </button>
         {{else}}
-          <div class="mlm-shop-empty">
+        <div class="ml-empty-message ml-marketplace-shop-empty">
             No prefab stores currently have at least 8 matching items in the supported enabled compendiums.
           </div>
         {{/each}}
@@ -105,12 +105,12 @@
     </section>
   </aside>
 
-  <main class="mlm-shop-editor-panel">
+  <main class="ml-marketplace-shop-editor-panel">
     {{#if selected}}
       <form data-shop-form>
-        <header class="mlm-shop-editor-header">
+        <header class="ml-marketplace-shop-editor-header">
           <div><h2>{{selected.name}}</h2><p>{{#if selected.isDraft}}Unsaved {{/if}}{{selected.type}} shop</p></div>
-          <div class="mlm-shop-editor-actions">
+        <div class="ml-actions ml-marketplace-shop-actions ml-marketplace-shop-editor-actions">
             {{#unless selected.isDraft}}
               <button type="button" data-action="placeShop"><i class="fa-solid fa-location-dot"></i> Place on Scene</button>
               <button type="button" data-action="restockShop"><i class="fa-solid fa-rotate"></i> Restock Now</button>
@@ -119,43 +119,43 @@
           </div>
         </header>
 
-        <div class="mlm-shop-editor-scroll" data-mlm-preserve-scroll="shop-editor">
-          <div class="mlm-shop-section-grid">
-          <section class="mlm-shop-config-card">
+        <div class="ml-marketplace-shop-editor-scroll" data-ml-marketplace-preserve-scroll="shop-editor">
+          <div class="ml-marketplace-shop-section-grid">
+          <section class="ml-marketplace-shop-config-card">
             <h3>Identity & Access</h3>
             <label>Name <input type="text" name="name" value="{{selected.name}}"></label>
             <label>Token Image
-              <div class="mlm-file-picker-row">
+              <div class="ml-marketplace-file-picker-row">
                 <input type="text" name="img" value="{{selected.img}}">
                 <button type="button" data-action="browseImage" title="Browse Foundry files"><i class="fa-solid fa-folder-open"></i></button>
               </div>
             </label>
-            <div class="mlm-inline-checks">
+            <div class="ml-marketplace-inline-checks">
               <label><input type="checkbox" name="allowBuying" {{#if selected.allowBuying}}checked{{/if}}> Players can buy</label>
               <label><input type="checkbox" name="allowSelling" {{#if selected.allowSelling}}checked{{/if}}> Shop buys items</label>
             </div>
           </section>
 
-          <section class="mlm-shop-config-card">
+          <section class="ml-marketplace-shop-config-card">
             <h3>Pricing & Reputation</h3>
             <label>Party Reputation
               <select name="reputation">{{#each selected.reputations}}<option value="{{key}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}</select>
             </label>
-            <div class="mlm-two-column-fields">
+            <div class="ml-marketplace-two-column-fields">
               <label>Buy Multiplier <input type="number" name="buyModifier" min="0" step="0.05" value="{{selected.buyModifier}}"></label>
               <label>Base Sell Rate <input type="number" name="sellModifier" min="0" step="0.05" value="{{selected.sellModifier}}"></label>
             </div>
             <p class="hint">Reputation modifies both values automatically. Hostile parties cannot trade.</p>
           </section>
 
-          <section class="mlm-shop-config-card">
+          <section class="ml-marketplace-shop-config-card">
             <h3>Inventory</h3>
             <label>Mode
               <select name="inventoryMode">{{#each selected.inventoryModes}}<option value="{{key}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}</select>
             </label>
             <label><input type="checkbox" name="randomEnabled" {{#if selected.randomInventory.enabled}}checked{{/if}}> Generate limited stock randomly</label>
             <label><input type="checkbox" name="allowDuplicates" {{#if selected.randomInventory.allowDuplicates}}checked{{/if}}> Allow duplicate random items</label>
-            <div class="mlm-stock-counts">
+            <div class="ml-marketplace-stock-counts">
               <label>Common <input type="number" name="stockCommon" min="0" value="{{selected.randomInventory.counts.common}}"></label>
               <label>Uncommon <input type="number" name="stockUncommon" min="0" value="{{selected.randomInventory.counts.uncommon}}"></label>
               <label>Rare <input type="number" name="stockRare" min="0" value="{{selected.randomInventory.counts.rare}}"></label>
@@ -164,7 +164,7 @@
             </div>
           </section>
 
-          <section class="mlm-shop-config-card">
+          <section class="ml-marketplace-shop-config-card">
             <h3>Restocking</h3>
             <label>Rule
               <select name="restockRule">{{#each selected.restockRules}}<option value="{{key}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}</select>
@@ -175,35 +175,35 @@
             <p class="hint">Restock manually with <strong>Restock Now</strong>, or choose Never for shops whose inventory is managed entirely by the GM.</p>
           </section>
 
-          <section class="mlm-shop-config-card mlm-shop-config-wide">
+          <section class="ml-marketplace-shop-config-card ml-marketplace-shop-config-wide">
             <h3>Products</h3>
-            <div class="mlm-option-columns">
+            <div class="ml-marketplace-option-columns">
               <div><strong>Item Options</strong>{{#each selected.itemTypeOptions}}<label><input type="checkbox" name="itemOptions" value="{{key}}" {{#if checked}}checked{{/if}}> {{label}}</label>{{/each}}</div>
               <div><strong>Rarities</strong>{{#each selected.rarityOptions}}<label><input type="checkbox" name="rarities" value="{{key}}" {{#if checked}}checked{{/if}}> {{label}}</label>{{/each}}</div>
             </div>
           </section>
 
-          <section class="mlm-shop-config-card mlm-shop-config-wide mlm-shop-inventory-card">
-            <div class="mlm-shop-inventory-heading">
+          <section class="ml-marketplace-shop-config-card ml-marketplace-shop-config-wide ml-marketplace-shop-inventory-card">
+            <div class="ml-marketplace-shop-inventory-heading">
               <div>
-                <h3>Current Inventory <span class="mlm-shop-count">{{selected.inventoryCount}}</span></h3>
+                <h3>Current Inventory <span class="ml-marketplace-shop-count">{{selected.inventoryCount}}</span></h3>
                 <p class="hint">{{#if selected.isDraft}}Preview the catalog produced by these settings. Save the shop before overriding individual listings.{{else}}Override this shop's live listings. Restocking may change generated stock, but manually added and removed items remain overridden.{{/if}}</p>
               </div>
               {{#unless selected.isDraft}}<button type="button" data-action="openInventoryLookup"><i class="fa-solid fa-plus"></i> Add Item</button>{{/unless}}
             </div>
 
             {{#if inventoryLookupOpen}}
-              <div class="mlm-shop-item-lookup">
-                <div class="mlm-shop-item-lookup-header">
+              <div class="ml-marketplace-shop-item-lookup">
+                <div class="ml-marketplace-shop-item-lookup-header">
                   <div><strong>Add an Item</strong><small>Search enabled Item compendiums.</small></div>
                   <button type="button" data-action="closeInventoryLookup" title="Close item search"><i class="fa-solid fa-xmark"></i></button>
                 </div>
-                <div class="mlm-shop-item-search">
+                <div class="ml-marketplace-shop-item-search">
                   <i class="fa-solid fa-magnifying-glass"></i>
                   <input type="search" name="inventorySearch" value="{{inventorySearchQuery}}" placeholder="Type at least 2 characters…" autocomplete="off">
                 </div>
                 {{#if inventorySearchResults.length}}
-                  <div class="mlm-shop-item-search-results">
+                  <div class="ml-marketplace-shop-item-search-results">
                     {{#each inventorySearchResults}}
                       <button type="button" data-action="addInventoryItem" data-item-uuid="{{uuid}}">
                         <img src="{{img}}" alt=""><span><strong>{{name}}</strong><small>{{source}} · {{typeLabel}}</small></span><i class="fa-solid fa-plus"></i>
@@ -216,37 +216,37 @@
               </div>
             {{/if}}
 
-            <div class="mlm-shop-inventory-list">
+            <div class="ml-marketplace-shop-inventory-list">
               {{#each selected.inventory}}
-                <article class="mlm-shop-inventory-row">
+                <article class="ml-marketplace-shop-inventory-row">
                   <img src="{{img}}" alt="">
-                  <div class="mlm-shop-inventory-details">
+                  <div class="ml-marketplace-shop-inventory-details">
                     <strong>{{name}}</strong>
                     <small>{{source}} · {{rarityLabel}} {{typeLabel}}</small>
                   </div>
                   {{#if finite}}
-                    <div class="mlm-shop-inventory-quantity" aria-label="Quantity for {{name}}">
+                    <div class="ml-marketplace-shop-inventory-quantity" aria-label="Quantity for {{name}}">
                       <button type="button" data-action="adjustInventoryQuantity" data-delta="-1" data-stock-key="{{packId}}:{{documentId}}" title="Decrease {{name}} quantity"><i class="fa-solid fa-minus"></i></button>
                       <span aria-label="Current quantity">{{quantity}}</span>
                       <button type="button" data-action="adjustInventoryQuantity" data-delta="1" data-stock-key="{{packId}}:{{documentId}}" title="Increase {{name}} quantity"><i class="fa-solid fa-plus"></i></button>
                     </div>
                   {{else}}
-                    <span class="mlm-shop-inventory-infinite" title="This listing is unlimited"><i class="fa-solid fa-infinity"></i> Unlimited</span>
+                    <span class="ml-marketplace-shop-inventory-infinite" title="This listing is unlimited"><i class="fa-solid fa-infinity"></i> Unlimited</span>
                   {{/if}}
-                  {{#unless ../selected.isDraft}}<button type="button" class="danger mlm-shop-inventory-remove" data-action="removeInventoryItem" data-stock-key="{{packId}}:{{documentId}}" title="Remove {{name}} from this shop"><i class="fa-solid fa-trash"></i></button>{{/unless}}
+                  {{#unless ../selected.isDraft}}<button type="button" class="danger ml-marketplace-shop-inventory-remove" data-action="removeInventoryItem" data-stock-key="{{packId}}:{{documentId}}" title="Remove {{name}} from this shop"><i class="fa-solid fa-trash"></i></button>{{/unless}}
                 </article>
               {{else}}
-                <div class="mlm-shop-empty">This shop currently has no available inventory. Add an item or restock it.</div>
+          <div class="ml-empty-message ml-marketplace-shop-empty">This shop currently has no available inventory. Add an item or restock it.</div>
               {{/each}}
             </div>
           </section>
           </div>
 
-          {{#unless selected.isDraft}}<footer class="mlm-shop-editor-footer"><button type="button" data-action="exportShop"><i class="fa-solid fa-file-export"></i> Export Shop</button><button type="button" class="danger" data-action="deleteShop"><i class="fa-solid fa-trash"></i> Delete Shop</button></footer>{{/unless}}
+          {{#unless selected.isDraft}}<footer class="ml-marketplace-shop-editor-footer"><button type="button" data-action="exportShop"><i class="fa-solid fa-file-export"></i> Export Shop</button><button type="button" class="danger" data-action="deleteShop"><i class="fa-solid fa-trash"></i> Delete Shop</button></footer>{{/unless}}
         </div>
       </form>
     {{else}}
-      <div class="mlm-shop-editor-empty"><i class="fa-solid fa-shop-lock"></i><h2>No Shop Selected</h2><p>Create a shop from one of the Shop Templates.</p></div>
+<div class="ml-empty-state ml-marketplace-shop-editor-empty"><i class="fa-solid fa-shop-lock"></i><h2>No Shop Selected</h2><p>Create a shop from one of the Shop Templates.</p></div>
     {{/if}}
   </main>
 </section>

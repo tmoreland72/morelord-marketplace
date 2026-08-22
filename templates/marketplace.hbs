@@ -1,33 +1,33 @@
-<section class="mlm-shell">
-  <header class="mlm-market-header">
-    <div class="mlm-brand-row">
-      <div class="mlm-brand">
+<section class="ml-app ml-app-shell ml-marketplace-app ml-marketplace-shell">
+  <header class="ml-marketplace-market-header">
+    <div class="ml-hero ml-marketplace-hero ml-marketplace-brand-row">
+      <div class="ml-hero__body ml-marketplace-brand">
         {{#if isShop}}
-          <img class="mlm-shop-brand-image" src="{{shopImg}}" alt="{{shopName}}">
+          <img class="ml-marketplace-shop-brand-image" src="{{shopImg}}" alt="{{shopName}}">
         {{else}}
           <i class="fa-solid fa-store"></i>
         {{/if}}
 
         <div>
           <h1>{{#if isShop}}{{shopName}}{{else}}Morelord Marketplace{{/if}}</h1>
-          <span>{{#if isShop}}Morelord Marketplace Vendor · Reputation: {{shopReputation}}{{else}}Buy, sell, and manage adventuring gear{{/if}}</span>
+          <p>{{#if isShop}}Morelord Marketplace Vendor · Reputation: {{shopReputation}}{{else}}Buy, sell, and manage adventuring gear{{/if}}</p>
         </div>
       </div>
       {{#if isShop}}
-        <div class="mlm-shop-header-actions">
+        <div class="ml-actions ml-marketplace-header-actions ml-marketplace-shop-header-actions">
           <button type="button" data-action="refreshShop" title="Refresh shop inventory and clear the cart"><i class="fa-solid fa-rotate"></i> Refresh</button>
-          {{#if canManageShops}}<button type="button" class="mlm-manage-shops-button" data-action="manageShops"><i class="fa-solid fa-shop"></i> Manage Shops</button>{{/if}}
+          {{#if canManageShops}}<button type="button" class="ml-marketplace-manage-shops-button" data-action="manageShops"><i class="fa-solid fa-shop"></i> Manage Shops</button>{{/if}}
         </div>
       {{else if canManageShops}}
-        <button type="button" class="mlm-manage-shops-button" data-action="manageShops"><i class="fa-solid fa-shop"></i> Manage Shops</button>
+        <button type="button" class="ml-marketplace-manage-shops-button" data-action="manageShops"><i class="fa-solid fa-shop"></i> Manage Shops</button>
       {{/if}}
     </div>
 
-    <div class="mlm-shopper-card mlm-shop-context-card">
-        <div class="mlm-shop-selector-block">
-          <span class="mlm-shopper-label">Shopping As</span>
+    <div class="ml-card ml-marketplace-shopper-card ml-marketplace-shop-context-card">
+        <div class="ml-marketplace-shop-selector-block">
+          <span class="ml-marketplace-shopper-label">Shopping As</span>
           {{#if showShopperSelector}}
-            <select data-mlm-shopper-select aria-label="Shopping As">
+            <select data-ml-marketplace-shopper-select aria-label="Shopping As">
               {{#each shopperOptions}}
                 <option value="{{id}}" {{#if selected}}selected{{/if}}>{{name}} · {{typeLabel}}</option>
               {{/each}}
@@ -40,10 +40,10 @@
           <small>Purchases go to and sales come from this actor or group.</small>
         </div>
 
-        <div class="mlm-shop-selector-block mlm-funding-selector-block">
-          <span class="mlm-shopper-label">Paying As</span>
+        <div class="ml-marketplace-shop-selector-block ml-marketplace-funding-selector-block">
+          <span class="ml-marketplace-shopper-label">Paying As</span>
           {{#if showFundingSelector}}
-            <select data-mlm-funding-select aria-label="Paying As">
+            <select data-ml-marketplace-funding-select aria-label="Paying As">
               {{#each fundingOptions}}
                 <option value="{{id}}" {{#if selected}}selected{{/if}}>{{name}}{{#if typeLabel}} · {{typeLabel}}{{/if}}</option>
               {{/each}}
@@ -54,7 +54,7 @@
           <small>Purchase coin is deducted from this actor or group.</small>
         </div>
 
-        <div class="mlm-shopper-wallet">
+        <div class="ml-marketplace-shopper-wallet">
           <i class="fa-solid fa-coins"></i>
           <div>
             <span>Available Coin</span>
@@ -64,23 +64,23 @@
       </div>
 
     {{#if shopperNotice}}
-      <div class="mlm-shopper-notice">
+      <div class="ml-marketplace-shopper-notice">
         <i class="fa-solid fa-user-tag"></i>
         <span>{{shopperNotice}}</span>
       </div>
     {{/if}}
 
     {{#if shopStale}}
-      <div class="mlm-shopper-notice mlm-shop-stale-notice">
+      <div class="ml-marketplace-shopper-notice ml-marketplace-shop-stale-notice">
         <i class="fa-solid fa-triangle-exclamation"></i>
         <span>This shop changed after you opened it. Refresh the shop before purchasing. Refreshing clears the cart.</span>
       </div>
     {{/if}}
 
-    <nav class="mlm-tabs" aria-label="Marketplace sections">
+    <nav class="ml-marketplace-tabs" aria-label="Marketplace sections">
       <button
         type="button"
-        class="mlm-tab-button {{#if isSellTab}}active{{/if}}"
+        class="ml-marketplace-tab-button {{#if isSellTab}}active{{/if}}"
         data-action="switchTab"
         data-tab="sell"
         {{#if isLoadingBuy}}disabled{{/if}}>
@@ -90,7 +90,7 @@
 
       <button
         type="button"
-        class="mlm-tab-button {{#if isBuyTab}}active{{/if}}"
+        class="ml-marketplace-tab-button {{#if isBuyTab}}active{{/if}}"
         data-action="switchTab"
         data-tab="buy"
         {{#if isLoadingBuy}}disabled{{/if}}>
@@ -102,11 +102,24 @@
           <span>Buy</span>
         {{/if}}
       </button>
+
+      {{#unless isShop}}
+        <button
+          type="button"
+          class="ml-marketplace-tab-button {{#if isWishlistTab}}active{{/if}}"
+          data-action="switchTab"
+          data-tab="wishlist"
+          {{#if isLoadingBuy}}disabled{{/if}}>
+          <i class="fa-solid fa-heart"></i>
+          <span>Wishlist</span>
+          {{#if wishlistCount}}<span class="ml-marketplace-tab-count">{{wishlistCount}}</span>{{/if}}
+        </button>
+      {{/unless}}
     </nav>
   </header>
 
   {{#if error}}
-    <div class="mlm-error">{{error}}</div>
+    <div class="ml-marketplace-error">{{error}}</div>
   {{else}}
     {{#if isSellTab}}
       {{> "modules/morelord-marketplace/templates/parts/sell-tab.hbs"}}
@@ -114,7 +127,7 @@
 
     {{#if isBuyTab}}
       {{#if isLoadingBuy}}
-        <section class="mlm-buy-loading" aria-live="polite" aria-busy="true">
+        <section class="ml-marketplace-buy-loading" aria-live="polite" aria-busy="true">
           <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
           <div>
             <strong>Loading marketplace items…</strong>
@@ -123,6 +136,17 @@
         </section>
       {{else}}
         {{> "modules/morelord-marketplace/templates/parts/buy-tab.hbs"}}
+      {{/if}}
+    {{/if}}
+
+    {{#if isWishlistTab}}
+      {{#if isLoadingBuy}}
+        <section class="ml-marketplace-buy-loading" aria-live="polite" aria-busy="true">
+          <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
+          <div><strong>Loading your wishlist…</strong><span>Checking current catalog availability.</span></div>
+        </section>
+      {{else}}
+        {{> "modules/morelord-marketplace/templates/parts/wishlist-tab.hbs"}}
       {{/if}}
     {{/if}}
   {{/if}}

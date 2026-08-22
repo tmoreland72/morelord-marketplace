@@ -32,12 +32,12 @@ export class ShopTransactionService {
 
     if (payload.kind === "shop-reservation-state") {
       this.reservationTotals.set(payload.shopId, { ...(payload.totals ?? {}) });
-      window.dispatchEvent(new CustomEvent("mlm-shop-reservations", { detail: { shopId: payload.shopId } }));
+      window.dispatchEvent(new CustomEvent("ml-marketplace-shop-reservations", { detail: { shopId: payload.shopId } }));
       return;
     }
 
     if (payload.kind === "shop-inventory-changed") {
-      window.dispatchEvent(new CustomEvent("mlm-shop-reservations", {
+      window.dispatchEvent(new CustomEvent("ml-marketplace-shop-reservations", {
         detail: { shopId: payload.shopId, inventoryChanged: true }
       }));
       return;
@@ -97,7 +97,7 @@ export class ShopTransactionService {
     const totals = this.#aggregateReservations(shopId);
     this.reservationTotals.set(shopId, totals);
     game.socket.emit(SOCKET_NAME, { module: MODULE_ID, kind: "shop-reservation-state", shopId, totals });
-    window.dispatchEvent(new CustomEvent("mlm-shop-reservations", { detail: { shopId } }));
+    window.dispatchEvent(new CustomEvent("ml-marketplace-shop-reservations", { detail: { shopId } }));
   }
 
   static getReserved(shopId, stockKey) {
@@ -111,7 +111,7 @@ export class ShopTransactionService {
       kind: "shop-inventory-changed",
       shopId
     });
-    window.dispatchEvent(new CustomEvent("mlm-shop-reservations", {
+    window.dispatchEvent(new CustomEvent("ml-marketplace-shop-reservations", {
       detail: { shopId, inventoryChanged: true }
     }));
   }

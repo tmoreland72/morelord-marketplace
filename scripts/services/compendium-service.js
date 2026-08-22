@@ -20,16 +20,38 @@ export class CompendiumService {
   ];
 
   static getAllowedPackIds() {
-    return game.settings.get(
-      MODULE_ID,
-      "allowedCompendiums"
-    ) ?? [];
+    const configured = game.settings.get(
+      "dnd5e",
+      "packSourceConfiguration"
+    ) ?? {};
+
+    return game.packs
+      .filter(pack => pack.documentName === "Item")
+      .filter(pack => configured[pack.collection] !== false)
+      .filter(pack => !this.isSrdPack(pack))
+      .map(pack => pack.collection);
   }
 
   static getAllowedPacks() {
     return this.getAllowedPackIds()
       .map(packId => game.packs.get(packId))
-      .filter(Boolean);
+      .filter(pack => pack && !this.isSrdPack(pack));
+  }
+
+  static isSrdPack(pack) {
+    const metadata = pack?.metadata ?? {};
+    const identity = [
+      metadata.packageName,
+      metadata.packageTitle,
+      metadata.label,
+      metadata.name,
+      pack?.title,
+      pack?.collection
+    ].filter(Boolean).join(" ").toLowerCase();
+
+    return metadata.packageName === "dnd5e"
+      || /\bsrd[\s._-]*5(?:[\s._-]*[12])?\b/.test(identity)
+      || /system reference document/.test(identity);
   }
 
   static clearCache() {

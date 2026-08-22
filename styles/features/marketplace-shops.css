@@ -1,0 +1,745 @@
+/* Shops / vendors */
+.ml-marketplace-module .ml-marketplace-brand-row { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.ml-marketplace-module .ml-marketplace-manage-shops-button { width:auto; white-space:nowrap; }
+.ml-marketplace-token-shop-control { cursor:pointer; }
+
+.ml-marketplace-module .ml-marketplace-buy-layout { grid-template-columns: 230px minmax(0, 1fr); }
+.ml-marketplace-module .ml-marketplace-buy-layout:has(.ml-marketplace-cart-panel) { grid-template-columns: 220px minmax(0, 1fr) 260px; }
+.ml-marketplace-module .ml-marketplace-cart-panel { display:flex; flex-direction:column; min-width:0; border-left:1px solid var(--color-border-light-primary); background:rgba(0,0,0,.06); }
+.ml-marketplace-module .ml-marketplace-cart-heading { display:flex; align-items:center; justify-content:space-between; padding:12px; border-bottom:1px solid var(--color-border-light-primary); }
+.ml-marketplace-module .ml-marketplace-cart-heading h3 { margin:0; }
+.ml-marketplace-module .ml-marketplace-cart-items { overflow:auto; flex:1; padding:8px; display:flex; flex-direction:column; gap:8px; }
+.ml-marketplace-module .ml-marketplace-cart-line { display:grid; grid-template-columns:36px 1fr 28px; gap:8px; align-items:center; padding:8px; border:1px solid var(--color-border-light-primary); border-radius:6px; background:rgba(255,255,255,.04); }
+.ml-marketplace-module .ml-marketplace-cart-line img { width:36px; height:36px; object-fit:cover; border:0; border-radius:4px; }
+.ml-marketplace-module .ml-marketplace-cart-line > .ml-marketplace-cart-line-details { min-width:0; display:flex; flex-direction:column; }
+.ml-marketplace-module .ml-marketplace-cart-line strong { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ml-marketplace-module .ml-marketplace-cart-line span,.ml-marketplace-module .ml-marketplace-cart-line small { opacity:.8; }
+.ml-marketplace-module .ml-marketplace-cart-footer { padding:10px; border-top:1px solid var(--color-border-light-primary); display:flex; flex-direction:column; gap:8px; }
+.ml-marketplace-module .ml-marketplace-cart-footer > div { display:flex; justify-content:space-between; font-size:1.05em; }
+.ml-marketplace-module .ml-marketplace-cart-empty { display:flex; flex-direction:column; align-items:center; gap:8px; opacity:.65; padding:32px 8px; text-align:center; }
+.ml-marketplace-module .ml-marketplace-cart-qty { min-width:18px; height:18px; display:inline-flex; align-items:center; justify-content:center; border-radius:999px; font-size:11px; font-weight:700; background:rgba(255,255,255,.15); }
+.ml-marketplace-module .ml-marketplace-quantity-stepper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  white-space: nowrap;
+}
+.ml-marketplace-module .ml-marketplace-quantity-stepper button {
+  width: 28px;
+  min-width: 28px;
+  height: 28px;
+  margin: 0;
+  padding: 0;
+}
+.ml-marketplace-module .ml-marketplace-quantity-stepper .ml-marketplace-cart-qty {
+  min-width: 24px;
+  height: 24px;
+  border-radius: 5px;
+  font-size: 0.82rem;
+}
+.ml-marketplace-module .ml-marketplace-cart-stepper {
+  align-self: flex-start;
+  margin-top: 0.35rem;
+}
+
+.ml-marketplace-shop-manager .window-content { padding:0; overflow:hidden; }
+.ml-marketplace-shop-manager-shell { height:100%; display:grid; grid-template-columns:300px minmax(0,1fr); min-height:0; }
+.ml-marketplace-shop-list-panel { padding:14px; overflow:auto; border-right:1px solid var(--color-border-light-primary); background:rgba(0,0,0,.08); }
+.ml-marketplace-shop-manager-heading h2,.ml-marketplace-shop-editor-header h2 { margin:0; }
+.ml-marketplace-shop-manager-heading p,.ml-marketplace-shop-editor-header p { margin:4px 0 12px; opacity:.75; }
+.ml-marketplace-shop-preset-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:14px; }
+.ml-marketplace-shop-preset-grid button { min-height:52px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; }
+.ml-marketplace-shop-list { display:flex; flex-direction:column; gap:5px; }
+.ml-marketplace-shop-list-item { display:flex; align-items:center; justify-content:flex-start; gap:8px; text-align:left; }
+.ml-marketplace-shop-list-item.active { outline:2px solid var(--color-border-highlight); }
+.ml-marketplace-shop-empty { padding:20px 8px; text-align:center; opacity:.7; }
+.ml-marketplace-shop-editor-panel { min-width:0; overflow:hidden; padding:16px; }
+.ml-marketplace-shop-editor-panel > form { height:100%; min-height:0; display:flex; flex-direction:column; }
+.ml-marketplace-shop-editor-scroll { flex:1 1 auto; min-height:0; overflow:auto; padding-right:3px; }
+.ml-marketplace-shop-editor-header { flex:0 0 auto; display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:12px; }
+.ml-marketplace-shop-editor-actions { display:flex; gap:6px; flex-wrap:wrap; justify-content:flex-end; }
+.ml-marketplace-shop-editor-actions button { width:auto; white-space:nowrap; }
+.ml-marketplace-shop-section-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.ml-marketplace-shop-config-card { border:1px solid var(--color-border-light-primary); border-radius:8px; padding:12px; display:flex; flex-direction:column; gap:9px; background:rgba(255,255,255,.025); }
+.ml-marketplace-shop-config-card h3 { margin:0 0 4px; }
+.ml-marketplace-shop-config-card > label { display:grid; gap:4px; }
+.ml-marketplace-shop-config-card > label:has(> input[type="checkbox"]),
+.ml-marketplace-inline-checks label,
+.ml-marketplace-option-columns label {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.45rem;
+}
+.ml-marketplace-shop-config-card input[type="checkbox"] {
+  flex: 0 0 auto;
+  margin: 0;
+}
+.ml-marketplace-shop-config-wide { grid-column:1/-1; }
+.ml-marketplace-two-column-fields,.ml-marketplace-option-columns { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.ml-marketplace-inline-checks { display:flex; gap:14px; flex-wrap:wrap; }
+.ml-marketplace-option-columns > div { display:flex; flex-direction:column; gap:5px; }
+.ml-marketplace-stock-counts { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
+.ml-marketplace-stock-counts label { display:grid; gap:3px; }
+.ml-marketplace-shop-inventory-card { gap: 12px; }
+.ml-marketplace-shop-inventory-heading,
+.ml-marketplace-shop-item-lookup-header { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+.ml-marketplace-shop-inventory-heading h3 { display:flex; align-items:center; gap:8px; }
+.ml-marketplace-shop-inventory-heading .hint { margin:4px 0 0; }
+.ml-marketplace-shop-inventory-heading > button,
+.ml-marketplace-shop-item-lookup-header > button { width:auto; flex:0 0 auto; }
+.ml-marketplace-shop-item-lookup { display:flex; flex-direction:column; gap:8px; padding:10px; border:1px solid var(--color-border-highlight); border-radius:8px; background:rgba(0,0,0,.12); }
+.ml-marketplace-shop-item-lookup-header > div { display:flex; flex-direction:column; }
+.ml-marketplace-shop-item-lookup-header small { opacity:.68; }
+.ml-marketplace-shop-item-search { position:relative; }
+.ml-marketplace-shop-item-search > i { position:absolute; left:11px; top:50%; z-index:1; transform:translateY(-50%); opacity:.58; pointer-events:none; }
+.ml-marketplace-shop-item-search input { width:100%; padding-left:34px; }
+.ml-marketplace-shop-item-search-results { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; }
+.ml-marketplace-shop-item-search-results button { height:auto; min-height:48px; display:grid; grid-template-columns:38px minmax(0,1fr) 16px; gap:8px; align-items:center; padding:5px; text-align:left; }
+.ml-marketplace-shop-item-search-results img { width:38px; height:38px; object-fit:cover; border:0; border-radius:5px; }
+.ml-marketplace-shop-item-search-results span { min-width:0; display:flex; flex-direction:column; }
+.ml-marketplace-shop-item-search-results strong,
+.ml-marketplace-shop-item-search-results small { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ml-marketplace-shop-item-search-results small { opacity:.68; }
+.ml-marketplace-shop-inventory-list { display:flex; flex-direction:column; gap:6px; }
+.ml-marketplace-shop-inventory-row { display:grid; grid-template-columns:42px minmax(0,1fr) auto 34px; gap:9px; align-items:center; padding:7px; border:1px solid var(--color-border-light-primary); border-radius:7px; background:rgba(255,255,255,.025); }
+.ml-marketplace-shop-inventory-row > img { width:42px; height:42px; object-fit:cover; border:0; border-radius:5px; }
+.ml-marketplace-shop-inventory-details { min-width:0; display:flex; flex-direction:column; }
+.ml-marketplace-shop-inventory-details strong,
+.ml-marketplace-shop-inventory-details small { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ml-marketplace-shop-inventory-details small { opacity:.68; }
+.ml-marketplace-shop-inventory-quantity { display:inline-flex; align-items:center; gap:5px; }
+.ml-marketplace-shop-inventory-quantity span { min-width:32px; height:30px; display:inline-flex; align-items:center; justify-content:center; border:1px solid var(--color-border-light-primary); border-radius:5px; background:rgba(0,0,0,.12); font-weight:700; }
+.ml-marketplace-shop-inventory-quantity button,
+.ml-marketplace-shop-inventory-remove { width:32px; min-width:32px; height:32px; padding:0; }
+.ml-marketplace-shop-inventory-infinite { display:inline-flex; align-items:center; gap:5px; padding:5px 8px; opacity:.7; white-space:nowrap; }
+.ml-marketplace-shop-editor-footer { margin-top:12px; display:flex; justify-content:flex-end; }
+.ml-marketplace-shop-editor-footer button { width:auto; }
+.ml-marketplace-shop-editor-empty { height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; opacity:.7; text-align:center; }
+.ml-marketplace-shop-editor-empty i { font-size:42px; }
+button.primary { font-weight:700; }
+  button.danger { border-color:var(--ml-color-danger); color:var(--ml-color-danger); }
+
+
+/* Shop-first browsing state: the vendor opens even before a customer is selected. */
+.ml-marketplace-shopper-notice {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0.6rem 0 0.8rem;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--color-border-light-2, rgba(0,0,0,0.22));
+  border-radius: 6px;
+  background: rgba(0,0,0,0.05);
+}
+.ml-marketplace-shopper-notice i { flex: 0 0 auto; }
+
+/* Shop customer and purchase-funds selectors */
+.ml-marketplace-module .ml-marketplace-shop-context-card {
+  align-items: stretch;
+}
+
+.ml-marketplace-module .ml-marketplace-shop-selector-block {
+  display: flex;
+  flex: 1 1 260px;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.ml-marketplace-module .ml-marketplace-shop-selector-block select {
+  width: 100%;
+  min-width: 180px;
+}
+
+.ml-marketplace-module .ml-marketplace-shop-selector-block small {
+  opacity: 0.65;
+  line-height: 1.2;
+}
+
+.ml-marketplace-module .ml-marketplace-funding-selector-block {
+  padding-left: 1rem;
+  border-left: 1px solid var(--color-border-light-primary);
+}
+
+@media (max-width: 760px) {
+  .ml-marketplace-module .ml-marketplace-shop-context-card {
+    flex-direction: column;
+  }
+  .ml-marketplace-module .ml-marketplace-funding-selector-block,
+  .ml-marketplace-module .ml-marketplace-shopper-wallet {
+    padding-left: 0;
+    border-left: 0;
+  }
+}
+
+/* Phase 2 shop loading / compact layout refinements */
+.ml-marketplace-shop-manager-shell {
+  position: relative;
+}
+
+.ml-marketplace-shop-working-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  background: rgba(10, 9, 14, 0.72);
+  backdrop-filter: blur(2px);
+  pointer-events: all;
+}
+
+.ml-marketplace-shop-working-card {
+  display: flex;
+  min-width: 300px;
+  max-width: 440px;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 1.4rem 1.7rem;
+  border: 1px solid var(--color-border-highlight, #8064a2);
+  border-radius: 10px;
+  background: var(--color-cool-5, #23212a);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
+  text-align: center;
+}
+
+.ml-marketplace-shop-working-card i {
+  font-size: 1.8rem;
+}
+
+.ml-marketplace-shop-working-card span {
+  opacity: 0.72;
+}
+
+.ml-marketplace-file-picker-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 38px;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.ml-marketplace-file-picker-row button {
+  width: 38px;
+  min-width: 38px;
+  padding: 0;
+}
+
+.ml-marketplace-module .ml-marketplace-buy-loading {
+  min-height: 260px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2rem;
+  text-align: left;
+}
+
+.ml-marketplace-module .ml-marketplace-buy-loading > i {
+  font-size: 2rem;
+}
+
+.ml-marketplace-module .ml-marketplace-buy-loading > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.ml-marketplace-module .ml-marketplace-buy-loading strong {
+  font-size: 1.1rem;
+}
+
+.ml-marketplace-module .ml-marketplace-buy-loading span {
+  opacity: 0.7;
+}
+
+/* Shops trade three metadata columns for breathing room and a better cart. */
+.ml-marketplace-module .ml-marketplace-buy-layout:has(.ml-marketplace-cart-panel) {
+  grid-template-columns: 220px minmax(430px, 1fr) 285px;
+}
+
+.ml-marketplace-module .ml-marketplace-cart-panel {
+  min-width: 285px;
+  border-left: 1px solid var(--color-border-light-primary);
+}
+
+.ml-marketplace-module .ml-marketplace-cart-heading {
+  min-height: 48px;
+  padding: 10px 12px;
+}
+
+.ml-marketplace-module .ml-marketplace-cart-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 1rem;
+}
+
+.ml-marketplace-module .ml-marketplace-cart-title i {
+  font-size: 1.15rem;
+}
+
+.ml-marketplace-module .ml-marketplace-cart-count {
+  display: inline-flex;
+  min-width: 24px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.ml-marketplace-module .ml-marketplace-cart-items {
+  padding: 10px;
+  gap: 7px;
+}
+
+.ml-marketplace-module .ml-marketplace-cart-line {
+  grid-template-columns: 42px minmax(0, 1fr) 30px;
+  gap: 9px;
+  padding: 8px;
+}
+
+.ml-marketplace-module .ml-marketplace-cart-line img {
+  width: 42px;
+  height: 42px;
+}
+
+.ml-marketplace-module .ml-marketplace-cart-line button {
+  width: 30px;
+  min-width: 30px;
+  height: 30px;
+  padding: 0;
+}
+
+.ml-marketplace-module .ml-marketplace-cart-footer {
+  position: sticky;
+  bottom: 0;
+  padding: 10px 12px;
+  background: var(--color-cool-5, #23212a);
+}
+
+.ml-marketplace-module .ml-marketplace-cart-footer button {
+  width: 100%;
+}
+
+@media (max-width: 1050px) {
+  .ml-marketplace-module .ml-marketplace-buy-layout:has(.ml-marketplace-cart-panel) {
+    grid-template-columns: 190px minmax(360px, 1fr) 245px;
+  }
+  .ml-marketplace-module .ml-marketplace-cart-panel {
+    min-width: 245px;
+  }
+}
+
+/* Consolidated shop purchase chat cards */
+.ml-marketplace-card .ml-marketplace-cart-chat-items {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 8px 0;
+}
+
+.ml-marketplace-card .ml-marketplace-cart-chat-line {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.ml-marketplace-card .ml-marketplace-cart-chat-line:last-child {
+  border-bottom: 0;
+}
+
+.ml-marketplace-card .ml-marketplace-cart-chat-line img {
+  width: 30px;
+  height: 30px;
+  object-fit: cover;
+  border: 0;
+}
+
+/* Shop cart refinements */
+.ml-marketplace-module .ml-marketplace-cart-line img[data-link],
+.ml-marketplace-module .ml-marketplace-cart-item-name[data-link] { cursor: pointer; }
+.ml-marketplace-module .ml-marketplace-cart-item-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ml-marketplace-module .ml-marketplace-cart-footer > div { gap: 12px; }
+.ml-marketplace-module .ml-marketplace-cart-footer > div span { opacity: .82; }
+.ml-marketplace-module .ml-marketplace-cart-footer > div strong { text-align: right; }
+
+/* Phase 2 shop cart sizing and refresh/state controls */
+.ml-marketplace-module .ml-marketplace-buy-layout:has(.ml-marketplace-cart-panel) {
+  grid-template-columns: 220px minmax(440px, 1fr) 235px;
+}
+.ml-marketplace-module .ml-marketplace-cart-panel { min-width: 235px; }
+.ml-marketplace-module .ml-marketplace-cart-line {
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 7px;
+  padding: 7px;
+}
+.ml-marketplace-module .ml-marketplace-cart-line img { width: 34px; height: 34px; }
+.ml-marketplace-module .ml-marketplace-cart-line button { width: 26px; min-width: 26px; height: 26px; }
+
+/* Compact, readable cart product cards. */
+.ml-marketplace-module .ml-marketplace-cart-line {
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 10px;
+  padding: 10px;
+  border-radius: 8px;
+}
+.ml-marketplace-module .ml-marketplace-cart-line img {
+  width: 44px;
+  height: 44px;
+  align-self: start;
+  border-radius: 6px;
+}
+.ml-marketplace-module .ml-marketplace-cart-item-name.content-link {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.ml-marketplace-module .ml-marketplace-cart-line-pricing,
+.ml-marketplace-module .ml-marketplace-cart-quantity-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.ml-marketplace-module .ml-marketplace-cart-line-pricing {
+  margin-top: 4px;
+  font-size: 0.78rem;
+}
+.ml-marketplace-module .ml-marketplace-cart-line-pricing span {
+  opacity: 0.68;
+}
+.ml-marketplace-module .ml-marketplace-cart-line-pricing strong {
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+.ml-marketplace-module .ml-marketplace-cart-quantity-row {
+  margin-top: 8px;
+  color: var(--color-text-light-6, rgba(255,255,255,.68));
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.ml-marketplace-module .ml-marketplace-cart-stepper {
+  align-self: auto;
+  margin-top: 0;
+  gap: 4px;
+}
+.ml-marketplace-module .ml-marketplace-cart-stepper button {
+  width: 24px;
+  min-width: 24px;
+  height: 24px;
+  border-radius: 5px;
+}
+.ml-marketplace-module .ml-marketplace-cart-stepper .ml-marketplace-cart-qty {
+  min-width: 26px;
+  height: 24px;
+  font-size: 0.76rem;
+}
+.ml-marketplace-module .ml-marketplace-cart-items { padding: 7px; }
+.ml-marketplace-module .ml-marketplace-cart-footer { padding: 8px 9px; }
+.ml-marketplace-module .ml-marketplace-cart-footer > div { font-size: .95em; }
+.ml-marketplace-module .ml-marketplace-shop-header-actions { display:flex; gap:8px; align-items:center; }
+.ml-marketplace-module .ml-marketplace-shop-stale-notice {
+  border-color: var(--ml-color-warning);
+  background: color-mix(in srgb, var(--ml-color-warning) 18%, transparent);
+}
+.ml-marketplace-shop-manager .ml-marketplace-shop-manager-heading { gap: 10px; align-items: flex-start; }
+.ml-marketplace-shop-manager .ml-marketplace-shop-manager-heading > button { flex: 0 0 auto; }
+.ml-marketplace-shop-manager .ml-marketplace-shop-editor-footer { display:flex; justify-content:space-between; gap:10px; }
+@media (max-width: 1050px) {
+  .ml-marketplace-module .ml-marketplace-buy-layout:has(.ml-marketplace-cart-panel) {
+    grid-template-columns: 185px minmax(360px, 1fr) 215px;
+  }
+  .ml-marketplace-module .ml-marketplace-cart-panel { min-width: 215px; }
+}
+
+/* Shop Manager library cleanup */
+.ml-marketplace-shop-manager-shell { grid-template-columns: clamp(380px, 28vw, 460px) minmax(0,1fr); }
+.ml-marketplace-shop-list-panel { padding: 16px; }
+.ml-marketplace-shop-manager .ml-marketplace-shop-manager-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  margin-bottom: 14px;
+}
+.ml-marketplace-shop-manager-title { min-width: 0; }
+.ml-marketplace-shop-manager-eyebrow {
+  display: block;
+  margin-bottom: 3px;
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  opacity: .58;
+}
+.ml-marketplace-shop-manager .ml-marketplace-shop-manager-heading h2 {
+  font-size: 1.65rem;
+  line-height: 1.05;
+}
+.ml-marketplace-shop-manager .ml-marketplace-shop-manager-heading p {
+  margin: 6px 0 0;
+  font-size: .88rem;
+  line-height: 1.35;
+}
+.ml-marketplace-shop-import-button {
+  width: 100%;
+  min-width: 0;
+  height: 34px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.ml-marketplace-shop-preset-grid {
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+  margin-bottom: 18px;
+}
+.ml-marketplace-shop-preset-grid .ml-marketplace-shop-preset-card {
+  height: auto;
+  min-height: 54px;
+  max-height: none;
+  padding: 8px 10px;
+  display: grid;
+  grid-template-columns: 30px minmax(0,1fr);
+  gap: 8px;
+  align-items: center;
+  justify-items: start;
+  text-align: left;
+  line-height: 1.15;
+  white-space: normal;
+}
+.ml-marketplace-shop-preset-card > span:last-child { min-width: 0; overflow-wrap: anywhere; }
+.ml-marketplace-shop-preset-icon {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+  background: rgba(255,255,255,.06);
+  font-size: .95rem;
+}
+.ml-marketplace-shop-library-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 2px 2px 8px;
+  border-bottom: 1px solid var(--color-border-light-primary);
+  margin-bottom: 8px;
+}
+.ml-marketplace-shop-library-heading h3 { margin: 0; font-size: 1rem; }
+.ml-marketplace-shop-count {
+  min-width: 24px;
+  height: 22px;
+  padding: 0 7px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(255,255,255,.08);
+  font-size: .75rem;
+  font-weight: 700;
+  opacity: .82;
+}
+.ml-marketplace-shop-list { gap: 8px; }
+.ml-marketplace-shop-list-item.ml-marketplace-shop-card {
+  width: 100%;
+  min-height: 78px;
+  padding: 8px;
+  display: grid;
+  grid-template-columns: 58px minmax(0,1fr) 14px;
+  gap: 10px;
+  align-items: center;
+  text-align: left;
+  border-radius: 9px;
+  overflow: hidden;
+}
+.ml-marketplace-shop-list-item.ml-marketplace-shop-card.active {
+  background: var(--button-text-color, var(--color-text-primary, #f0f0e0));
+  color: var(--button-background-color, var(--color-cool-5, #23212a));
+  outline: 1px solid var(--color-border-highlight);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-border-highlight) 35%, transparent), 0 0 12px color-mix(in srgb, var(--color-border-highlight) 18%, transparent);
+}
+
+.ml-marketplace-module .ml-marketplace-sell-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.ml-marketplace-module .ml-marketplace-sell-heading h3 {
+  margin: 0;
+}
+
+.ml-marketplace-module .ml-marketplace-sell-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+.ml-marketplace-module .ml-marketplace-sell-sort select {
+  min-width: 8.5rem;
+}
+.ml-marketplace-shop-card-image {
+  width: 58px;
+  height: 58px;
+  object-fit: cover;
+  border: 0;
+  border-radius: 7px;
+  background: rgba(255,255,255,.05);
+}
+.ml-marketplace-shop-card-body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.ml-marketplace-shop-card-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 700;
+  font-size: .96rem;
+}
+.ml-marketplace-shop-card-type {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: .76rem;
+  opacity: .68;
+}
+.ml-marketplace-shop-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+.ml-marketplace-shop-card-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 18px;
+  padding: 1px 6px;
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 999px;
+  background: rgba(255,255,255,.045);
+  font-size: .64rem;
+  font-weight: 600;
+  line-height: 1;
+  opacity: .82;
+}
+.ml-marketplace-shop-card-tag i { font-size: .62rem; }
+.ml-marketplace-shop-card-chevron { font-size: .7rem; opacity: .35; }
+.ml-marketplace-shop-card:hover .ml-marketplace-shop-card-chevron,
+.ml-marketplace-shop-card.active .ml-marketplace-shop-card-chevron { opacity: .8; }
+
+@media (max-width: 980px) {
+  .ml-marketplace-shop-manager-shell { grid-template-columns: 320px minmax(0,1fr); }
+  .ml-marketplace-shop-manager .ml-marketplace-shop-manager-heading { grid-template-columns: 1fr; }
+  .ml-marketplace-shop-import-button { width: 100%; justify-content: center; }
+}
+
+/* Shop Manager library ordering and prefab stores */
+.ml-marketplace-shop-library-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+
+.ml-marketplace-shop-library-section + .ml-marketplace-shop-library-section {
+  padding-top: 14px;
+  border-top: 1px solid var(--color-border-light-primary);
+}
+
+.ml-marketplace-prefab-help {
+  margin: -2px 0 4px;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  opacity: 0.68;
+}
+
+.ml-marketplace-prefab-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ml-marketplace-prefab-card {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: auto;
+  min-height: 56px;
+  min-width: 0;
+  margin: 0;
+  padding: 8px 9px;
+  text-align: left;
+}
+
+.ml-marketplace-prefab-card-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.ml-marketplace-prefab-card-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 2px;
+}
+
+.ml-marketplace-prefab-card-body strong,
+.ml-marketplace-prefab-card-body small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ml-marketplace-prefab-card-body small {
+  opacity: 0.65;
+}
+
+.ml-marketplace-prefab-match-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 54px;
+  padding: 3px 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 0.7rem;
+  font-weight: 700;
+  white-space: nowrap;
+}

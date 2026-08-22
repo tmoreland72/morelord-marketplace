@@ -75,7 +75,7 @@ export class TransactionService {
 
     const bypassNotice = approvalBypassed
       ? `
-        <div class="mlm-approval-bypass">
+        <div class="ml-marketplace-approval-bypass">
           <i class="fa-solid fa-shield-halved"></i>
           <span>
             GM approval was bypassed because this transaction
@@ -88,8 +88,8 @@ export class TransactionService {
     return ChatMessage.create({
       speaker: ChatMessage.getSpeaker({ actor }),
       content: `
-        <div class="morelord-marketplace-card mlm-transaction-card mlm-transaction-complete">
-          <div class="mlm-transaction-source">Morelord Marketplace</div>
+        <div class="ml-chat-card ml-marketplace-card ml-marketplace-transaction-card ml-marketplace-transaction-complete">
+          <div class="ml-marketplace-transaction-source">Morelord Marketplace</div>
           <p><strong>${this.escape(actor.name)}</strong> ${verb} <strong>${quantity} ×</strong> ${this.contentLink(itemUuid, itemName)}.</p>
           ${shopNotice}
           <p><strong>Total:</strong> ${this.escape(price)}</p>
@@ -106,7 +106,7 @@ export class TransactionService {
 
     const totalCp = items.reduce((sum, item) => sum + Number(item.totalPriceCp ?? 0), 0);
     const itemRows = items.map(item => `
-      <div class="mlm-cart-chat-line">
+      <div class="ml-marketplace-cart-chat-line">
         ${item.img ? `<img src="${this.escape(item.img)}" alt="${this.escape(item.name)}">` : ""}
         <span><strong>${Number(item.quantity ?? 1)} ×</strong> ${this.contentLink(item.uuid, item.name)}</span>
         <span>${this.escape(CurrencyService.formatCp(item.totalPriceCp ?? 0))}</span>
@@ -119,10 +119,10 @@ export class TransactionService {
     return ChatMessage.create({
       speaker: ChatMessage.getSpeaker({ actor }),
       content: `
-        <div class="morelord-marketplace-card mlm-transaction-card mlm-transaction-complete mlm-cart-transaction-card">
-          <div class="mlm-transaction-source">Morelord Marketplace</div>
+        <div class="ml-chat-card ml-marketplace-card ml-marketplace-transaction-card ml-marketplace-transaction-complete ml-marketplace-cart-transaction-card">
+          <div class="ml-marketplace-transaction-source">Morelord Marketplace</div>
           <p><strong>${this.escape(actor.name)}</strong> purchased from <strong>${this.escape(shop?.name ?? "Marketplace Shop")}</strong>.</p>
-          <div class="mlm-cart-chat-items">${itemRows}</div>
+          <div class="ml-marketplace-cart-chat-items">${itemRows}</div>
           <p><strong>Total:</strong> ${this.escape(CurrencyService.formatCp(totalCp))}</p>
           ${fundingNotice}
         </div>
@@ -191,9 +191,9 @@ export class TransactionService {
     const price = CurrencyService.formatCp(transaction.totalPriceCp);
 
     return `
-      <div class="morelord-marketplace-card mlm-approval-card" data-mlm-transaction-id="${this.escape(transaction.id)}">
-        <div class="mlm-transaction-source">Morelord Marketplace</div>
-        <div class="mlm-transaction-summary">
+      <div class="ml-chat-card ml-marketplace-card ml-marketplace-approval-card" data-ml-marketplace-transaction-id="${this.escape(transaction.id)}">
+        <div class="ml-marketplace-transaction-source">Morelord Marketplace</div>
+        <div class="ml-marketplace-transaction-summary">
           ${transaction.itemImg ? `<img src="${this.escape(transaction.itemImg)}" alt="${this.escape(transaction.itemName)}">` : ""}
           <div>
             <p><strong>${this.escape(transaction.actorName)}</strong> requested to ${action} <strong>${transaction.quantity} ×</strong> ${this.contentLink(this.getItemUuid(transaction), transaction.itemName)}.</p>
@@ -201,16 +201,16 @@ export class TransactionService {
             ${transaction.type === "buy" && transaction.fundingActorUuid !== transaction.actorUuid ? `<p><strong>Paying from:</strong> ${this.escape(transaction.fundingActorName)}</p>` : ""}
           </div>
         </div>
-        <div class="mlm-approval-status mlm-status-pending">
+        <div class="ml-marketplace-approval-status ml-marketplace-status-pending">
           <i class="fa-solid fa-hourglass-half"></i>
           <span>Awaiting GM Approval</span>
         </div>
-        <div class="mlm-gm-actions">
-          <button type="button" data-mlm-approval-action="approve">
+        <div class="ml-marketplace-gm-actions">
+          <button type="button" data-ml-marketplace-approval-action="approve">
             <i class="fa-solid fa-check"></i>
             Approve
           </button>
-          <button type="button" data-mlm-approval-action="deny">
+          <button type="button" data-ml-marketplace-approval-action="deny">
             <i class="fa-solid fa-xmark"></i>
             Deny
           </button>
@@ -221,10 +221,10 @@ export class TransactionService {
 
   static renderProcessingCard(transaction, gmName) {
     return `
-      <div class="morelord-marketplace-card mlm-approval-card">
-        <div class="mlm-transaction-source">Morelord Marketplace</div>
+      <div class="ml-chat-card ml-marketplace-card ml-marketplace-approval-card">
+        <div class="ml-marketplace-transaction-source">Morelord Marketplace</div>
         <p><strong>${this.escape(transaction.actorName)}</strong>'s request for <strong>${transaction.quantity} ×</strong> ${this.contentLink(this.getItemUuid(transaction), transaction.itemName)} is being processed.</p>
-        <div class="mlm-approval-status mlm-status-processing">
+        <div class="ml-marketplace-approval-status ml-marketplace-status-processing">
           <i class="fa-solid fa-spinner fa-spin"></i>
           <span>Processing by ${this.escape(gmName)}</span>
         </div>
@@ -242,25 +242,25 @@ export class TransactionService {
         : "fa-triangle-exclamation";
     const label = approved ? "Approved" : denied ? "Denied" : "Unable to Complete";
     const statusClass = approved
-      ? "mlm-status-approved"
+      ? "ml-marketplace-status-approved"
       : denied
-        ? "mlm-status-denied"
-        : "mlm-status-failed";
+        ? "ml-marketplace-status-denied"
+        : "ml-marketplace-status-failed";
     const price = CurrencyService.formatCp(transaction.totalPriceCp);
     const action = transaction.type === "sell" ? "sell" : "buy";
 
     return `
-      <div class="morelord-marketplace-card mlm-approval-card mlm-approval-resolved">
-        <div class="mlm-transaction-source">Morelord Marketplace</div>
-        <div class="mlm-approval-status ${statusClass}">
+      <div class="ml-chat-card ml-marketplace-card ml-marketplace-approval-card ml-marketplace-approval-resolved">
+        <div class="ml-marketplace-transaction-source">Morelord Marketplace</div>
+        <div class="ml-marketplace-approval-status ${statusClass}">
           <i class="fa-solid ${icon}"></i>
           <span>${label}</span>
         </div>
         <p><strong>${this.escape(transaction.actorName)}</strong>'s request to ${action} <strong>${transaction.quantity} ×</strong> ${this.contentLink(this.getItemUuid(transaction), transaction.itemName)} was ${approved ? "approved" : denied ? "denied" : "not completed"}.</p>
         <p><strong>Total:</strong> ${this.escape(price)}</p>
         ${transaction.type === "buy" && transaction.fundingActorUuid !== transaction.actorUuid ? `<p><strong>Paid from:</strong> ${this.escape(transaction.fundingActorName)}</p>` : ""}
-        ${reason ? `<p class="mlm-resolution-reason">${this.escape(reason)}</p>` : ""}
-        <div class="mlm-resolution-meta">Resolved by ${this.escape(resolverName)}</div>
+        ${reason ? `<p class="ml-marketplace-resolution-reason">${this.escape(reason)}</p>` : ""}
+        <div class="ml-marketplace-resolution-meta">Resolved by ${this.escape(resolverName)}</div>
       </div>
     `;
   }

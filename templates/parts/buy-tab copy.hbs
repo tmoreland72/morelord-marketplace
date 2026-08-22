@@ -1,7 +1,7 @@
-<section class="mlm-tab mlm-buy-tab">
+<section class="ml-marketplace-tab ml-marketplace-buy-tab">
     <h3>Buy Items</h3>
 
-    <div class="mlm-filters">
+    <div class="ml-marketplace-filters">
         <input type="text" name="search" value="{{filters.search}}" placeholder="Search items...">
 
         <select name="type">
@@ -25,7 +25,7 @@
         <button type="button" data-action="applyFilters">Apply</button>
     </div>
 
-    <div class="mlm-table-container">
+    <div class="ml-marketplace-table-container">
     <table>
         <thead>
             <tr>
@@ -42,7 +42,7 @@
             {{#each buyItems}}
             <tr>
                 <td>
-                    <div class="mlm-item-cell">
+                    <div class="ml-marketplace-item-cell">
                         <img src="{{img}}" alt="{{name}}" />
                         <a class="content-link"
                             data-link

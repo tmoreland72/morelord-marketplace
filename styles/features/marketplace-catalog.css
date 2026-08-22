@@ -1,0 +1,1122 @@
+/* Marketplace-owned feature styles. Shared primitives live in Morelord Core. */
+/* =========================================================
+   Application Layout
+   ========================================================= */
+
+.ml-marketplace-module .window-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.ml-marketplace-module .ml-marketplace-shell {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  padding: var(--ml-space-5);
+}
+
+
+/* =========================================================
+   Marketplace Header
+   ========================================================= */
+
+.ml-marketplace-module .ml-marketplace-market-header {
+  flex: 0 0 auto;
+  margin-bottom: 0;
+}
+
+.ml-marketplace-module .ml-marketplace-brand-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.85rem;
+}
+
+.ml-marketplace-module .ml-marketplace-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.ml-marketplace-module .ml-marketplace-brand > i {
+  font-size: 1.8rem;
+  opacity: 0.9;
+}
+
+.ml-marketplace-module .ml-marketplace-shop-brand-image {
+  flex: 0 0 auto;
+  width: 52px;
+  height: 52px;
+  border: 1px solid var(--color-border-light-primary);
+  border-radius: 8px;
+  object-fit: cover;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.ml-marketplace-module .ml-marketplace-brand h1 {
+  margin: 0;
+  font-size: 2rem;
+  line-height: 1.05;
+}
+
+.ml-marketplace-module .ml-marketplace-brand p {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.8rem;
+  color: var(--ml-color-muted);
+}
+
+
+/* =========================================================
+   Active Shopper
+   ========================================================= */
+
+.ml-marketplace-module .ml-marketplace-shopper-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.ml-marketplace-module .ml-marketplace-shopper-identity {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.ml-marketplace-module .ml-marketplace-shopper-portrait,
+.ml-marketplace-module .ml-marketplace-shopper-placeholder {
+  flex: 0 0 auto;
+  width: 48px;
+  height: 48px;
+  border: 1px solid var(--color-border-light-primary);
+  border-radius: 50%;
+}
+
+.ml-marketplace-module .ml-marketplace-shopper-portrait {
+  object-fit: cover;
+}
+
+.ml-marketplace-module .ml-marketplace-shopper-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.ml-marketplace-module .ml-marketplace-shopper-copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.ml-marketplace-module .ml-marketplace-shopper-label {
+  margin-bottom: 0.1rem;
+  font-size: 0.76rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.68;
+}
+
+.ml-marketplace-module .ml-marketplace-shopper-copy strong {
+  overflow: hidden;
+  font-size: 1.35rem;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ml-marketplace-module .ml-marketplace-shopper-wallet {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.65rem;
+  padding-left: 1rem;
+  border-left: 1px solid var(--color-border-light-primary);
+}
+
+.ml-marketplace-module .ml-marketplace-shopper-wallet > i {
+  font-size: 1.3rem;
+}
+
+.ml-marketplace-module .ml-marketplace-shopper-wallet > div {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.ml-marketplace-module .ml-marketplace-shopper-wallet span {
+  margin-bottom: 0.1rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.68;
+}
+
+.ml-marketplace-module .ml-marketplace-shopper-wallet strong {
+  font-size: 1rem;
+  white-space: nowrap;
+}
+
+
+/* =========================================================
+   Marketplace Tabs
+   ========================================================= */
+
+.ml-marketplace-module .ml-marketplace-tabs {
+  display: flex;
+  align-items: flex-end;
+  gap: 0;
+  margin: 0;
+  padding-left: 0.5rem;
+  border-bottom: 1px solid var(--color-border-light-primary);
+}
+
+.ml-marketplace-module .ml-marketplace-tab-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 105px;
+  margin: 0 0 -1px;
+  padding: 0.65rem 1rem;
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: 7px 7px 0 0;
+  background: transparent;
+  box-shadow: none;
+  color: inherit;
+  font-weight: 500;
+}
+
+.ml-marketplace-module .ml-marketplace-tab-button:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.ml-marketplace-module .ml-marketplace-tab-button.active {
+  z-index: 2;
+  border-color: var(--color-border-light-primary);
+  background: var(--color-cool-5);
+  font-weight: 700;
+}
+
+.ml-marketplace-module .ml-marketplace-tab-button.active::after {
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  height: 2px;
+  background: var(--color-cool-5);
+  content: "";
+}
+
+.ml-marketplace-module .ml-marketplace-tab-button:disabled {
+  cursor: wait;
+  opacity: 0.68;
+}
+
+.ml-marketplace-module .ml-marketplace-tab-count {
+  min-width: 1.35rem;
+  padding: 0.1rem 0.35rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  font-size: 0.7rem;
+}
+
+.ml-marketplace-module .ml-marketplace-wishlist-button.active { color: var(--ml-color-danger); }
+.ml-marketplace-module .ml-marketplace-wishlist-help { margin: 0 0 0.75rem; opacity: 0.72; }
+.ml-marketplace-module .ml-marketplace-wishlist-status {
+  display: inline-flex;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+.ml-marketplace-module .ml-marketplace-wishlist-status.available { color: var(--ml-color-success); }
+
+
+/* =========================================================
+   Shared Tab Layout
+   ========================================================= */
+
+.ml-marketplace-module .ml-marketplace-tab {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  padding-top: 0.9rem;
+  overflow: hidden;
+}
+
+.ml-marketplace-module .ml-marketplace-tab h3 {
+  flex: 0 0 auto;
+  margin: 0.5rem 0 0.75rem;
+  font-size: 1.4rem;
+}
+
+
+/* =========================================================
+   Tables
+   ========================================================= */
+
+.ml-marketplace-module .ml-marketplace-table-container {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  border: 1px solid var(--color-border-light-primary);
+  border-radius: 6px;
+}
+
+.ml-marketplace-module table {
+  width: 100%;
+  margin: 0;
+  border-collapse: collapse;
+}
+
+.ml-marketplace-module th,
+.ml-marketplace-module td {
+  padding: 0.45rem 0.75rem;
+  vertical-align: middle;
+}
+
+.ml-marketplace-module th {
+  text-align: left;
+}
+
+.ml-marketplace-module thead th {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: var(--color-cool-5);
+}
+
+.ml-marketplace-module tbody tr {
+  height: 52px;
+}
+
+
+/* =========================================================
+   Item Cells
+   ========================================================= */
+
+.ml-marketplace-module .ml-marketplace-item-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.ml-marketplace-module .ml-marketplace-item-cell img {
+  flex: 0 0 auto;
+  width: 42px;
+  height: 42px;
+  object-fit: cover;
+  border: none;
+  border-radius: 4px;
+}
+
+.ml-marketplace-module .ml-marketplace-item-cell .content-link {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+/* =========================================================
+   Action Buttons
+   ========================================================= */
+
+.ml-marketplace-module .ml-marketplace-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.35rem;
+}
+
+.ml-marketplace-module .ml-marketplace-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  white-space: nowrap;
+}
+
+.ml-marketplace-module .ml-marketplace-actions i {
+  font-size: 0.95rem;
+}
+
+
+/* =========================================================
+   Buy Tab Header
+   ========================================================= */
+
+.ml-marketplace-module .ml-marketplace-buy-heading {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.ml-marketplace-module .ml-marketplace-buy-heading > div {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+
+.ml-marketplace-module .ml-marketplace-buy-heading h3 {
+  margin: 0;
+}
+
+.ml-marketplace-module .ml-marketplace-result-count {
+  opacity: 0.7;
+  font-size: 0.85rem;
+}
+
+.ml-marketplace-module .ml-marketplace-clear-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex: 0 0 auto;
+}
+
+
+/* =========================================================
+   Buy Tab Dynamic Flex Layout
+   ========================================================= */
+
+.ml-marketplace-module .ml-marketplace-buy-tab {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.ml-marketplace-module .ml-marketplace-buy-layout {
+  display: flex;
+  flex: 1 1 auto;
+  gap: 1rem;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+
+/* =========================================================
+   Buy Filter Sidebar
+   ========================================================= */
+
+.ml-marketplace-module .ml-marketplace-filter-sidebar {
+  display: flex;
+  flex: 0 0 270px;
+  flex-direction: column;
+  min-width: 220px;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+  border-right: 1px solid var(--color-border-light-primary);
+  scrollbar-gutter: stable;
+}
+
+.ml-marketplace-module .ml-marketplace-filter-search {
+  flex: 0 0 auto;
+  margin-bottom: 1rem;
+}
+
+.ml-marketplace-module .ml-marketplace-filter-search > label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-weight: bold;
+}
+
+
+/* =========================================================
+   Search Input
+   ========================================================= */
+
+.ml-marketplace-module .ml-marketplace-search {
+  position: relative;
+  min-width: 0;
+}
+
+.ml-marketplace-module .ml-marketplace-search input {
+  width: 100%;
+  height: 36px;
+  padding-right: 2.25rem;
+}
+
+.ml-marketplace-module .ml-marketplace-clear-search {
+  position: absolute;
+  top: 50%;
+  right: 0.45rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.45rem;
+  height: 1.45rem;
+  min-height: unset;
+  margin: 0;
+  padding: 0;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  line-height: 1;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ml-marketplace-module .ml-marketplace-search:hover .ml-marketplace-clear-search,
+.ml-marketplace-module .ml-marketplace-search:focus-within .ml-marketplace-clear-search {
+  opacity: 0.75;
+  pointer-events: auto;
+}
+
+.ml-marketplace-module .ml-marketplace-search input:placeholder-shown + .ml-marketplace-clear-search {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ml-marketplace-module .ml-marketplace-clear-search:hover {
+  opacity: 1;
+}
+
+
+/* =========================================================
+   Filter Groups
+   ========================================================= */
+
+.ml-marketplace-module .ml-marketplace-filter-group {
+  flex: 0 0 auto;
+  padding: 0.75rem 0;
+  border-top: 1px solid var(--color-border-light-primary);
+}
+
+.ml-marketplace-module .ml-marketplace-filter-group:first-of-type {
+  border-top: none;
+}
+
+.ml-marketplace-module .ml-marketplace-filter-group h4 {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+}
+
+.ml-marketplace-module .ml-marketplace-type-list,
+.ml-marketplace-module .ml-marketplace-filter-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.ml-marketplace-module .ml-marketplace-type-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 0.35rem 0.45rem;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  text-align: left;
+}
+
+.ml-marketplace-module .ml-marketplace-type-option:hover,
+.ml-marketplace-module .ml-marketplace-type-option.active {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.ml-marketplace-module .ml-marketplace-type-option.active {
+  font-weight: bold;
+}
+
+.ml-marketplace-module .ml-marketplace-type-option small,
+.ml-marketplace-module .ml-marketplace-filter-option small {
+  margin-left: auto;
+  opacity: 0.7;
+}
+
+.ml-marketplace-module .ml-marketplace-filter-option {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+  padding: 0.2rem 0;
+}
+
+.ml-marketplace-module .ml-marketplace-filter-option input {
+  margin: 0;
+}
+
+.ml-marketplace-module .ml-marketplace-filter-option span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+/* =========================================================
+   Price Filters
+   ========================================================= */
+
+.ml-marketplace-module .ml-marketplace-price-range {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.ml-marketplace-module .ml-marketplace-price-range input {
+  width: 100%;
+  min-width: 0;
+}
+
+
+/* =========================================================
+   Source Filters
+   ========================================================= */
+
+.ml-marketplace-module .ml-marketplace-source-options {
+  max-height: none;
+  overflow: visible;
+  padding-right: 0;
+}
+
+
+/* =========================================================
+   Buy Results
+   ========================================================= */
+
+.ml-marketplace-module .ml-marketplace-buy-results {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.ml-marketplace-module .ml-marketplace-buy-results .ml-marketplace-table-container {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+
+.ml-marketplace-module .ml-marketplace-empty-results {
+  padding: 2rem;
+  text-align: center;
+  opacity: 0.75;
+}
+
+.ml-marketplace-module .ml-marketplace-empty-results i {
+  margin-right: 0.4rem;
+}
+
+
+/* =========================================================
+   Sell Tab
+   ========================================================= */
+
+.ml-marketplace-module .ml-marketplace-sell-tab {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.ml-marketplace-module .ml-marketplace-sell-tab .ml-marketplace-table-container {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+
+
+/* =========================================================
+   Responsive Narrow Window
+   ========================================================= */
+
+@media (max-width: 900px) {
+  .ml-marketplace-module .ml-marketplace-buy-layout {
+    gap: 0.6rem;
+  }
+
+  .ml-marketplace-module .ml-marketplace-filter-sidebar {
+    flex-basis: 220px;
+    min-width: 190px;
+  }
+
+  .ml-marketplace-module th,
+  .ml-marketplace-module td {
+    padding-right: 0.45rem;
+    padding-left: 0.45rem;
+  }
+}
+
+
+/* =========================================================
+   Settings Window
+   ========================================================= */
+
+.ml-marketplace-settings-window .window-content {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.ml-marketplace-settings-window .ml-marketplace-settings {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  padding: 1rem;
+}
+
+.ml-marketplace-settings-window .ml-marketplace-settings-header {
+  flex: 0 0 auto;
+}
+
+.ml-marketplace-settings-window .ml-marketplace-settings-header h2 {
+  margin: 0 0 0.35rem;
+}
+
+.ml-marketplace-settings-window .ml-marketplace-settings-header p {
+  margin: 0 0 1rem;
+}
+
+.ml-marketplace-settings-window .ml-marketplace-settings-toolbar {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.ml-marketplace-settings__section { margin-top: 1rem; }
+.ml-marketplace-settings__grid { display: grid; gap: var(--ml-space-2); }
+.ml-marketplace-setting-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--ml-space-4); padding: var(--ml-space-2) 0; border-bottom: 1px solid var(--ml-color-border); }
+.ml-marketplace-setting-row:last-child { border-bottom: 0; }
+.ml-marketplace-setting-row > span { display: grid; gap: var(--ml-space-1); }
+.ml-marketplace-setting-row input[type="number"] { width: 90px; }
+
+.ml-marketplace-settings-window .ml-marketplace-save-button {
+  margin-left: auto;
+}
+
+.ml-marketplace-settings-window .ml-marketplace-compendium-list {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 0.35rem;
+}
+
+.ml-marketplace-settings-window .ml-marketplace-compendium-row {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--color-border-light-primary);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.ml-marketplace-settings-window .ml-marketplace-compendium-row:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.ml-marketplace-settings-window .ml-marketplace-compendium-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 0.15rem;
+}
+
+.ml-marketplace-settings-window .ml-marketplace-compendium-text strong,
+.ml-marketplace-settings-window .ml-marketplace-compendium-text small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ml-marketplace-settings-window .ml-marketplace-compendium-text small {
+  opacity: 0.75;
+  font-size: 0.8rem;
+}
+/* =========================================================
+   Tri-State Buy Filters
+   ========================================================= */
+
+.ml-marketplace-module .ml-marketplace-affordable-filter {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  margin-bottom: 0.75rem;
+  padding: 0.5rem 0.6rem;
+  text-align: left;
+}
+
+.ml-marketplace-module .ml-marketplace-affordable-filter.active {
+  box-shadow: 0 0 0 1px var(--color-border-highlight);
+}
+
+.ml-marketplace-module .ml-marketplace-filter-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.7rem;
+  margin-bottom: 0.75rem;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid var(--color-border-light-primary);
+  border-radius: 6px;
+  font-size: 0.78rem;
+  opacity: 0.9;
+}
+
+.ml-marketplace-module .ml-marketplace-filter-key span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.ml-marketplace-module .ml-marketplace-tristate-filter {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+  min-width: 0;
+  padding: 0.28rem 0.35rem;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  text-align: left;
+}
+
+.ml-marketplace-module .ml-marketplace-tristate-filter:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.ml-marketplace-module .ml-marketplace-tristate-filter span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ml-marketplace-module .ml-marketplace-tristate-filter small {
+  margin-left: auto;
+  opacity: 0.7;
+}
+
+.ml-marketplace-module .ml-marketplace-tristate-filter.state-include {
+  font-weight: 600;
+}
+
+.ml-marketplace-module .ml-marketplace-tristate-filter.state-exclude {
+  opacity: 0.82;
+  text-decoration: line-through;
+}
+
+.ml-marketplace-module .ml-marketplace-tristate-filter.state-none {
+  opacity: 0.9;
+}
+
+
+/* =========================================================
+   Buy Catalog Loading State
+   ========================================================= */
+
+.ml-marketplace-module .ml-marketplace-buy-loading {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  min-width: 0;
+  min-height: 0;
+  border: 1px solid var(--color-border-light-primary);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.ml-marketplace-module .ml-marketplace-buy-loading > i {
+  flex: 0 0 auto;
+  font-size: 2rem;
+}
+
+.ml-marketplace-module .ml-marketplace-buy-loading > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.ml-marketplace-module .ml-marketplace-buy-loading strong {
+  font-size: 1.05rem;
+}
+
+.ml-marketplace-module .ml-marketplace-buy-loading span {
+  opacity: 0.72;
+}
+
+
+/* =========================================================
+   Filter Instruction Key
+   ========================================================= */
+
+.ml-marketplace-module .ml-marketplace-filter-key {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.8rem;
+  margin: 0 0 0.75rem;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--color-border-light-primary);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.035);
+  font-size: 0.78rem;
+}
+
+.ml-marketplace-module .ml-marketplace-filter-key span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  white-space: nowrap;
+}
+
+.ml-marketplace-module .ml-marketplace-filter-key i {
+  width: 1rem;
+  text-align: center;
+}
+
+/* =========================================================
+   Affordability Filter
+   ========================================================= */
+
+.ml-marketplace-module .ml-marketplace-affordability-group {
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
+
+.ml-marketplace-module .ml-marketplace-filter-option-button {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 0.28rem 0.35rem;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  color: inherit;
+  text-align: left;
+}
+
+.ml-marketplace-module .ml-marketplace-filter-option-button:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.ml-marketplace-module .ml-marketplace-filter-option-button.active {
+  font-weight: 600;
+}
+
+.ml-marketplace-module .ml-marketplace-filter-option-button i {
+  width: 22px;
+  text-align: center;
+}
+
+.ml-marketplace-module .ml-marketplace-filter-option-button span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* =========================================================
+   Transaction Cards and GM Approval
+   ========================================================= */
+
+.ml-marketplace-card .ml-marketplace-transaction-source {
+  margin-bottom: 0.45rem;
+  font-size: 0.9rem;
+  font-style: italic;
+  font-weight: 400;
+  line-height: 1.2;
+  opacity: 0.72;
+}
+
+.ml-marketplace-card .ml-marketplace-transaction-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.ml-marketplace-card .ml-marketplace-transaction-summary > img {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border: 1px solid var(--color-border-light-primary);
+  border-radius: 4px;
+}
+
+.ml-marketplace-card .ml-marketplace-transaction-summary p {
+  margin: 0.2rem 0;
+}
+
+.ml-marketplace-card .ml-marketplace-approval-status {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.6rem;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid var(--color-border-light-primary);
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.ml-marketplace-card .ml-marketplace-status-pending,
+.ml-marketplace-card .ml-marketplace-status-processing {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.ml-marketplace-card .ml-marketplace-status-approved {
+  background: color-mix(in srgb, var(--ml-color-success) 12%, transparent);
+}
+
+.ml-marketplace-card .ml-marketplace-status-denied,
+.ml-marketplace-card .ml-marketplace-status-failed {
+  background: color-mix(in srgb, var(--ml-color-danger) 12%, transparent);
+}
+
+.ml-marketplace-card .ml-marketplace-gm-actions {
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+}
+
+.ml-marketplace-card .ml-marketplace-gm-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  flex: 1 1 0;
+}
+
+.ml-marketplace-card .ml-marketplace-resolution-reason {
+  margin-top: 0.5rem;
+  font-style: italic;
+  opacity: 0.82;
+}
+
+.ml-marketplace-card .ml-marketplace-resolution-meta {
+  margin-top: 0.45rem;
+  font-size: 0.78rem;
+  opacity: 0.65;
+}
+
+
+.ml-marketplace-card .ml-marketplace-approval-bypass {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  margin-top: 0.55rem;
+  padding-top: 0.45rem;
+  border-top: 1px solid var(--color-border-light-primary);
+  font-size: 0.8rem;
+  font-style: italic;
+  line-height: 1.3;
+  opacity: 0.72;
+}
+
+.ml-marketplace-card .ml-marketplace-approval-bypass i {
+  flex: 0 0 auto;
+  margin-top: 0.08rem;
+}
+
+.ml-marketplace-premium-setting-locked {
+  opacity: 0.82;
+}
+
+.ml-marketplace-premium-setting-badge {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  width: auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  height: 1.35rem;
+  margin: 0 0 0 0.4rem;
+  padding: 0 0.45rem !important;
+  border: 1px solid color-mix(in srgb, var(--ml-color-accent) 55%, transparent);
+  border-radius: 999px;
+  color: var(--ml-color-accent);
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1;
+  vertical-align: middle;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.ml-marketplace-premium-setting-badge i {
+  font-size: 0.62rem;
+}
+
+.ml-marketplace-premium-setting-message {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.ml-marketplace-inline-account-button {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  flex: 0 0 auto;
+  width: auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  height: 1.6rem;
+  margin: 0 !important;
+  padding: 0 0.5rem !important;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.ml-marketplace-inline-account-button i {
+  font-size: 0.68rem;
+}

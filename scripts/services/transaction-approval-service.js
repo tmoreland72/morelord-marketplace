@@ -20,7 +20,7 @@ export class TransactionApprovalService {
     this.initialized = true;
 
     document.addEventListener("click", event => {
-      const button = event.target.closest("[data-mlm-approval-action]");
+      const button = event.target.closest("[data-ml-marketplace-approval-action]");
       if (!button) return;
 
       event.preventDefault();
@@ -32,7 +32,7 @@ export class TransactionApprovalService {
         button.closest("li.chat-message")?.dataset.messageId ??
         null;
 
-      const action = button.dataset.mlmApprovalAction;
+    const action = button.dataset.mlMarketplaceApprovalAction;
       if (!messageId || !action) return;
 
       void this.handleAction(messageId, action);
@@ -82,7 +82,7 @@ export class TransactionApprovalService {
 
     if (!root) return;
 
-    const controls = root.querySelectorAll(".mlm-gm-actions");
+    const controls = root.querySelectorAll(".ml-marketplace-gm-actions");
     const canResolve =
       game.user.isGM &&
       transaction.status === TRANSACTION_STATUS.PENDING;

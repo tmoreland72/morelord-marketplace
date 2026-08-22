@@ -1,41 +1,41 @@
-<section class="mlm-tab mlm-buy-tab">
-  <div class="mlm-buy-heading">
+<section class="ml-marketplace-tab ml-marketplace-buy-tab">
+  <div class="ml-marketplace-buy-heading">
     <div>
       <h3>Buy Items</h3>
-      <span class="mlm-result-count">{{buyResultCount}} items</span>
+      <span class="ml-marketplace-result-count">{{buyResultCount}} items</span>
     </div>
 
     {{#if hasBuyFilters}}
-      <button type="button" class="mlm-clear-all" data-action="clearBuyFilters">
+      <button type="button" class="ml-marketplace-clear-all" data-action="clearBuyFilters">
         <i class="fa-solid fa-filter-circle-xmark"></i>
         Clear all filters
       </button>
     {{/if}}
   </div>
 
-  <div class="mlm-buy-layout">
-    <aside class="mlm-filter-sidebar" aria-label="Buy item filters" data-mlm-preserve-scroll="buy-filters">
-      <div class="mlm-filter-search">
-        <label for="mlm-buy-search">Search</label>
-        <div class="mlm-search">
-          <input id="mlm-buy-search" type="text" name="search" value="{{filters.search}}" placeholder="Search items...">
-          <button type="button" class="mlm-clear-search" title="Clear Search" data-action="clearSearch">
+  <div class="ml-marketplace-buy-layout">
+    <aside class="ml-marketplace-filter-sidebar" aria-label="Buy item filters" data-ml-marketplace-preserve-scroll="buy-filters">
+      <div class="ml-marketplace-filter-search">
+        <label for="ml-marketplace-buy-search">Search</label>
+        <div class="ml-marketplace-search">
+          <input id="ml-marketplace-buy-search" type="text" name="search" value="{{filters.search}}" placeholder="Search items...">
+          <button type="button" class="ml-marketplace-clear-search" title="Clear Search" data-action="clearSearch">
             <i class="fa-solid fa-xmark"></i>
           </button>
         </div>
       </div>
 
-      <div class="mlm-filter-key" aria-label="Filter state key">
+      <div class="ml-marketplace-filter-key" aria-label="Filter state key">
         <span title="No filter"><i class="fa-regular fa-square"></i> Any</span>
         <span title="Include matching items"><i class="fa-solid fa-square-check"></i> Include</span>
         <span title="Exclude matching items"><i class="fa-solid fa-square-minus"></i> Exclude</span>
       </div>
 
-      <section class="mlm-filter-group mlm-affordability-group">
+      <section class="ml-marketplace-filter-group ml-marketplace-affordability-group">
         <h4>Affordability</h4>
         <button
           type="button"
-          class="mlm-filter-option-button {{#if filters.affordableOnly}}active{{/if}}"
+          class="ml-marketplace-filter-option-button {{#if filters.affordableOnly}}active{{/if}}"
           data-action="toggleAffordable"
           title="Only show items this character can afford">
           <i class="{{#if filters.affordableOnly}}fa-solid fa-square-check{{else}}fa-regular fa-square{{/if}}"></i>
@@ -43,13 +43,13 @@
         </button>
       </section>
 
-      <section class="mlm-filter-group">
+      <section class="ml-marketplace-filter-group">
         <h4>Item Type</h4>
-        <div class="mlm-filter-options">
+        <div class="ml-marketplace-filter-options">
           {{#each buyFacets.types}}
             <button
               type="button"
-              class="mlm-tristate-filter state-{{state}}"
+              class="ml-marketplace-tristate-filter state-{{state}}"
               data-action="cycleFacetFilter"
               data-filter-group="types"
               data-filter-value="{{value}}"
@@ -69,13 +69,13 @@
       </section>
 
       {{#if showSubtypeFilters}}
-        <section class="mlm-filter-group">
+        <section class="ml-marketplace-filter-group">
           <h4>Category</h4>
-          <div class="mlm-filter-options">
+          <div class="ml-marketplace-filter-options">
             {{#each buyFacets.subtypes}}
               <button
                 type="button"
-                class="mlm-tristate-filter state-{{state}}"
+                class="ml-marketplace-tristate-filter state-{{state}}"
                 data-action="cycleFacetFilter"
                 data-filter-group="subtypes"
                 data-filter-value="{{value}}"
@@ -96,11 +96,11 @@
       {{/if}}
 
       {{#if showWeaponFilters}}
-        <section class="mlm-filter-group">
+        <section class="ml-marketplace-filter-group">
           <h4>Weapon Class</h4>
-          <div class="mlm-filter-options">
+          <div class="ml-marketplace-filter-options">
             {{#each buyFacets.weaponCategories}}
-              <button type="button" class="mlm-tristate-filter state-{{state}}" data-action="cycleFacetFilter" data-filter-group="weaponCategories" data-filter-value="{{value}}" title="{{stateTitle}}">
+              <button type="button" class="ml-marketplace-tristate-filter state-{{state}}" data-action="cycleFacetFilter" data-filter-group="weaponCategories" data-filter-value="{{value}}" title="{{stateTitle}}">
                 {{#if isIncluded}}<i class="fa-solid fa-square-check"></i>{{else if isExcluded}}<i class="fa-solid fa-square-minus"></i>{{else}}<i class="fa-regular fa-square"></i>{{/if}}
                 <span>{{label}}</span><small>{{count}}</small>
               </button>
@@ -108,11 +108,11 @@
           </div>
         </section>
 
-        <section class="mlm-filter-group">
+        <section class="ml-marketplace-filter-group">
           <h4>Weapon Range</h4>
-          <div class="mlm-filter-options">
+          <div class="ml-marketplace-filter-options">
             {{#each buyFacets.weaponRanges}}
-              <button type="button" class="mlm-tristate-filter state-{{state}}" data-action="cycleFacetFilter" data-filter-group="weaponRanges" data-filter-value="{{value}}" title="{{stateTitle}}">
+              <button type="button" class="ml-marketplace-tristate-filter state-{{state}}" data-action="cycleFacetFilter" data-filter-group="weaponRanges" data-filter-value="{{value}}" title="{{stateTitle}}">
                 {{#if isIncluded}}<i class="fa-solid fa-square-check"></i>{{else if isExcluded}}<i class="fa-solid fa-square-minus"></i>{{else}}<i class="fa-regular fa-square"></i>{{/if}}
                 <span>{{label}}</span><small>{{count}}</small>
               </button>
@@ -122,13 +122,13 @@
       {{/if}}
 
       {{#if showPropertyFilters}}
-        <section class="mlm-filter-group">
+        <section class="ml-marketplace-filter-group">
           <h4>Weapon Properties</h4>
-          <div class="mlm-filter-options">
+          <div class="ml-marketplace-filter-options">
             {{#each buyFacets.properties}}
               <button
                 type="button"
-                class="mlm-tristate-filter state-{{state}}"
+                class="ml-marketplace-tristate-filter state-{{state}}"
                 data-action="cycleFacetFilter"
                 data-filter-group="properties"
                 data-filter-value="{{value}}"
@@ -149,11 +149,11 @@
       {{/if}}
 
       {{#if showMasteryFilters}}
-        <section class="mlm-filter-group">
+        <section class="ml-marketplace-filter-group">
           <h4>Weapon Masteries</h4>
-          <div class="mlm-filter-options">
+          <div class="ml-marketplace-filter-options">
             {{#each buyFacets.masteries}}
-              <button type="button" class="mlm-tristate-filter state-{{state}}" data-action="cycleFacetFilter" data-filter-group="masteries" data-filter-value="{{value}}" title="{{stateTitle}}">
+              <button type="button" class="ml-marketplace-tristate-filter state-{{state}}" data-action="cycleFacetFilter" data-filter-group="masteries" data-filter-value="{{value}}" title="{{stateTitle}}">
                 {{#if isIncluded}}<i class="fa-solid fa-square-check"></i>{{else if isExcluded}}<i class="fa-solid fa-square-minus"></i>{{else}}<i class="fa-regular fa-square"></i>{{/if}}
                 <span>{{label}}</span><small>{{count}}</small>
               </button>
@@ -162,13 +162,13 @@
         </section>
       {{/if}}
 
-      <section class="mlm-filter-group">
+      <section class="ml-marketplace-filter-group">
         <h4>Rarity</h4>
-        <div class="mlm-filter-options">
+        <div class="ml-marketplace-filter-options">
           {{#each buyFacets.rarities}}
             <button
               type="button"
-              class="mlm-tristate-filter state-{{state}}"
+              class="ml-marketplace-tristate-filter state-{{state}}"
               data-action="cycleFacetFilter"
               data-filter-group="rarities"
               data-filter-value="{{value}}"
@@ -187,40 +187,40 @@
         </div>
       </section>
 
-      <section class="mlm-filter-group">
+      <section class="ml-marketplace-filter-group">
         <h4>Attunement</h4>
-        <div class="mlm-filter-options">
-          <label class="mlm-filter-option">
+        <div class="ml-marketplace-filter-options">
+          <label class="ml-marketplace-filter-option">
             <input type="radio" name="attunement" value="" data-filter-control {{#if attunementAny}}checked{{/if}}>
             <span>Any</span>
           </label>
-          <label class="mlm-filter-option">
+          <label class="ml-marketplace-filter-option">
             <input type="radio" name="attunement" value="required" data-filter-control {{#if attunementRequired}}checked{{/if}}>
             <span>Required</span>
           </label>
-          <label class="mlm-filter-option">
+          <label class="ml-marketplace-filter-option">
             <input type="radio" name="attunement" value="not-required" data-filter-control {{#if attunementNotRequired}}checked{{/if}}>
             <span>Not Required</span>
           </label>
         </div>
       </section>
 
-      <section class="mlm-filter-group">
+      <section class="ml-marketplace-filter-group">
         <h4>Price (gp)</h4>
-        <div class="mlm-price-range">
+        <div class="ml-marketplace-price-range">
           <input type="number" name="minPrice" min="0" step="1" value="{{filters.minPrice}}" placeholder="Min" data-filter-control>
           <span>to</span>
           <input type="number" name="maxPrice" min="0" step="1" value="{{filters.maxPrice}}" placeholder="Max" data-filter-control>
         </div>
       </section>
 
-      <section class="mlm-filter-group">
+      <section class="ml-marketplace-filter-group">
         <h4>Source</h4>
-        <div class="mlm-filter-options mlm-source-options">
+        <div class="ml-marketplace-filter-options ml-marketplace-source-options">
           {{#each buyFacets.sources}}
             <button
               type="button"
-              class="mlm-tristate-filter state-{{state}}"
+              class="ml-marketplace-tristate-filter state-{{state}}"
               data-action="cycleFacetFilter"
               data-filter-group="sources"
               data-filter-value="{{value}}"
@@ -240,8 +240,8 @@
       </section>
     </aside>
 
-    <main class="mlm-buy-results">
-      <div class="mlm-table-container" data-mlm-preserve-scroll="buy-results">
+    <main class="ml-marketplace-buy-results">
+      <div class="ml-marketplace-table-container" data-ml-marketplace-preserve-scroll="buy-results">
         <table>
           <thead>
             <tr>
@@ -261,7 +261,7 @@
             {{#each buyItems}}
               <tr>
                 <td>
-                  <div class="mlm-item-cell">
+                  <div class="ml-marketplace-item-cell">
                     <img src="{{img}}" alt="{{name}}">
                     <a class="content-link" data-link data-uuid="{{uuid}}">{{name}}</a>
                   </div>
@@ -275,15 +275,20 @@
                 {{#unless ../isShop}}<td title="{{packId}}">{{source}}</td>{{/unless}}
                 {{#if ../isShop}}<td title="{{stockTitle}}">{{stockLabel}}</td>{{/if}}
                 <td>
-                  <div class="mlm-actions">
+            <div class="ml-actions ml-marketplace-row-actions ml-marketplace-actions">
+                    {{#unless ../isShop}}
+                      <button type="button" class="ml-marketplace-wishlist-button {{#if isWishlisted}}active{{/if}}" title="{{#if isWishlisted}}On your wishlist{{else}}Add {{name}} to wishlist{{/if}}" data-action="addToWishlist" data-pack-id="{{packId}}" data-document-id="{{documentId}}" {{#if isWishlisted}}disabled{{/if}}>
+                        <i class="{{#if isWishlisted}}fa-solid{{else}}fa-regular{{/if}} fa-heart"></i>
+                      </button>
+                    {{/unless}}
                     {{#if cartQty}}
-                      <div class="mlm-quantity-stepper" aria-label="{{name}} cart quantity">
+                      <div class="ml-marketplace-quantity-stepper" aria-label="{{name}} cart quantity">
                         <button type="button" data-action="removeFromCart" data-cart-key="{{packId}}:{{documentId}}" title="Remove one {{name}} from cart"><i class="fa-solid fa-minus"></i></button>
-                        <span class="mlm-cart-qty" aria-label="Quantity">{{cartQty}}</span>
+                        <span class="ml-marketplace-cart-qty" aria-label="Quantity">{{cartQty}}</span>
                         <button type="button" data-action="buyItem" data-pack-id="{{packId}}" data-document-id="{{documentId}}" title="Add one {{name}} to cart" {{#unless canAddToCart}}disabled{{/unless}}><i class="fa-solid fa-plus"></i></button>
                       </div>
                     {{else}}
-                      <button type="button" class="mlm-buy-button" title="{{#if ../isShop}}Add {{name}} to cart{{else}}Buy {{name}}{{/if}}" data-action="buyItem" data-pack-id="{{packId}}" data-document-id="{{documentId}}" {{#if ../isShop}}{{#unless canAddToCart}}disabled{{/unless}}{{else}}{{#unless ../canBuy}}disabled{{/unless}}{{/if}}>
+                      <button type="button" class="ml-marketplace-buy-button" title="{{#if ../isShop}}Add {{name}} to cart{{else}}Buy {{name}}{{/if}}" data-action="buyItem" data-pack-id="{{packId}}" data-document-id="{{documentId}}" {{#if ../isShop}}{{#unless canAddToCart}}disabled{{/unless}}{{else}}{{#unless ../canBuy}}disabled{{/unless}}{{/if}}>
                         <i class="fa-solid fa-cart-plus"></i>
                       </button>
                     {{/if}}
@@ -292,7 +297,7 @@
               </tr>
             {{else}}
               <tr>
-                <td colspan="{{#if isShop}}5{{else}}7{{/if}}" class="mlm-empty-results">
+                <td colspan="{{#if isShop}}5{{else}}7{{/if}}" class="ml-marketplace-empty-results">
                   <i class="fa-solid fa-magnifying-glass"></i>
                   No items match the selected filters.
                 </td>
@@ -304,36 +309,36 @@
     </main>
 
     {{#if isShop}}
-      <aside class="mlm-cart-panel">
-        <div class="mlm-cart-heading">
-          <div class="mlm-cart-title"><i class="fa-solid fa-cart-shopping"></i><strong>Cart</strong></div>
-          <span class="mlm-cart-count">{{cartCount}}</span>
+      <aside class="ml-marketplace-cart-panel">
+        <div class="ml-marketplace-cart-heading">
+          <div class="ml-marketplace-cart-title"><i class="fa-solid fa-cart-shopping"></i><strong>Cart</strong></div>
+          <span class="ml-marketplace-cart-count">{{cartCount}}</span>
         </div>
-        <div class="mlm-cart-items" data-mlm-preserve-scroll="buy-cart">
+        <div class="ml-marketplace-cart-items" data-ml-marketplace-preserve-scroll="buy-cart">
           {{#each cartItems}}
-            <div class="mlm-cart-line">
+            <div class="ml-marketplace-cart-line">
               <img src="{{img}}" alt="{{name}}" data-link data-uuid="{{uuid}}" title="Open {{name}}">
-              <div class="mlm-cart-line-details">
-                <a class="content-link mlm-cart-item-name" data-link data-uuid="{{uuid}}">{{name}}</a>
-                <div class="mlm-cart-line-pricing">
+              <div class="ml-marketplace-cart-line-details">
+                <a class="content-link ml-marketplace-cart-item-name" data-link data-uuid="{{uuid}}">{{name}}</a>
+                <div class="ml-marketplace-cart-line-pricing">
                   <span>{{buyPrice}} each</span>
                   <strong>{{lineTotal}}</strong>
                 </div>
-                <div class="mlm-cart-quantity-row">
+                <div class="ml-marketplace-cart-quantity-row">
                   <span>Qty</span>
-                  <div class="mlm-quantity-stepper mlm-cart-stepper" aria-label="{{name}} cart quantity">
+                  <div class="ml-marketplace-quantity-stepper ml-marketplace-cart-stepper" aria-label="{{name}} cart quantity">
                     <button type="button" data-action="removeFromCart" data-cart-key="{{packId}}:{{documentId}}" title="Remove one {{name}} from cart"><i class="fa-solid fa-minus"></i></button>
-                    <span class="mlm-cart-qty" aria-label="Quantity">{{quantity}}</span>
+                    <span class="ml-marketplace-cart-qty" aria-label="Quantity">{{quantity}}</span>
                     <button type="button" data-action="addToCart" data-pack-id="{{packId}}" data-document-id="{{documentId}}" title="Add one {{name}} to cart"><i class="fa-solid fa-plus"></i></button>
                   </div>
                 </div>
               </div>
             </div>
           {{else}}
-            <div class="mlm-cart-empty"><i class="fa-solid fa-basket-shopping"></i><span>Your cart is empty.</span></div>
+<div class="ml-empty-state ml-marketplace-cart-empty"><i class="fa-solid fa-basket-shopping"></i><span>Your cart is empty.</span></div>
           {{/each}}
         </div>
-        <div class="mlm-cart-footer">
+        <div class="ml-marketplace-cart-footer">
           <div><span>Purchase Total</span><strong>{{cartTotal}}</strong></div>
           <div><span>Remaining After Purchase</span><strong>{{cartRemaining}}</strong></div>
           <button type="button" class="primary" data-action="checkoutCart" {{#unless canCheckout}}disabled{{/unless}}>

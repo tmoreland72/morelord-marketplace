@@ -17,7 +17,7 @@ export function registerSettings() {
     name: "Default Sell Rate",
     hint: "Percentage of list price received when selling items. Use 1 for 100% or 0.5 for 50%.",
     scope: "world",
-    config: true,
+    config: false,
     type: Number,
     default: DEFAULT_SELL_RATE
   });
@@ -26,7 +26,7 @@ export function registerSettings() {
     name: "Enable Global Marketplace Selling",
     hint: "Allow selling through the unrestricted global Marketplace. Shop selling is controlled by each shop and is not affected by this setting.",
     scope: "world",
-    config: true,
+    config: false,
     type: Boolean,
     default: true
   });
@@ -35,7 +35,7 @@ export function registerSettings() {
     name: "Enable Global Marketplace Buying",
     hint: "Allow buying through the unrestricted global Marketplace. When disabled, players may still browse the global catalog as a lookup tool. Shop buying is controlled by each shop and is not affected by this setting.",
     scope: "world",
-    config: true,
+    config: false,
     type: Boolean,
     default: true
   });
@@ -44,7 +44,7 @@ export function registerSettings() {
     name: "Require GM Approval for Sales",
     hint: "Player sales remain pending until a Game Master approves or denies each transaction.",
     scope: "world",
-    config: true,
+    config: false,
     type: Boolean,
     default: false
   });
@@ -53,7 +53,7 @@ export function registerSettings() {
     name: "Require GM Approval for Purchases",
     hint: "Player purchases remain pending until a Game Master approves or denies each transaction.",
     scope: "world",
-    config: true,
+    config: false,
     type: Boolean,
     default: false
   });
@@ -62,7 +62,7 @@ export function registerSettings() {
     name: "Post Transaction Cards",
     hint: "Post completed and pending Marketplace transactions to chat.",
     scope: "world",
-    config: true,
+    config: false,
     type: Boolean,
     default: true
   });
@@ -102,48 +102,6 @@ export function registerSettings() {
 
 export async function initializeDefaultCompendiums() {
   if (!game.user.isGM) return;
-
-  const initialized = game.settings.get(
-    MODULE_ID,
-    "defaultCompendiumsInitialized"
-  );
-
-  if (initialized) return;
-
-  const existing = game.settings.get(MODULE_ID, "allowedCompendiums") ?? [];
-
-  if (existing.length) {
-    await game.settings.set(
-      MODULE_ID,
-      "defaultCompendiumsInitialized",
-      true
-    );
-    return;
-  }
-
-  const defaults = game.packs
-    .filter(pack => {
-      const documentName = String(
-        pack.documentName ?? pack.metadata?.type ?? ""
-      );
-
-      if (documentName !== "Item") return false;
-
-      const label = String(
-        pack.metadata?.label ?? pack.title ?? pack.collection ?? ""
-      ).toLowerCase();
-
-      return label.includes("item") || label.includes("equipment");
-    })
-    .map(pack => pack.collection);
-
-  await game.settings.set(MODULE_ID, "allowedCompendiums", defaults);
-  await game.settings.set(
-    MODULE_ID,
-    "defaultCompendiumsInitialized",
-    true
-  );
-
   CompendiumService.clearCache();
-  Logger.log("Initialized default Marketplace compendiums", defaults);
+  Logger.log("Marketplace sources synchronized with D&D5e Configure Sources.");
 }

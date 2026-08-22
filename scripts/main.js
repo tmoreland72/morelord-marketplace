@@ -24,6 +24,7 @@ Hooks.once("init", async () => {
   await foundry.applications.handlebars.loadTemplates([
     `modules/${MODULE_ID}/templates/parts/buy-tab.hbs`,
     `modules/${MODULE_ID}/templates/parts/sell-tab.hbs`,
+    `modules/${MODULE_ID}/templates/parts/wishlist-tab.hbs`,
     `modules/${MODULE_ID}/templates/marketplace-settings.hbs`,
     `modules/${MODULE_ID}/templates/shop-manager.hbs`
   ]);
@@ -172,17 +173,25 @@ Hooks.on("renderTokenHUD", (app, html) => {
   if (!shop) return;
 
   const root = html?.querySelector ? html : html?.[0];
-  if (!root || root.querySelector("[data-mlm-open-shop]")) return;
+  if (!root || root.querySelector("[data-ml-marketplace-open-shop]")) return;
 
   const button = document.createElement("div");
-  button.className = "control-icon mlm-token-shop-control";
-  button.dataset.mlmOpenShop = shop.id;
+  button.className = "control-icon ml-marketplace-token-shop-control";
+  button.dataset.mlMarketplaceOpenShop = shop.id;
   button.title = `Shop at ${shop.name}`;
+  button.setAttribute("role", "button");
+  button.setAttribute("tabindex", "0");
+  button.setAttribute("aria-label", button.title);
   button.innerHTML = '<i class="fa-solid fa-cart-shopping"></i>';
   button.addEventListener("click", event => {
     event.preventDefault();
     event.stopPropagation();
     MorelordMarketplaceApp.openShop(shop.id);
+  });
+  button.addEventListener("keydown", event => {
+    if (!['Enter', ' '].includes(event.key)) return;
+    event.preventDefault();
+    button.click();
   });
 
   const column = root.querySelector(".col.right") ?? root.querySelector(".col.left") ?? root;
@@ -282,23 +291,23 @@ function preparePremiumSettings(html) {
     const group = input.closest(".form-group");
     if (!group) continue;
 
-    group.classList.toggle("mlm-premium-setting-locked", !entitled);
+    group.classList.toggle("ml-marketplace-premium-setting-locked", !entitled);
     input.disabled = !entitled;
 
-    let badge = group.querySelector(".mlm-premium-setting-badge");
+    let badge = group.querySelector(".ml-marketplace-premium-setting-badge");
     if (!badge) {
       badge = document.createElement("span");
-      badge.className = "mlm-premium-setting-badge";
+      badge.className = "ml-marketplace-premium-setting-badge";
       badge.innerHTML = '<i class="fa-solid fa-crown"></i> Premium';
       group.querySelector("label")?.append(badge);
     }
 
     badge.hidden = entitled;
 
-    if (!entitled && !group.querySelector(".mlm-premium-setting-message")) {
+    if (!entitled && !group.querySelector(".ml-marketplace-premium-setting-message")) {
       const message = document.createElement("p");
-      message.className = "hint mlm-premium-setting-message";
-      message.innerHTML = 'Connect a Tools Premium or Champion account through Morelord Core to enable GM approvals. <button type="button" class="mlm-inline-account-button"><i class="fa-solid fa-link"></i> Account</button>';
+      message.className = "hint ml-marketplace-premium-setting-message";
+      message.innerHTML = 'Connect a Tools Premium or Champion account through Morelord Core to enable GM approvals. <button type="button" class="ml-marketplace-inline-account-button"><i class="fa-solid fa-link"></i> Account</button>';
       group.append(message);
       message.querySelector("button")?.addEventListener("click", () => {
         EntitlementService.openAccount();
@@ -306,7 +315,7 @@ function preparePremiumSettings(html) {
     }
 
     if (entitled) {
-      group.querySelector(".mlm-premium-setting-message")?.remove();
+      group.querySelector(".ml-marketplace-premium-setting-message")?.remove();
     }
   }
 }

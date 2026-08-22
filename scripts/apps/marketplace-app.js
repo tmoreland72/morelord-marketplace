@@ -7,13 +7,14 @@ import { ShopService } from "../services/shop-service.js";
 import { MorelordShopManagerApp } from "./shop-manager-app.js";
 import { ShopTransactionService } from "../services/shop-transaction-service.js";
 import { EntitlementService } from "../services/entitlement-service.js";
+import { WishlistService } from "../services/wishlist-service.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(ApplicationV2) {
   static DEFAULT_OPTIONS = {
     id: "morelord-marketplace",
-    classes: ["morelord-marketplace"],
+    classes: ["ml-window", "ml-marketplace-module"],
     tag: "section",
     window: {
       title: "Morelord Marketplace",
@@ -38,7 +39,9 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       clearCart: MorelordMarketplaceApp.clearCart,
       checkoutCart: MorelordMarketplaceApp.checkoutCart,
       manageShops: MorelordMarketplaceApp.manageShops,
-      refreshShop: MorelordMarketplaceApp.refreshShop
+      refreshShop: MorelordMarketplaceApp.refreshShop,
+      addToWishlist: MorelordMarketplaceApp.addToWishlist,
+      removeFromWishlist: MorelordMarketplaceApp.removeFromWishlist
     }
   };
 
@@ -103,7 +106,7 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       if (event?.detail?.inventoryChanged) void this.refreshShopSnapshot();
       else void this.render();
     };
-    window.addEventListener("mlm-shop-reservations", this._reservationListener);
+    window.addEventListener("ml-marketplace-shop-reservations", this._reservationListener);
     MorelordMarketplaceApp.instances.add(this);
   }
 
@@ -131,7 +134,7 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
 
   async close(options = {}) {
     MorelordMarketplaceApp.instances.delete(this);
-    window.removeEventListener("mlm-shop-reservations", this._reservationListener);
+    window.removeEventListener("ml-marketplace-shop-reservations", this._reservationListener);
     if (this.shopId) await ShopTransactionService.setReservation(this.shopId, {});
     if (this.shopId && this.isLoadingBuy) MorelordMarketplaceApp.shopOpening = false;
     return super.close(options);
@@ -168,8 +171,8 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
     // ApplicationV2 prepares the next context while the previous DOM is still
     // mounted, so capture exact positions even if the browser has not delivered
     // the latest passive scroll event yet.
-    for (const panel of this.element?.querySelectorAll?.("[data-mlm-preserve-scroll]") ?? []) {
-      this.panelScrollPositions.set(panel.dataset.mlmPreserveScroll, {
+    for (const panel of this.element?.querySelectorAll?.("[data-ml-marketplace-preserve-scroll]") ?? []) {
+      this.panelScrollPositions.set(panel.dataset.mlMarketplacePreserveScroll, {
         top: panel.scrollTop,
         left: panel.scrollLeft
       });
@@ -241,6 +244,7 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       activeTab: this.activeTab,
       isSellTab: this.activeTab === "sell",
       isBuyTab: this.activeTab === "buy",
+      isWishlistTab: this.activeTab === "wishlist",
       isSearchTab: this.activeTab === "search",
       isLoadingBuy: this.isLoadingBuy,
       filters: this.filters,
@@ -249,6 +253,8 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       sellSortOptions: this.getSellSortOptions(),
       sellItems: [],
       buyItems: [],
+      wishlistItems: [],
+      wishlistCount: WishlistService.getEntries(actor).length,
       buyFacets: null,
       buyResultCount: 0,
       hasBuyFilters: this.hasActiveBuyFilters(),
@@ -307,6 +313,7 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
           const stockAllowsNext = !Number.isFinite(stock) || remainingStock > 0;
           return {
             ...row,
+            isWishlisted: WishlistService.has(row, actor),
             cartQty,
             reservedQty: effectiveReserved,
             stockLabel: Number.isFinite(remainingStock) ? `${remainingStock}${effectiveReserved > 0 ? "*" : ""}` : "∞",
@@ -351,14 +358,33 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       context.attunementNotRequired = this.filters.attunement === "not-required";
     }
 
+    if (context.isWishlistTab && !shop && !this.isLoadingBuy) {
+      const catalog = await CompendiumService.getBuyableCatalog();
+      const catalogByUuid = new Map(catalog.map(row => [row.uuid, row]));
+      const availableCurrencyCp = fundingActor
+        ? CurrencyService.currencyToCp(CurrencyService.getCurrency(fundingActor))
+        : 0;
+      context.wishlistItems = WishlistService.getEntries(actor).map(saved => {
+        const row = catalogByUuid.get(saved.uuid);
+        const item = { ...saved, ...(row ?? {}) };
+        return {
+          ...item,
+          isAvailable: Boolean(row && context.canBuy),
+          canBuyNow: Boolean(row && context.canBuy && actor && fundingActor && row.buyPriceCp <= availableCurrencyCp),
+          availabilityLabel: !row ? "Unavailable" : (!context.canBuy ? "Buying disabled" : (row.buyPriceCp <= availableCurrencyCp ? "Available" : "Need more coin"))
+        };
+      });
+      context.wishlistCount = context.wishlistItems.length;
+    }
+
     return context;
   }
 
   _onRender(context, options) {
     super._onRender(context, options);
 
-    for (const panel of this.element.querySelectorAll("[data-mlm-preserve-scroll]")) {
-      const key = panel.dataset.mlmPreserveScroll;
+    for (const panel of this.element.querySelectorAll("[data-ml-marketplace-preserve-scroll]")) {
+      const key = panel.dataset.mlMarketplacePreserveScroll;
       const position = this.panelScrollPositions.get(key);
       panel.scrollTop = typeof position === "number" ? position : position?.top ?? 0;
       panel.scrollLeft = typeof position === "object" ? position?.left ?? 0 : 0;
@@ -386,7 +412,7 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       });
     }
 
-    const shopperSelect = this.element.querySelector("[data-mlm-shopper-select]");
+    const shopperSelect = this.element.querySelector("[data-ml-marketplace-shopper-select]");
     shopperSelect?.addEventListener("change", async event => {
       const nextId = event.currentTarget.value || null;
       if (nextId === this.actorId) return;
@@ -400,13 +426,13 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       await this.render();
     });
 
-    const fundingSelect = this.element.querySelector("[data-mlm-funding-select]");
+    const fundingSelect = this.element.querySelector("[data-ml-marketplace-funding-select]");
     fundingSelect?.addEventListener("change", async event => {
       this.fundingActorId = event.currentTarget.value || null;
       await this.render();
     });
 
-    const sellSortSelect = this.element.querySelector("[data-mlm-sell-sort]");
+    const sellSortSelect = this.element.querySelector("[data-ml-marketplace-sell-sort]");
     sellSortSelect?.addEventListener("change", async event => {
       this.sellSort = event.currentTarget.value || "name";
       await this.render();
@@ -414,7 +440,7 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
 
     if (this.isLoadingBuy) return;
 
-    const buyLayout = this.element.querySelector(".mlm-buy-layout");
+    const buyLayout = this.element.querySelector(".ml-marketplace-buy-layout");
     if (!buyLayout) return;
 
     const searchInput = buyLayout.querySelector("input[name='search']");
@@ -542,13 +568,13 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
 
     const nextTab = target.dataset.tab;
 
-    if (nextTab !== "buy") {
+    if (nextTab !== "buy" && nextTab !== "wishlist") {
       this.activeTab = nextTab;
       await this.render();
       return;
     }
 
-    this.activeTab = "buy";
+    this.activeTab = nextTab;
     this.isLoadingBuy = true;
 
     // Render the loading state immediately before processing the catalog.
@@ -598,6 +624,26 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       packId: target.dataset.packId,
       documentId: target.dataset.documentId
     });
+    await this.render();
+  }
+
+  static async addToWishlist(event, target) {
+    event?.preventDefault?.();
+    if (!this.actor) {
+      ui.notifications.warn("Select who is shopping before adding an item to a wishlist.");
+      return;
+    }
+    const catalog = await CompendiumService.getBuyableCatalog(this.shopId ? (this.shopSnapshot ?? ShopService.getShop(this.shopId)) : null);
+    const row = catalog.find(entry => entry.packId === target.dataset.packId && entry.documentId === target.dataset.documentId);
+    if (!row) return;
+    const added = await WishlistService.add(row, this.actor);
+    ui.notifications.info(added ? `${row.name} added to ${this.actor.name}'s wishlist.` : `${row.name} is already on ${this.actor.name}'s wishlist.`);
+    await this.render();
+  }
+
+  static async removeFromWishlist(event, target) {
+    event?.preventDefault?.();
+    await WishlistService.remove(target.dataset.uuid, this.actor);
     await this.render();
   }
 

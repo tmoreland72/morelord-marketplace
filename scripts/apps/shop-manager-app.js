@@ -10,7 +10,7 @@ const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 export class MorelordShopManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
   static DEFAULT_OPTIONS = {
     id: "morelord-marketplace-shops",
-    classes: ["morelord-marketplace", "mlm-shop-manager"],
+    classes: ["ml-window", "ml-marketplace-module", "ml-marketplace-shop-manager"],
     tag: "section",
     window: { title: "Marketplace Shops", icon: "fa-solid fa-store", resizable: true },
     position: { width: 1240, height: 820 },
@@ -51,8 +51,8 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
   }
 
   async _prepareContext() {
-    for (const panel of this.element?.querySelectorAll?.("[data-mlm-preserve-scroll]") ?? []) {
-      this.panelScrollPositions.set(panel.dataset.mlmPreserveScroll, {
+    for (const panel of this.element?.querySelectorAll?.("[data-ml-marketplace-preserve-scroll]") ?? []) {
+      this.panelScrollPositions.set(panel.dataset.mlMarketplacePreserveScroll, {
         top: panel.scrollTop,
         left: panel.scrollLeft
       });
@@ -161,8 +161,8 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
   _onRender(context, options) {
     super._onRender(context, options);
 
-    for (const panel of this.element.querySelectorAll("[data-mlm-preserve-scroll]")) {
-      const key = panel.dataset.mlmPreserveScroll;
+    for (const panel of this.element.querySelectorAll("[data-ml-marketplace-preserve-scroll]")) {
+      const key = panel.dataset.mlMarketplacePreserveScroll;
       const position = this.panelScrollPositions.get(key);
       if (position) {
         panel.scrollTop = position.top;

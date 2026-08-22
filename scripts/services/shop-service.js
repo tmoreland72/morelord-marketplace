@@ -1,4 +1,5 @@
 import { MODULE_ID, FLAGS } from "../constants.js";
+import { WishlistService } from "./wishlist-service.js";
 import { SHOP_ITEM_OPTIONS, SHOP_TYPES, REPUTATION_TIERS, ShopProfileModel, getItemTypesForOptions } from "../models/shop-profile.js";
 import { PrefabShopService } from "./prefab-shop-service.js";
 
@@ -434,10 +435,18 @@ export class ShopService {
     for (const [rarity, rows] of groups.entries()) {
       const target = Math.max(0, Number(counts[rarity] ?? 0));
       if (!target || !rows.length) continue;
-      const pool = [...rows];
+      const wishedUuids = WishlistService.getUuids({ allActors: true });
+      const wished = rows.filter(row => wishedUuids.has(row.uuid));
+      const others = rows.filter(row => !wishedUuids.has(row.uuid));
+      const shuffle = values => values
+        .map(value => ({ value, order: Math.random() }))
+        .sort((left, right) => left.order - right.order)
+        .map(entry => entry.value);
+      const pool = [...shuffle(wished), ...shuffle(others)];
       for (let index = 0; index < target; index += 1) {
         if (!pool.length) break;
-        const pickIndex = Math.floor(Math.random() * pool.length);
+        const priorityPoolSize = wished.length ? wished.length : pool.length;
+        const pickIndex = config.allowDuplicates ? Math.floor(Math.random() * priorityPoolSize) : 0;
         const row = pool[pickIndex];
         const key = this.stockKey(row);
         nextStock[key] = (nextStock[key] ?? 0) + this.randomStockQuantity(rarity);
