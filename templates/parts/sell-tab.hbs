@@ -11,6 +11,7 @@
         </label>
     </div>
 
+    <div class="ml-marketplace-sell-layout">
     <div class="ml-marketplace-table-container" data-ml-marketplace-preserve-scroll="sell-results">
     <table>
         <thead>
@@ -43,18 +44,39 @@
                 <td>{{sellPrice}}</td>
                 <td>
             <div class="ml-actions ml-marketplace-row-actions ml-marketplace-actions">
-                        <button type="button" data-action="sellOne" data-item-id="{{ownedItemId}}" title="Sell One" {{#unless ../canSell}}disabled{{/unless}}>
+                        <button type="button" data-action="sellOne" data-item-id="{{ownedItemId}}" title="Add one to sell cart" {{#unless canAddToSellCart}}disabled{{/unless}}>
                         <i class="fa-solid fa-coin"></i>
                         </button>
 
-                        <button type="button" data-action="sellAll" data-item-id="{{ownedItemId}}" title="Sell All" {{#unless ../canSell}}disabled{{/unless}}>
+                        <button type="button" data-action="sellAll" data-item-id="{{ownedItemId}}" title="Add all to sell cart" {{#unless canAddToSellCart}}disabled{{/unless}}>
                         <i class="fa-solid fa-sack-dollar"></i>
                         </button>
+                        {{#if cartQty}}<span class="ml-marketplace-cart-qty">{{cartQty}}</span>{{/if}}
                     </div>
                 </td>
             </tr>
             {{/each}}
         </tbody>
     </table>
+    </div>
+    <aside class="ml-marketplace-cart-panel">
+      <div class="ml-marketplace-cart-heading"><div class="ml-marketplace-cart-title"><i class="fa-solid fa-cart-shopping"></i><strong>Sell Cart</strong></div><span class="ml-marketplace-cart-count">{{sellCartCount}}</span></div>
+      <div class="ml-marketplace-cart-items">
+        {{#each sellCartItems}}
+          <div class="ml-marketplace-cart-line">
+            <img src="{{img}}" alt="{{name}}" data-link data-uuid="{{uuid}}">
+            <div><a class="content-link ml-marketplace-cart-item-name" data-link data-uuid="{{uuid}}">{{name}}</a><span>{{quantity}} × {{sellPrice}}</span><small>{{lineTotal}}</small></div>
+            <button type="button" data-action="removeSellFromCart" data-item-id="{{ownedItemId}}" title="Remove one"><i class="fa-solid fa-minus"></i></button>
+          </div>
+        {{else}}
+          <div class="ml-empty-state ml-marketplace-cart-empty"><i class="fa-solid fa-basket-shopping"></i><span>Your sell cart is empty.</span></div>
+        {{/each}}
+      </div>
+      <div class="ml-marketplace-cart-footer">
+        <div><span>Sale Total</span><strong>{{sellCartTotal}}</strong></div>
+        <button type="button" class="primary" data-action="checkoutSellCart" {{#unless canCheckoutSell}}disabled{{/unless}}>{{#if isCheckingOut}}<i class="fa-solid fa-spinner fa-spin"></i> Selling…{{else}}<i class="fa-solid fa-coins"></i> Sell Cart{{/if}}</button>
+        {{#if sellCartCount}}<button type="button" data-action="clearSellCart"><i class="fa-solid fa-trash"></i> Clear Cart</button>{{/if}}
+      </div>
+    </aside>
     </div>
 </section>

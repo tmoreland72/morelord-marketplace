@@ -355,26 +355,17 @@ export class CompendiumService {
 
     let priceCp = PricingService.getItemPriceCp(entry);
 
-    const missingFilterData =
-      entry.system?.type === undefined ||
-      entry.system?.properties === undefined;
-
-    /*
-     * Compendium indexes do not always preserve the complete dnd5e source
-     * structure. An item may show a source book on its sheet while the index
-     * exposes only a primitive value or an incomplete object. Load the full
-     * document whenever the indexed source cannot identify a book.
-     */
-    const missingSourceData =
-      !this.hasUsableSource(entry.system?.source);
-
     // Shops only need the compact indexed data to browse. Avoid hydrating full
     // documents for missing source/property metadata; the actual document is
     // fetched only when the item is purchased. The global Marketplace retains
     // the richer hydration behavior for its broader filtering/search UI.
     if (shop && !priceCp) return null;
 
-    const requiresDocument = !shop && (!priceCp || missingFilterData || missingSourceData);
+    // Catalog browsing must stay index-only whenever the indexed price is
+    // usable. Hydrating thousands of full documents here makes the Buy tab
+    // scale with compendium size and defeats pagination. Missing optional
+    // filter/source fields gracefully normalize to Other/the pack label.
+    const requiresDocument = !priceCp;
 
     if (requiresDocument) {
       const document = await pack.getDocument(
@@ -1047,6 +1038,69 @@ export class CompendiumService {
     }
 
     return { status: "completed", priceCp, itemName: item.name, itemImg: item.img };
+  }
+
+  static async buyCart({ actor, fundingActor = actor, items = [] }) {
+    if (!actor || !fundingActor || !items.length) return { status: "blocked" };
+    if (!game.settings.get(MODULE_ID, "enableBuying")) {
+      ui.notifications.warn("Buying is disabled.");
+      return { status: "blocked" };
+    }
+
+    const allowed = new Set(this.getAllowedPackIds());
+    const resolved = [];
+    for (const line of items) {
+      const quantity = Number(line.quantity);
+      if (!allowed.has(line.packId) || !Number.isInteger(quantity) || quantity < 1) throw new Error("An item in the buy cart is invalid or no longer allowed.");
+      const pack = game.packs.get(line.packId);
+      const item = await pack?.getDocument(line.documentId);
+      if (!item || !PurchaseEligibilityService.isPurchasable(item)) throw new Error("An item in the buy cart is no longer available.");
+      const unitPriceCp = PricingService.getBuyPriceCp(PricingService.getItemPriceCp(item));
+      if (unitPriceCp !== Number(line.priceCp)) throw new Error(`${item.name}'s price changed. Review your cart and try again.`);
+      resolved.push({ packId: line.packId, documentId: line.documentId, item, name: item.name, img: item.img, uuid: item.uuid, quantity, unitPriceCp, totalPriceCp: unitPriceCp * quantity });
+    }
+    const totalPriceCp = resolved.reduce((sum, entry) => sum + entry.totalPriceCp, 0);
+    if (!CurrencyService.canAfford(fundingActor, totalPriceCp)) {
+      ui.notifications.warn("You cannot afford this cart.");
+      return { status: "unaffordable" };
+    }
+
+    if (TransactionApprovalService.requiresApproval("buy")) {
+      await TransactionApprovalService.requestBuyCart({ actor, fundingActor, items: resolved, totalPriceCp });
+      ui.notifications.info(`${resolved.length} buy-cart item(s) are awaiting GM approval.`);
+      return { status: "pending", ok: true };
+    }
+
+    const originalCurrencyCp = CurrencyService.currencyToCp(CurrencyService.getCurrency(fundingActor));
+    const originalItemIds = new Set(actor.items.map(item => item.id));
+    await CurrencyService.deductCurrency(fundingActor, totalPriceCp);
+    try {
+      const documents = resolved.flatMap(entry => Array.from({ length: entry.quantity }, () => entry.item.toObject()));
+      await actor.createEmbeddedDocuments("Item", documents);
+    } catch (error) {
+      await this.rollbackBoughtItems(actor, fundingActor, originalCurrencyCp, originalItemIds);
+      throw error;
+    }
+    try {
+      await TransactionService.postCart({ type: "buy", actor, fundingActor, items: resolved, totalCp: totalPriceCp });
+    } catch (error) {
+      console.error(`[${MODULE_ID}] Purchase completed, but its chat card could not be created`, error);
+      ui.notifications.warn("The purchase completed, but its chat card could not be created.");
+    }
+    return { status: "completed", ok: true };
+  }
+
+  static async rollbackBoughtItems(actor, fundingActor, originalCurrencyCp, originalItemIds) {
+    const rollbackErrors = [];
+    const createdIds = actor.items.filter(item => !originalItemIds.has(item.id)).map(item => item.id);
+    try { if (createdIds.length) await actor.deleteEmbeddedDocuments("Item", createdIds); }
+    catch (error) { rollbackErrors.push(error); }
+    try { await CurrencyService.setCurrency(fundingActor, originalCurrencyCp); }
+    catch (error) { rollbackErrors.push(error); }
+    if (rollbackErrors.length) {
+      console.error(`[${MODULE_ID}] Buy-cart rollback was incomplete`, rollbackErrors);
+      throw new Error("The purchase failed and could not be fully rolled back. A Game Master must review the character's inventory and currency.");
+    }
   }
 
   static dedupeRows(rows) {

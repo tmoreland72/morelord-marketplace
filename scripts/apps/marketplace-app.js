@@ -38,6 +38,11 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       removeFromCart: MorelordMarketplaceApp.removeFromCart,
       clearCart: MorelordMarketplaceApp.clearCart,
       checkoutCart: MorelordMarketplaceApp.checkoutCart,
+      changeBuyPage: MorelordMarketplaceApp.changeBuyPage,
+      addSellToCart: MorelordMarketplaceApp.addSellToCart,
+      removeSellFromCart: MorelordMarketplaceApp.removeSellFromCart,
+      clearSellCart: MorelordMarketplaceApp.clearSellCart,
+      checkoutSellCart: MorelordMarketplaceApp.checkoutSellCart,
       manageShops: MorelordMarketplaceApp.manageShops,
       refreshShop: MorelordMarketplaceApp.refreshShop,
       addToWishlist: MorelordMarketplaceApp.addToWishlist,
@@ -99,6 +104,9 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
     this.filters = this.getEmptyFilters();
     this.panelScrollPositions = new Map();
     this.cart = new Map();
+    this.sellCart = new Map();
+    this.buyPage = 1;
+    this.buyPageSize = 50;
     this.isLoadingBuy = Boolean(this.shopId);
     this._initialShopLoadStarted = false;
     this._reservationListener = event => {
@@ -257,6 +265,14 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       wishlistCount: WishlistService.getEntries(actor).length,
       buyFacets: null,
       buyResultCount: 0,
+      buyPage: 1,
+      buyPageCount: 1,
+      buyPageStart: 0,
+      buyPageEnd: 0,
+      hasPreviousBuyPage: false,
+      hasNextBuyPage: false,
+      previousBuyPage: 1,
+      nextBuyPage: 1,
       hasBuyFilters: this.hasActiveBuyFilters(),
       currency: null,
       cartItems: [],
@@ -286,7 +302,21 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
 
     if (context.isSellTab) {
       const sellItems = actor ? await ActorService.getSellableItems(actor, { shop }) : [];
-      context.sellItems = this.sortSellItems(sellItems);
+      context.sellItems = this.sortSellItems(sellItems).map(row => ({
+        ...row,
+        cartQty: this.sellCart.get(row.ownedItemId)?.quantity ?? 0,
+        canAddToSellCart: context.canSell && (this.sellCart.get(row.ownedItemId)?.quantity ?? 0) < row.quantity
+      }));
+      context.sellCartItems = [...this.sellCart.values()].map(entry => ({
+        ...entry.row,
+        quantity: entry.quantity,
+        lineTotalCp: entry.row.sellPriceCp * entry.quantity,
+        lineTotal: CurrencyService.formatCp(entry.row.sellPriceCp * entry.quantity)
+      }));
+      context.sellCartCount = context.sellCartItems.reduce((sum, entry) => sum + entry.quantity, 0);
+      context.sellCartTotalCp = context.sellCartItems.reduce((sum, entry) => sum + entry.lineTotalCp, 0);
+      context.sellCartTotal = CurrencyService.formatCp(context.sellCartTotalCp);
+      context.canCheckoutSell = !this.isCheckingOut && Boolean(actor) && context.sellCartCount > 0 && context.canSell && !shopStale;
     }
 
     if (context.isBuyTab && !this.isLoadingBuy) {
@@ -299,7 +329,7 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
         availableCurrencyCp
       };
 
-      context.buyItems = CompendiumService.filterRows(catalog, runtimeFilters)
+      const filteredBuyItems = CompendiumService.filterRows(catalog, runtimeFilters)
         .filter(row => !shop || ShopService.isInStock(shop, row))
         .map(row => {
           const key = ShopService.stockKey(row);
@@ -322,7 +352,18 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
           };
         });
       context.buyFacets = CompendiumService.buildFacets(catalog, this.filters);
-      context.buyResultCount = context.buyItems.length;
+      context.buyResultCount = filteredBuyItems.length;
+      context.buyPageCount = Math.max(1, Math.ceil(filteredBuyItems.length / this.buyPageSize));
+      this.buyPage = Math.min(Math.max(1, this.buyPage), context.buyPageCount);
+      const pageStart = (this.buyPage - 1) * this.buyPageSize;
+      context.buyItems = filteredBuyItems.slice(pageStart, pageStart + this.buyPageSize);
+      context.buyPage = this.buyPage;
+      context.buyPageStart = filteredBuyItems.length ? pageStart + 1 : 0;
+      context.buyPageEnd = Math.min(pageStart + this.buyPageSize, filteredBuyItems.length);
+      context.hasPreviousBuyPage = this.buyPage > 1;
+      context.hasNextBuyPage = this.buyPage < context.buyPageCount;
+      context.previousBuyPage = Math.max(1, this.buyPage - 1);
+      context.nextBuyPage = Math.min(context.buyPageCount, this.buyPage + 1);
 
       context.cartItems = [...this.cart.values()].map(entry => ({
         ...entry.row,
@@ -422,6 +463,7 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
         this.fundingActorId = ActorService.hasCurrency(this.actor) ? this.actor?.id ?? null : null;
       }
       this.cart.clear();
+      this.sellCart.clear();
       await this.syncCartReservation();
       await this.render();
     });
@@ -449,6 +491,7 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       event.preventDefault();
       event.stopPropagation();
       this.filters.search = searchInput.value ?? "";
+      this.buyPage = 1;
       await this.render();
     });
 
@@ -457,6 +500,7 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
         event.preventDefault();
         event.stopPropagation();
         this.readSimpleBuyFilters(buyLayout);
+        this.buyPage = 1;
         await this.render();
       });
     }
@@ -559,6 +603,7 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       this.filters.properties = this.getEmptyFacet();
       this.filters.masteries = this.getEmptyFacet();
     }
+    this.buyPage = 1;
   }
 
   static async switchTab(event, target) {
@@ -594,37 +639,68 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
   }
 
   static async sellOne(event, target) {
-    if (this.shopId && Number(ShopService.getShop(this.shopId)?.revision ?? 1) !== Number(this.shopRevision ?? 1)) { ui.notifications.warn("This shop changed. Refresh it before selling."); return; }
-    const itemId = target.dataset.itemId;
-    await ActorService.sellItem(this.actor, itemId, 1, { shop: this.shopId ? this.shopSnapshot : null });
-    await this.render();
+    return MorelordMarketplaceApp.addSellToCart.call(this, event, target);
   }
 
   static async sellAll(event, target) {
-    if (this.shopId && Number(ShopService.getShop(this.shopId)?.revision ?? 1) !== Number(this.shopRevision ?? 1)) { ui.notifications.warn("This shop changed. Refresh it before selling."); return; }
     const itemId = target.dataset.itemId;
     const item = this.actor?.items.get(itemId);
     const quantity = item?.system.quantity ?? 1;
-    await ActorService.sellItem(this.actor, itemId, quantity, { shop: this.shopId ? this.shopSnapshot : null });
+    await MorelordMarketplaceApp.addSellToCart.call(this, event, target, Number(quantity));
+  }
+
+  static async addSellToCart(event, target, requestedQuantity = 1) {
+    event?.preventDefault?.();
+    if (!this.actor) return;
+    const itemId = target.dataset.itemId;
+    const rows = await ActorService.getSellableItems(this.actor, { shop: this.shopId ? this.shopSnapshot : null });
+    const row = rows.find(entry => entry.ownedItemId === itemId);
+    if (!row) return;
+    const current = this.sellCart.get(itemId) ?? { row, quantity: 0 };
+    const quantity = Math.min(row.quantity, current.quantity + Number(requestedQuantity || 1));
+    this.sellCart.set(itemId, { row, quantity });
+    await this.render();
+  }
+
+  static async removeSellFromCart(event, target) {
+    event.preventDefault();
+    const itemId = target.dataset.itemId;
+    const current = this.sellCart.get(itemId);
+    if (!current) return;
+    if (current.quantity <= 1) this.sellCart.delete(itemId);
+    else this.sellCart.set(itemId, { ...current, quantity: current.quantity - 1 });
+    await this.render();
+  }
+
+  static async clearSellCart(event) {
+    event.preventDefault();
+    this.sellCart.clear();
+    await this.render();
+  }
+
+  static async checkoutSellCart(event) {
+    event.preventDefault();
+    if (this.isCheckingOut || !this.actor || !this.sellCart.size) return;
+    this.isCheckingOut = true;
+    await this.render();
+    try {
+      const result = await ActorService.sellCart(this.actor, [...this.sellCart.values()].map(entry => ({
+        itemId: entry.row.ownedItemId,
+        quantity: entry.quantity
+      })), { shop: this.shopId ? this.shopSnapshot : null });
+      if (result?.status === "completed" || result?.status === "pending") this.sellCart.clear();
+    } catch (error) {
+      console.error(`[${MODULE_ID}] Sell cart checkout failed`, error);
+      ui.notifications.error(error?.message ?? "The sell cart could not be completed. No changes were kept.");
+    } finally {
+      this.isCheckingOut = false;
+    }
     await this.render();
   }
 
   static async buyItem(event, target) {
     if (this.isLoadingBuy) return;
-    const shop = this.shopId ? this.shopSnapshot : null;
-    if (shop) return MorelordMarketplaceApp.addToCart.call(this, event, target);
-    if (!game.settings.get(MODULE_ID, "enableBuying")) {
-      ui.notifications.warn("Buying through the global Marketplace is disabled.");
-      return;
-    }
-
-    await CompendiumService.buyCompendiumItem({
-      actor: this.actor,
-      fundingActor: this.getFundingActor(),
-      packId: target.dataset.packId,
-      documentId: target.dataset.documentId
-    });
-    await this.render();
+    return MorelordMarketplaceApp.addToCart.call(this, event, target);
   }
 
   static async addToWishlist(event, target) {
@@ -649,16 +725,15 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
 
   static async addToCart(event, target) {
     event?.preventDefault?.();
-    const shop = this.shopSnapshot ?? ShopService.getShop(this.shopId);
-    if (!shop) return;
+    const shop = this.shopId ? (this.shopSnapshot ?? ShopService.getShop(this.shopId)) : null;
     const catalog = await CompendiumService.getBuyableCatalog(shop);
     const row = catalog.find(entry => entry.packId === target.dataset.packId && entry.documentId === target.dataset.documentId);
-    if (!row || !ShopService.isInStock(shop, row)) return;
+    if (!row || (shop && !ShopService.isInStock(shop, row))) return;
 
     const key = ShopService.stockKey(row);
     const current = this.cart.get(key) ?? { row, quantity: 0 };
-    const stock = ShopService.getStock(shop, row);
-    const sharedReserved = ShopTransactionService.getReserved(shop.id, key);
+    const stock = shop ? ShopService.getStock(shop, row) : Infinity;
+    const sharedReserved = shop ? ShopTransactionService.getReserved(shop.id, key) : 0;
     const effectiveReserved = Math.max(sharedReserved, current.quantity);
     if (Number.isFinite(stock) && effectiveReserved >= stock) {
       ui.notifications.warn("That shop does not have any more unreserved stock of this item.");
@@ -704,9 +779,9 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
     event.preventDefault();
     if (this.isCheckingOut) return;
 
-    const shop = this.shopSnapshot ?? ShopService.getShop(this.shopId);
+    const shop = this.shopId ? (this.shopSnapshot ?? ShopService.getShop(this.shopId)) : null;
     const fundingActor = this.getFundingActor();
-    if (!shop || !this.actor || !fundingActor || !this.cart.size) return;
+    if (!this.actor || !fundingActor || !this.cart.size) return;
 
     const requestItems = [...this.cart.values()].map(entry => ({
       packId: entry.row.packId,
@@ -720,22 +795,24 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
 
     let result;
     try {
-      result = await ShopTransactionService.checkout({
-        shopId: shop.id,
-        actorId: this.actor.id,
-        fundingActorId: fundingActor.id,
-        items: requestItems,
-        expectedRevision: this.shopRevision
-      });
+      result = shop
+        ? await ShopTransactionService.checkout({
+          shopId: shop.id,
+          actorId: this.actor.id,
+          fundingActorId: fundingActor.id,
+          items: requestItems,
+          expectedRevision: this.shopRevision
+        })
+        : await CompendiumService.buyCart({ actor: this.actor, fundingActor, items: requestItems });
     } catch (error) {
-      console.error(`[${MODULE_ID}] Shop checkout failed`, error);
-      result = { ok: false, error: error?.message ?? "The shop purchase failed." };
+      console.error(`[${MODULE_ID}] Buy cart checkout failed`, error);
+      result = { ok: false, error: error?.message ?? "The cart purchase failed." };
     } finally {
       this.isCheckingOut = false;
     }
 
     if (!result?.ok) {
-      ui.notifications.error(result?.error ?? "The shop purchase failed. No changes were kept.");
+      ui.notifications.error(result?.error ?? "The cart purchase failed. No changes were kept.");
       await this.render();
       return;
     }
@@ -754,6 +831,14 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       items: result.items ?? []
     });
     ui.notifications.info(`Purchased ${(result.items ?? []).reduce((sum, line) => sum + Number(line.quantity ?? 0), 0)} item(s) from ${shop.name}.`);
+    await this.render();
+  }
+
+  static async changeBuyPage(event, target) {
+    event.preventDefault();
+    const page = Number(target.dataset.page);
+    if (!Number.isInteger(page) || page < 1) return;
+    this.buyPage = page;
     await this.render();
   }
 
@@ -804,6 +889,7 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
     if (this.isLoadingBuy) return;
 
     this.filters.affordableOnly = !this.filters.affordableOnly;
+    this.buyPage = 1;
     await this.render();
   }
 
@@ -812,6 +898,7 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
     if (this.isLoadingBuy) return;
 
     this.filters.search = "";
+    this.buyPage = 1;
     await this.render();
   }
 
@@ -820,6 +907,7 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
     if (this.isLoadingBuy) return;
 
     this.filters = this.getEmptyFilters();
+    this.buyPage = 1;
     await this.render();
   }
 }

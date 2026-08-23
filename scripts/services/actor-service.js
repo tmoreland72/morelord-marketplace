@@ -196,4 +196,75 @@ export class ActorService {
       shop
     });
   }
+
+  static async sellCart(actor, lines = [], { shop = null } = {}) {
+    if (!actor || !lines.length) return { status: "blocked" };
+    if (!shop && !game.settings.get(MODULE_ID, "enableSelling")) {
+      ui.notifications.warn("Selling through the global Marketplace is disabled.");
+      return { status: "blocked" };
+    }
+
+    const sellRate = Number(game.settings.get(MODULE_ID, "sellRate") ?? 1);
+    const items = lines.map(line => {
+      const item = actor.items.get(line.itemId);
+      const quantity = Number(line.quantity);
+      const ownedQuantity = Number(item?.system?.quantity ?? 0);
+      if (!item || item.getFlag(MODULE_ID, "unsellable") || !Number.isInteger(quantity) || quantity < 1 || quantity > ownedQuantity) {
+        throw new Error("An item in the sell cart is no longer available in the requested quantity.");
+      }
+      const unitPriceCp = PricingService.getSellPriceCp(PricingService.getItemPriceCp(item), shop, sellRate);
+      if (unitPriceCp === null) throw new Error(`${shop?.name ?? "This shop"} will not buy ${item.name}.`);
+      return { item, itemId: item.id, name: item.name, img: item.img, uuid: item.uuid, quantity, ownedQuantity, unitPriceCp, totalPriceCp: unitPriceCp * quantity };
+    });
+    const totalPriceCp = items.reduce((sum, entry) => sum + entry.totalPriceCp, 0);
+
+    if (!shop && TransactionApprovalService.requiresApproval("sell")) {
+      await TransactionApprovalService.requestSellCart({ actor, items, totalPriceCp });
+      ui.notifications.info(`${items.length} sell-cart item(s) are awaiting GM approval.`);
+      return { status: "pending" };
+    }
+
+    const originalCurrencyCp = CurrencyService.currencyToCp(CurrencyService.getCurrency(actor));
+    const originalItems = new Map(items.map(entry => [entry.itemId, entry.item.toObject()]));
+    await CurrencyService.addCurrency(actor, totalPriceCp);
+    try {
+      const updates = items.filter(entry => entry.ownedQuantity > entry.quantity).map(entry => ({ _id: entry.itemId, "system.quantity": entry.ownedQuantity - entry.quantity }));
+      const deletions = items.filter(entry => entry.ownedQuantity <= entry.quantity).map(entry => entry.itemId);
+      if (updates.length) await actor.updateEmbeddedDocuments("Item", updates);
+      if (deletions.length) await actor.deleteEmbeddedDocuments("Item", deletions);
+    } catch (error) {
+      await this.rollbackSoldItems(actor, originalCurrencyCp, originalItems);
+      throw error;
+    }
+
+    try {
+      await TransactionService.postCart({ type: "sell", actor, items, totalCp: totalPriceCp, shop });
+    } catch (error) {
+      console.error(`[${MODULE_ID}] Sale completed, but its chat card could not be created`, error);
+      ui.notifications.warn("The sale completed, but its chat card could not be created.");
+    }
+    return { status: "completed" };
+  }
+
+  static async rollbackSoldItems(actor, originalCurrencyCp, originalItems) {
+    const rollbackErrors = [];
+    try { await CurrencyService.setCurrency(actor, originalCurrencyCp); }
+    catch (error) { rollbackErrors.push(error); }
+
+    const updates = [];
+    const recreations = [];
+    for (const [itemId, data] of originalItems) {
+      if (actor.items.get(itemId)) updates.push({ _id: itemId, "system.quantity": data.system?.quantity ?? 1 });
+      else recreations.push(data);
+    }
+    try { if (updates.length) await actor.updateEmbeddedDocuments("Item", updates); }
+    catch (error) { rollbackErrors.push(error); }
+    try { if (recreations.length) await actor.createEmbeddedDocuments("Item", recreations, { keepId: true }); }
+    catch (error) { rollbackErrors.push(error); }
+
+    if (rollbackErrors.length) {
+      console.error(`[${MODULE_ID}] Sell-cart rollback was incomplete`, rollbackErrors);
+      throw new Error("The sale failed and could not be fully rolled back. A Game Master must review the character's inventory and currency.");
+    }
+  }
 }

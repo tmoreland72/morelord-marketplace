@@ -9,6 +9,7 @@ import { Logger } from "../logger.js";
 import { PurchaseEligibilityService } from "./purchase-eligibility-service.js";
 import { ShopService } from "./shop-service.js";
 import { EntitlementService } from "./entitlement-service.js";
+import { PricingService } from "./pricing-service.js";
 
 export class TransactionApprovalService {
   static initialized = false;
@@ -149,6 +150,35 @@ export class TransactionApprovalService {
     return message;
   }
 
+  static async requestBuyCart({ actor, fundingActor = actor, items, totalPriceCp }) {
+    return TransactionService.createPending({
+      type: "buy",
+      actor,
+      fundingActor,
+      requestedByUserId: game.user.id,
+      itemName: `${items.length} cart item(s)`,
+      itemImg: items[0]?.img,
+      quantity: items.reduce((sum, item) => sum + item.quantity, 0),
+      unitPriceCp: null,
+      totalPriceCp,
+      payload: { items: items.map(item => ({ packId: item.packId, documentId: item.documentId, quantity: item.quantity, unitPriceCp: item.unitPriceCp, name: item.name, img: item.img, uuid: item.uuid })) }
+    });
+  }
+
+  static async requestSellCart({ actor, items, totalPriceCp }) {
+    return TransactionService.createPending({
+      type: "sell",
+      actor,
+      requestedByUserId: game.user.id,
+      itemName: `${items.length} cart item(s)`,
+      itemImg: items[0]?.img,
+      quantity: items.reduce((sum, item) => sum + item.quantity, 0),
+      unitPriceCp: null,
+      totalPriceCp,
+      payload: { items: items.map(item => ({ itemId: item.itemId, quantity: item.quantity, unitPriceCp: item.unitPriceCp, name: item.name, img: item.img, uuid: item.uuid })) }
+    });
+  }
+
   static async handleAction(messageId, action) {
     if (!game.user.isGM) {
       ui.notifications.error("Only a Game Master may resolve Marketplace requests.");
@@ -243,6 +273,8 @@ export class TransactionApprovalService {
       : actor;
     if (!fundingActor) throw new Error("The selected source of purchase funds could not be found.");
 
+    const cartLines = transaction.payload?.items;
+    if (Array.isArray(cartLines)) return this.executeApprovedBuyCart(transaction, actor, fundingActor, cartLines);
     const { packId, documentId } = transaction.payload ?? {};
     const allowed = game.settings.get(MODULE_ID, "allowedCompendiums") ?? [];
 
@@ -286,6 +318,9 @@ export class TransactionApprovalService {
     const actor = await globalThis.fromUuid(transaction.actorUuid);
     if (!actor) throw new Error("The character could not be found.");
 
+    const cartLines = transaction.payload?.items;
+    if (Array.isArray(cartLines)) return this.executeApprovedSellCart(transaction, actor, cartLines);
+
     const itemId = transaction.payload?.itemId;
     const item = actor.items.get(itemId);
 
@@ -325,6 +360,74 @@ export class TransactionApprovalService {
       }
     } catch (error) {
       await CurrencyService.setCurrency(actor, originalCurrencyCp);
+      throw error;
+    }
+  }
+
+  static async executeApprovedBuyCart(transaction, actor, fundingActor, lines) {
+    const allowed = new Set(game.settings.get(MODULE_ID, "allowedCompendiums") ?? []);
+    const documents = [];
+    let liveTotal = 0;
+    for (const line of lines) {
+      if (!allowed.has(line.packId)) throw new Error("A source compendium is no longer allowed.");
+      const item = await game.packs.get(line.packId)?.getDocument(line.documentId);
+      const quantity = Number(line.quantity);
+      if (!item || !PurchaseEligibilityService.isPurchasable(item) || !Number.isInteger(quantity) || quantity < 1) throw new Error("An item in the cart is no longer available.");
+      const priceCp = PricingService.getBuyPriceCp(PricingService.getItemPriceCp(item));
+      if (priceCp !== Number(line.unitPriceCp)) throw new Error(`${item.name}'s price changed.`);
+      liveTotal += priceCp * quantity;
+      documents.push(...Array.from({ length: quantity }, () => item.toObject()));
+    }
+    if (liveTotal !== Number(transaction.totalPriceCp)) throw new Error("The cart total changed.");
+    if (!CurrencyService.canAfford(fundingActor, liveTotal)) throw new Error("The selected purchase funds are no longer sufficient.");
+    const originalCurrencyCp = CurrencyService.currencyToCp(CurrencyService.getCurrency(fundingActor));
+    const originalItemIds = new Set(actor.items.map(item => item.id));
+    await CurrencyService.deductCurrency(fundingActor, liveTotal);
+    try { await actor.createEmbeddedDocuments("Item", documents); }
+    catch (error) {
+      const rollbackErrors = [];
+      const createdIds = actor.items.filter(item => !originalItemIds.has(item.id)).map(item => item.id);
+      try { if (createdIds.length) await actor.deleteEmbeddedDocuments("Item", createdIds); } catch (rollbackError) { rollbackErrors.push(rollbackError); }
+      try { await CurrencyService.setCurrency(fundingActor, originalCurrencyCp); } catch (rollbackError) { rollbackErrors.push(rollbackError); }
+      if (rollbackErrors.length) throw new Error("The purchase failed and could not be fully rolled back. Review the character's inventory and currency.");
+      throw error;
+    }
+  }
+
+  static async executeApprovedSellCart(transaction, actor, lines) {
+    const sellRate = Number(game.settings.get(MODULE_ID, "sellRate") ?? 1);
+    const updates = [];
+    const deletions = [];
+    let liveTotal = 0;
+    for (const line of lines) {
+      const item = actor.items.get(line.itemId);
+      const quantity = Number(line.quantity);
+      const owned = Number(item?.system?.quantity ?? 0);
+      if (!item || item.getFlag(MODULE_ID, "unsellable") || !Number.isInteger(quantity) || quantity < 1 || quantity > owned) throw new Error("An item in the cart is no longer available.");
+      const priceCp = PricingService.getSellPriceCp(PricingService.getItemPriceCp(item), null, sellRate);
+      if (priceCp !== Number(line.unitPriceCp)) throw new Error(`${item.name}'s sale price changed.`);
+      liveTotal += priceCp * quantity;
+      if (owned > quantity) updates.push({ _id: item.id, "system.quantity": owned - quantity }); else deletions.push(item.id);
+    }
+    if (liveTotal !== Number(transaction.totalPriceCp)) throw new Error("The cart total changed.");
+    const originalCurrencyCp = CurrencyService.currencyToCp(CurrencyService.getCurrency(actor));
+    const originalItems = new Map(lines.map(line => [line.itemId, actor.items.get(line.itemId).toObject()]));
+    await CurrencyService.addCurrency(actor, liveTotal);
+    try {
+      if (updates.length) await actor.updateEmbeddedDocuments("Item", updates);
+      if (deletions.length) await actor.deleteEmbeddedDocuments("Item", deletions);
+    } catch (error) {
+      const rollbackErrors = [];
+      try { await CurrencyService.setCurrency(actor, originalCurrencyCp); } catch (rollbackError) { rollbackErrors.push(rollbackError); }
+      const restores = [];
+      const recreations = [];
+      for (const [itemId, data] of originalItems) {
+        if (actor.items.get(itemId)) restores.push({ _id: itemId, "system.quantity": data.system?.quantity ?? 1 });
+        else recreations.push(data);
+      }
+      try { if (restores.length) await actor.updateEmbeddedDocuments("Item", restores); } catch (rollbackError) { rollbackErrors.push(rollbackError); }
+      try { if (recreations.length) await actor.createEmbeddedDocuments("Item", recreations, { keepId: true }); } catch (rollbackError) { rollbackErrors.push(rollbackError); }
+      if (rollbackErrors.length) throw new Error("The sale failed and could not be fully rolled back. Review the character's inventory and currency.");
       throw error;
     }
   }

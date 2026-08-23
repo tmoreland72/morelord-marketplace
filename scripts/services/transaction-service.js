@@ -130,6 +130,14 @@ export class TransactionService {
     });
   }
 
+  static async postCart({ type, actor, fundingActor = actor, shop = null, items = [], totalCp = 0 }) {
+    const enabled = game.settings.get(MODULE_ID, "postTransactionCards");
+    if (!enabled || !items.length) return null;
+    const verb = type === "sell" ? "sold" : "bought";
+    const rows = items.map(item => `<div class="mlm-cart-chat-line">${item.img ? `<img src="${this.escape(item.img)}" alt="${this.escape(item.name)}">` : ""}<span><strong>${Number(item.quantity)} ×</strong> ${this.contentLink(item.uuid, item.name)}</span><span>${this.escape(CurrencyService.formatCp(item.totalPriceCp))}</span></div>`).join("");
+    return ChatMessage.create({ speaker: ChatMessage.getSpeaker({ actor }), content: `<div class="morelord-marketplace-card mlm-transaction-card mlm-transaction-complete mlm-cart-transaction-card"><div class="mlm-transaction-source">Morelord Marketplace</div><p><strong>${this.escape(actor.name)}</strong> ${verb} a cart${shop?.name ? ` at <strong>${this.escape(shop.name)}</strong>` : ""}.</p><div class="mlm-cart-chat-items">${rows}</div><p><strong>Total:</strong> ${this.escape(CurrencyService.formatCp(totalCp))}</p>${type === "buy" && fundingActor?.id !== actor.id ? `<p><strong>Paid from:</strong> ${this.escape(fundingActor.name)}</p>` : ""}</div>` });
+  }
+
   static async createPending({
     type,
     actor,
@@ -190,13 +198,15 @@ export class TransactionService {
     const action = transaction.type === "sell" ? "sell" : "buy";
     const price = CurrencyService.formatCp(transaction.totalPriceCp);
 
+    const lines = this.renderApprovalLines(transaction);
     return `
       <div class="ml-chat-card ml-marketplace-card ml-marketplace-approval-card" data-ml-marketplace-transaction-id="${this.escape(transaction.id)}">
         <div class="ml-marketplace-transaction-source">Morelord Marketplace</div>
         <div class="ml-marketplace-transaction-summary">
           ${transaction.itemImg ? `<img src="${this.escape(transaction.itemImg)}" alt="${this.escape(transaction.itemName)}">` : ""}
           <div>
-            <p><strong>${this.escape(transaction.actorName)}</strong> requested to ${action} <strong>${transaction.quantity} ×</strong> ${this.contentLink(this.getItemUuid(transaction), transaction.itemName)}.</p>
+            <p><strong>${this.escape(transaction.actorName)}</strong> requested to ${action} <strong>${this.escape(transaction.itemName)}</strong>.</p>
+            ${lines}
             <p><strong>Total:</strong> ${this.escape(price)}</p>
             ${transaction.type === "buy" && transaction.fundingActorUuid !== transaction.actorUuid ? `<p><strong>Paying from:</strong> ${this.escape(transaction.fundingActorName)}</p>` : ""}
           </div>
@@ -223,7 +233,8 @@ export class TransactionService {
     return `
       <div class="ml-chat-card ml-marketplace-card ml-marketplace-approval-card">
         <div class="ml-marketplace-transaction-source">Morelord Marketplace</div>
-        <p><strong>${this.escape(transaction.actorName)}</strong>'s request for <strong>${transaction.quantity} ×</strong> ${this.contentLink(this.getItemUuid(transaction), transaction.itemName)} is being processed.</p>
+        <p><strong>${this.escape(transaction.actorName)}</strong>'s request for <strong>${this.escape(transaction.itemName)}</strong> is being processed.</p>
+        ${this.renderApprovalLines(transaction)}
         <div class="ml-marketplace-approval-status ml-marketplace-status-processing">
           <i class="fa-solid fa-spinner fa-spin"></i>
           <span>Processing by ${this.escape(gmName)}</span>
@@ -256,12 +267,19 @@ export class TransactionService {
           <i class="fa-solid ${icon}"></i>
           <span>${label}</span>
         </div>
-        <p><strong>${this.escape(transaction.actorName)}</strong>'s request to ${action} <strong>${transaction.quantity} ×</strong> ${this.contentLink(this.getItemUuid(transaction), transaction.itemName)} was ${approved ? "approved" : denied ? "denied" : "not completed"}.</p>
+        <p><strong>${this.escape(transaction.actorName)}</strong>'s request to ${action} <strong>${this.escape(transaction.itemName)}</strong> was ${approved ? "approved" : denied ? "denied" : "not completed"}.</p>
+        ${this.renderApprovalLines(transaction)}
         <p><strong>Total:</strong> ${this.escape(price)}</p>
         ${transaction.type === "buy" && transaction.fundingActorUuid !== transaction.actorUuid ? `<p><strong>Paid from:</strong> ${this.escape(transaction.fundingActorName)}</p>` : ""}
         ${reason ? `<p class="ml-marketplace-resolution-reason">${this.escape(reason)}</p>` : ""}
         <div class="ml-marketplace-resolution-meta">Resolved by ${this.escape(resolverName)}</div>
       </div>
     `;
+  }
+
+  static renderApprovalLines(transaction) {
+    const items = transaction.payload?.items;
+    if (!Array.isArray(items)) return `<p><strong>${Number(transaction.quantity ?? 1)} ×</strong> ${this.escape(transaction.itemName)}</p>`;
+    return `<div class="ml-marketplace-cart-chat-items">${items.map(item => `<div class="ml-marketplace-cart-chat-line">${item.img ? `<img src="${this.escape(item.img)}" alt="${this.escape(item.name)}">` : ""}<span><strong>${Number(item.quantity)} ×</strong> ${this.contentLink(item.uuid, item.name)}</span><span>${this.escape(CurrencyService.formatCp(Number(item.unitPriceCp) * Number(item.quantity)))}</span></div>`).join("")}</div>`;
   }
 }

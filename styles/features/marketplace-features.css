@@ -1,3 +1,32 @@
 /* Feature stylesheet aggregator; import order is cascade order. */
 @import url("./marketplace-catalog.css");
 @import url("./marketplace-shops.css");
+/* Paginated marketplace results and shared buy/sell cart layouts. */
+.morelord-marketplace .mlm-pagination {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding-top: 0.65rem;
+}
+
+.morelord-marketplace .mlm-pagination button {
+  width: 36px;
+  min-width: 36px;
+  margin: 0;
+}
+
+.morelord-marketplace .mlm-pagination span {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.morelord-marketplace .ml-marketplace-sell-layout {
+  display: flex;
+  flex: 1 1 auto;
+  gap: 1rem;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}

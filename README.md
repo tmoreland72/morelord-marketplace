@@ -166,6 +166,22 @@ Shop definitions are world data stored in `morelord-marketplace.shops`. Use **Ex
 
 The global Marketplace remains available as the Standard catalog/lookup experience. GMs can independently disable global buying and global selling while leaving catalog browsing available to players. Shop Manager is premium and provides constrained scene vendors with stock, pricing, reputation, and restocking rules.
 
+### Marketplace pagination and transaction carts
+
+The global Buy catalog is paginated at 50 results per page and uses lightweight compendium indexes whenever indexed pricing is available. Buy and Sell tabs both use carts, allowing quantities and multiple item types to be submitted together. When GM approval is enabled, the whole cart is represented by one approval request and is revalidated before funds or inventory change.
+
+The cart implementation includes compensating rollback for partial inventory failures. Chat-card creation is intentionally non-fatal after a transaction commits, preventing a successful transaction from appearing failed or leaving a cart available for accidental resubmission.
+
+Before publishing the next release, smoke-test these scenarios in Foundry:
+
+- Browse a catalog with multiple pages, change filters, and confirm the page resets and result range remains correct.
+- Add Buy items on different pages, adjust quantities, clear the cart, and complete a purchase.
+- Add one and all quantities to the Sell cart, remove quantities, clear the cart, and complete a sale.
+- As a player, submit multi-item Buy and Sell carts with GM approval enabled; approve and deny each request from a GM client.
+- Before approval, change funds, prices, availability, or owned quantities and confirm revalidation rejects the stale cart without partial changes.
+- Confirm scene-shop stock reservations, stale-shop refresh behavior, wishlists, and shopper/funding actor selection still work.
+- Disable transaction chat cards and confirm completed carts still clear normally.
+
 ## Morelord Modules
 
 - Morelord Marketplace

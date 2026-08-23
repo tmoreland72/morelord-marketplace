@@ -288,7 +288,7 @@
                         <button type="button" data-action="buyItem" data-pack-id="{{packId}}" data-document-id="{{documentId}}" title="Add one {{name}} to cart" {{#unless canAddToCart}}disabled{{/unless}}><i class="fa-solid fa-plus"></i></button>
                       </div>
                     {{else}}
-                      <button type="button" class="ml-marketplace-buy-button" title="{{#if ../isShop}}Add {{name}} to cart{{else}}Buy {{name}}{{/if}}" data-action="buyItem" data-pack-id="{{packId}}" data-document-id="{{documentId}}" {{#if ../isShop}}{{#unless canAddToCart}}disabled{{/unless}}{{else}}{{#unless ../canBuy}}disabled{{/unless}}{{/if}}>
+                      <button type="button" class="ml-marketplace-buy-button" title="Add {{name}} to cart" data-action="buyItem" data-pack-id="{{packId}}" data-document-id="{{documentId}}" {{#unless canAddToCart}}disabled{{/unless}}>
                         <i class="fa-solid fa-cart-plus"></i>
                       </button>
                     {{/if}}
@@ -306,10 +306,16 @@
           </tbody>
         </table>
       </div>
+      {{#if buyResultCount}}
+        <nav class="mlm-pagination" aria-label="Buy catalog pages">
+          <button type="button" data-action="changeBuyPage" data-page="{{previousBuyPage}}" {{#unless hasPreviousBuyPage}}disabled{{/unless}} title="Previous page"><i class="fa-solid fa-chevron-left"></i></button>
+          <span>Showing {{buyPageStart}}–{{buyPageEnd}} of {{buyResultCount}} · Page {{buyPage}} of {{buyPageCount}}</span>
+          <button type="button" data-action="changeBuyPage" data-page="{{nextBuyPage}}" {{#unless hasNextBuyPage}}disabled{{/unless}} title="Next page"><i class="fa-solid fa-chevron-right"></i></button>
+        </nav>
+      {{/if}}
     </main>
 
-    {{#if isShop}}
-      <aside class="ml-marketplace-cart-panel">
+    <aside class="ml-marketplace-cart-panel">
         <div class="ml-marketplace-cart-heading">
           <div class="ml-marketplace-cart-title"><i class="fa-solid fa-cart-shopping"></i><strong>Cart</strong></div>
           <span class="ml-marketplace-cart-count">{{cartCount}}</span>
@@ -346,7 +352,6 @@
           </button>
           {{#if cartCount}}<button type="button" data-action="clearCart"><i class="fa-solid fa-trash"></i> Clear Cart</button>{{/if}}
         </div>
-      </aside>
-    {{/if}}
+    </aside>
   </div>
 </section>
