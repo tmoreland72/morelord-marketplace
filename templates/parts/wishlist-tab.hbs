@@ -5,12 +5,11 @@
   <p class="ml-marketplace-wishlist-help">Saved items belong to {{actor.name}}. Switch “Shopping As” to view another character or group's wishlist. Shops that can carry these items will prefer them during random restocks.</p>
   <div class="ml-marketplace-table-container" data-ml-marketplace-preserve-scroll="wishlist-results">
     <table>
-      <thead><tr><th>Item</th><th>Type</th><th>Rarity</th><th>Price</th><th>Status</th><th aria-label="Actions"></th></tr></thead>
+      <thead><tr><th>Item</th><th>Rarity</th><th>Price</th><th>Status</th><th aria-label="Actions"></th></tr></thead>
       <tbody>
         {{#each wishlistItems}}
           <tr>
             <td><div class="ml-marketplace-item-cell"><img src="{{img}}" alt="{{name}}">{{#if isAvailable}}<a class="content-link" data-link data-uuid="{{uuid}}">{{name}}</a>{{else}}<span>{{name}}</span>{{/if}}</div></td>
-            <td>{{typeLabel}}{{#if subtypeLabel}} · {{subtypeLabel}}{{/if}}</td>
             <td>{{rarityLabel}}</td>
             <td>{{buyPrice}}</td>
 <td><span class="ml-badge ml-marketplace-wishlist-status {{#if canBuyNow}}available{{/if}}" data-tone="{{#if canBuyNow}}success{{else}}warning{{/if}}">{{availabilityLabel}}</span></td>
@@ -20,7 +19,7 @@
             </div></td>
           </tr>
         {{else}}
-          <tr><td colspan="6" class="ml-marketplace-empty-results"><i class="fa-regular fa-heart"></i> Your wishlist is empty. Add items from the Buy tab.</td></tr>
+          <tr><td colspan="5" class="ml-marketplace-empty-results"><i class="fa-regular fa-heart"></i> Your wishlist is empty. Add items from the Buy tab.</td></tr>
         {{/each}}
       </tbody>
     </table>

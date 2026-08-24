@@ -340,9 +340,14 @@
 
 .ml-marketplace-module .ml-marketplace-actions {
   display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
   align-items: center;
   justify-content: flex-end;
   gap: 0.35rem;
+  width: max-content;
+  margin-left: auto;
+  white-space: nowrap;
 }
 
 .ml-marketplace-module .ml-marketplace-actions button {
@@ -682,15 +687,17 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
 }
 
 .ml-marketplace-settings-window .ml-marketplace-settings {
   display: flex;
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   flex-direction: column;
   min-height: 0;
-  overflow: hidden;
+  overflow: visible;
   padding: 1rem;
 }
 
@@ -724,49 +731,6 @@
   margin-left: auto;
 }
 
-.ml-marketplace-settings-window .ml-marketplace-compendium-list {
-  display: flex;
-  flex: 1 1 auto;
-  flex-direction: column;
-  gap: 0.35rem;
-  min-height: 0;
-  overflow-y: auto;
-  padding-right: 0.35rem;
-}
-
-.ml-marketplace-settings-window .ml-marketplace-compendium-row {
-  display: grid;
-  grid-template-columns: 28px minmax(0, 1fr);
-  align-items: center;
-  gap: 0.6rem;
-  padding: 0.45rem 0.6rem;
-  border: 1px solid var(--color-border-light-primary);
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.035);
-}
-
-.ml-marketplace-settings-window .ml-marketplace-compendium-row:hover {
-  background: rgba(255, 255, 255, 0.07);
-}
-
-.ml-marketplace-settings-window .ml-marketplace-compendium-text {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  gap: 0.15rem;
-}
-
-.ml-marketplace-settings-window .ml-marketplace-compendium-text strong,
-.ml-marketplace-settings-window .ml-marketplace-compendium-text small {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.ml-marketplace-settings-window .ml-marketplace-compendium-text small {
-  opacity: 0.75;
-  font-size: 0.8rem;
-}
 /* =========================================================
    Tri-State Buy Filters
    ========================================================= */

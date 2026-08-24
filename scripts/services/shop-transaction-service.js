@@ -206,7 +206,7 @@ export class ShopTransactionService {
       .filter(line => line.packId && line.documentId && line.quantity > 0);
     if (!requestedLines.length) throw new Error("The shopping cart is empty.");
 
-    const allowedPackIds = game.settings.get(MODULE_ID, "allowedCompendiums") ?? [];
+    const allowedPackIds = CompendiumService.getAllowedPackIds();
     const prepared = [];
     let totalCp = 0;
     const stockNeeded = new Map();

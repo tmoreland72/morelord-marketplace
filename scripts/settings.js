@@ -7,7 +7,7 @@ export function registerSettings() {
   game.settings.registerMenu(MODULE_ID, "marketplaceConfiguration", {
     name: "Marketplace Configuration",
     label: "Configure Marketplace",
-    hint: "Select the compendiums available to Morelord Marketplace.",
+    hint: "Configure Marketplace trading behavior.",
     icon: "fa-solid fa-store",
     type: MorelordMarketplaceSettingsApp,
     restricted: true
@@ -67,22 +67,6 @@ export function registerSettings() {
     default: true
   });
 
-  game.settings.register(MODULE_ID, "allowedCompendiums", {
-    name: "Allowed Compendiums",
-    hint: "Compendium pack IDs characters may buy from.",
-    scope: "world",
-    config: false,
-    type: Array,
-    default: []
-  });
-
-  game.settings.register(MODULE_ID, "defaultCompendiumsInitialized", {
-    scope: "world",
-    config: false,
-    type: Boolean,
-    default: false
-  });
-
   game.settings.register(MODULE_ID, "shops", {
     name: "Shop Profiles",
     scope: "world",
@@ -100,7 +84,7 @@ export function registerSettings() {
   });
 }
 
-export async function initializeDefaultCompendiums() {
+export async function initializeMarketplaceSources() {
   if (!game.user.isGM) return;
   CompendiumService.clearCache();
   Logger.log("Marketplace sources synchronized with D&D5e Configure Sources.");

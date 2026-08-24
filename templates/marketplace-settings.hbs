@@ -42,7 +42,7 @@
 
   <header class="ml-marketplace-settings-header">
     <h2>Morelord Marketplace</h2>
-    <p>Configure trading behavior and the Item compendiums players can buy from.</p>
+    <p>Configure Marketplace trading behavior. Catalog sources follow D&amp;D5e Configure Sources.</p>
   </header>
 
   <section class="ml-settings-section ml-marketplace-settings__section">
@@ -82,33 +82,8 @@
   </section>
 
   <div class="ml-toolbar ml-marketplace-settings-toolbar">
-    <button type="button" data-action="selectAll">
-      <i class="fa-solid fa-check-double"></i> Select All
-    </button>
-
-    <button type="button" data-action="selectNone">
-      <i class="fa-solid fa-xmark"></i> Select None
-    </button>
-
     <button type="button" data-action="save" class="ml-marketplace-save-button">
       <i class="fa-solid fa-floppy-disk"></i> Save
     </button>
-  </div>
-
-  <div class="ml-marketplace-compendium-list">
-    {{#each packs}}
-      <label class="ml-marketplace-compendium-row">
-        <input
-          type="checkbox"
-          name="compendium"
-          value="{{collection}}"
-          {{#if selected}}checked{{/if}}>
-
-        <span class="ml-marketplace-compendium-text">
-          <strong>{{label}}</strong>
-          <small>{{collection}}</small>
-        </span>
-      </label>
-    {{/each}}
   </div>
 </section>

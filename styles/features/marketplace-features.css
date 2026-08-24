@@ -2,31 +2,46 @@
 @import url("./marketplace-catalog.css");
 @import url("./marketplace-shops.css");
 /* Paginated marketplace results and shared buy/sell cart layouts. */
-.morelord-marketplace .mlm-pagination {
-  display: flex;
+.ml-marketplace-module .mlm-pagination {
+  display: grid;
   flex: 0 0 auto;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: center;
   gap: 0.75rem;
+  width: 100%;
   padding-top: 0.65rem;
 }
 
-.morelord-marketplace .mlm-pagination button {
+.ml-marketplace-module .mlm-pagination button {
   width: 36px;
   min-width: 36px;
   margin: 0;
 }
 
-.morelord-marketplace .mlm-pagination span {
-  font-size: 0.85rem;
-  opacity: 0.8;
+.ml-marketplace-module .mlm-pagination button:first-child {
+  justify-self: start;
 }
 
-.morelord-marketplace .ml-marketplace-sell-layout {
-  display: flex;
+.ml-marketplace-module .mlm-pagination button:last-child {
+  justify-self: end;
+}
+
+.ml-marketplace-module .mlm-pagination span {
+  font-size: 0.85rem;
+  opacity: 0.8;
+  text-align: center;
+}
+
+.ml-marketplace-module .ml-marketplace-sell-layout {
+  display: grid;
   flex: 1 1 auto;
+  grid-template-columns: minmax(0, 1fr) 235px;
   gap: 1rem;
   min-width: 0;
   min-height: 0;
   overflow: hidden;
+}
+
+.ml-marketplace-module .ml-marketplace-sell-layout > .ml-marketplace-cart-panel {
+  width: 235px;
 }

@@ -86,20 +86,9 @@ Open **Game Settings → Configure Settings → Module Settings → Morelord Mar
 
 GM-initiated global transactions do not wait for approval. Shop cart purchases are processed through the shop checkout workflow rather than the global approval settings.
 
-### Choose allowed compendiums
+### Choose catalog sources
 
-![The Morelord Marketplace compendium configuration and premium access panel](assets/compendium-selection.png)
-
-*Configure Marketplace shows the current premium-access state and the Item compendiums available to Marketplace catalogs and shops.*
-
-1. In the module settings, select **Configure Marketplace**.
-2. Review the available Item compendiums.
-3. Use **Select All**, **Select None**, or choose individual packs.
-4. Select **Save**.
-
-Only items from enabled compendiums can appear in the global catalog or supply normal shops. On first use, Marketplace automatically selects Item packs whose names include “item” or “equipment” if no selection already exists.
-
-Changing the enabled compendiums clears the catalog cache and refreshes open Marketplace windows.
+Marketplace uses the D&D5e system's **Configure Sources** selection. Enable or disable Item compendiums there; Marketplace does not maintain a separate source list.
 
 ## Open and test the Marketplace
 

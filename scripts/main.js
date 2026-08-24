@@ -1,7 +1,7 @@
 import { MODULE_ID } from "./constants.js";
 import {
   registerSettings,
-  initializeDefaultCompendiums
+  initializeMarketplaceSources
 } from "./settings.js";
 import { MorelordMarketplaceApp } from "./apps/marketplace-app.js";
 import { MorelordMarketplaceSettingsApp } from "./apps/marketplace-settings-app.js";
@@ -91,13 +91,15 @@ function installAllShopActorSheetRedirects() {
 Hooks.once("ready", async () => {
   Logger.log("Ready");
 
-  await initializeDefaultCompendiums();
+  await initializeMarketplaceSources();
 
-  // Warm only the lightweight compendium indexes in the background. This makes
-  // the first shop open much faster without delaying Foundry's ready sequence.
-  void CompendiumService.prewarmIndexes().catch(error =>
-    Logger.warn("Unable to prewarm Marketplace compendium indexes", error)
-  );
+  // Build the global catalog in the background without delaying Foundry's
+  // ready sequence. Buy-tab requests reuse this in-flight work or its result.
+  void CompendiumService.prewarmIndexes()
+    .then(() => CompendiumService.getBuyableCatalog())
+    .catch(error =>
+      Logger.warn("Unable to prewarm the Marketplace catalog", error)
+    );
 
   TransactionApprovalService.initialize();
   ShopTransactionService.initialize();
@@ -246,9 +248,24 @@ Hooks.on("createActor", actor => {
 });
 
 Hooks.on("updateSetting", setting => {
-  if (setting?.key !== `${MODULE_ID}.shops`) return;
-  for (const app of MorelordMarketplaceApp.instances) {
-    if (app.shopId) void app.refreshShopSnapshot();
+  if (setting?.key === "dnd5e.packSourceConfiguration") {
+    // D&D5e only refreshes its own Compendium Browser when Configure Sources
+    // changes. Marketplace keeps separate indexes/catalogs, so invalidate them
+    // and refresh every open Marketplace surface before an excluded pack can
+    // remain visible in a shop or its inventory picker.
+    CompendiumService.clearCache();
+    foundry.applications.instances?.forEach(app => {
+      if (app instanceof MorelordMarketplaceApp || app instanceof MorelordShopManagerApp) {
+        void app.render({ force: true });
+      }
+    });
+    return;
+  }
+
+  if (setting?.key === `${MODULE_ID}.shops`) {
+    for (const app of MorelordMarketplaceApp.instances) {
+      if (app.shopId) void app.refreshShopSnapshot();
+    }
   }
 });
 

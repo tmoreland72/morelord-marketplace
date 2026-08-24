@@ -99,28 +99,45 @@ export class CompendiumService {
       return this.catalogCache.get(cacheKey);
     }
 
-    const rows = [];
+    const catalogRequest = (async () => {
+      const rows = [];
+      const indexedPacks = await Promise.all(packs.map(async pack => ({
+        pack,
+        index: await this.getPackIndex(pack)
+      })));
 
-    for (const pack of packs) {
-      const index = await this.getPackIndex(pack);
+      for (const { pack, index } of indexedPacks) {
+        for (const entry of index) {
+          const row = this.indexEntryToMarketplaceRow(
+            pack,
+            entry,
+            currentShop
+          );
 
-      for (const entry of index) {
-        const row = await this.indexEntryToMarketplaceRow(
-          pack,
-          entry,
-          currentShop
-        );
-
-        if (row) rows.push(row);
+          if (row) rows.push(row);
+        }
       }
+
+      return this.dedupeRows(rows)
+        .sort((a, b) => a.name.localeCompare(b.name));
+    })();
+
+    // Store the in-flight build immediately. The ready-time prewarm and an
+    // early Buy-tab click can then share one catalog build.
+    this.catalogCache.set(cacheKey, catalogRequest);
+
+    try {
+      const catalog = await catalogRequest;
+      if (this.catalogCache.get(cacheKey) === catalogRequest) {
+        this.catalogCache.set(cacheKey, catalog);
+      }
+      return catalog;
+    } catch (error) {
+      if (this.catalogCache.get(cacheKey) === catalogRequest) {
+        this.catalogCache.delete(cacheKey);
+      }
+      throw error;
     }
-
-    const catalog = this.dedupeRows(rows)
-      .sort((a, b) => a.name.localeCompare(b.name));
-
-    this.catalogCache.set(cacheKey, catalog);
-
-    return catalog;
   }
 
   static async getBuyableItems(filters = {}, shop = null) {
@@ -315,7 +332,7 @@ export class CompendiumService {
      *
      * "Cannot create property 'book' on number '1'"
      */
-    const index = await pack.getIndex({
+    const indexRequest = pack.getIndex({
       fields: [
         "name",
         "type",
@@ -335,12 +352,21 @@ export class CompendiumService {
       ]
     });
 
-    this.indexCache.set(pack.collection, index);
+    // Cache the request immediately so opening Buy while background prewarming
+    // is still running reuses the same index load instead of starting another.
+    this.indexCache.set(pack.collection, indexRequest);
 
-    return index;
+    try {
+      const index = await indexRequest;
+      this.indexCache.set(pack.collection, index);
+      return index;
+    } catch (error) {
+      this.indexCache.delete(pack.collection);
+      throw error;
+    }
   }
 
-  static async indexEntryToMarketplaceRow(
+  static indexEntryToMarketplaceRow(
     pack,
     entry,
     shop
@@ -351,41 +377,15 @@ export class CompendiumService {
       return null;
     }
 
-    let itemData = entry;
-
+    const itemData = entry;
     let priceCp = PricingService.getItemPriceCp(entry);
 
-    // Shops only need the compact indexed data to browse. Avoid hydrating full
-    // documents for missing source/property metadata; the actual document is
-    // fetched only when the item is purchased. The global Marketplace retains
-    // the richer hydration behavior for its broader filtering/search UI.
-    if (shop && !priceCp) return null;
-
-    // Catalog browsing must stay index-only whenever the indexed price is
-    // usable. Hydrating thousands of full documents here makes the Buy tab
-    // scale with compendium size and defeats pagination. Missing optional
-    // filter/source fields gracefully normalize to Other/the pack label.
-    const requiresDocument = !priceCp;
-
-    if (requiresDocument) {
-      const document = await pack.getDocument(
-        entry._id
-      );
-
-      if (!document) return null;
-
-      if (!PurchaseEligibilityService.isPurchasable(document)) {
-        return null;
-      }
-
-      itemData = document;
-      priceCp = PricingService.getItemPriceCp(
-        document
-      );
-    }
-
+    // Catalog browsing is strictly index-only. All pricing fields needed here
+    // are requested by getPackIndex; entries without an indexed price are not
+    // buyable. Full documents are fetched only for an actual transaction.
     if (!priceCp) return null;
 
+    const listPriceCp = priceCp;
     priceCp = PricingService.applyShopModifier(
       priceCp,
       shop
@@ -444,6 +444,10 @@ export class CompendiumService {
 
       sourceKey,
       source,
+
+      listPriceCp,
+      listPrice:
+        CurrencyService.formatCp(listPriceCp),
 
       buyPriceCp: priceCp,
       buyPrice:

@@ -44,6 +44,15 @@
       </section>
 
       <section class="ml-marketplace-filter-group">
+        <h4>Price (gp)</h4>
+        <div class="ml-marketplace-price-range">
+          <input type="number" name="minPrice" min="0" step="1" value="{{filters.minPrice}}" placeholder="Min" data-filter-control>
+          <span>to</span>
+          <input type="number" name="maxPrice" min="0" step="1" value="{{filters.maxPrice}}" placeholder="Max" data-filter-control>
+        </div>
+      </section>
+
+      <section class="ml-marketplace-filter-group">
         <h4>Item Type</h4>
         <div class="ml-marketplace-filter-options">
           {{#each buyFacets.types}}
@@ -206,15 +215,6 @@
       </section>
 
       <section class="ml-marketplace-filter-group">
-        <h4>Price (gp)</h4>
-        <div class="ml-marketplace-price-range">
-          <input type="number" name="minPrice" min="0" step="1" value="{{filters.minPrice}}" placeholder="Min" data-filter-control>
-          <span>to</span>
-          <input type="number" name="maxPrice" min="0" step="1" value="{{filters.maxPrice}}" placeholder="Max" data-filter-control>
-        </div>
-      </section>
-
-      <section class="ml-marketplace-filter-group">
         <h4>Source</h4>
         <div class="ml-marketplace-filter-options ml-marketplace-source-options">
           {{#each buyFacets.sources}}
@@ -246,12 +246,9 @@
           <thead>
             <tr>
               <th>Item</th>
-              {{#unless isShop}}
-                <th>Type</th>
-                <th>Category</th>
-              {{/unless}}
               <th>Rarity</th>
-              <th>Price</th>
+              <th>List Price</th>
+              <th>Selling Price</th>
               {{#unless isShop}}<th>Source</th>{{/unless}}
               {{#if isShop}}<th>Stock</th>{{/if}}
               <th aria-label="Actions"></th>
@@ -266,11 +263,8 @@
                     <a class="content-link" data-link data-uuid="{{uuid}}">{{name}}</a>
                   </div>
                 </td>
-                {{#unless ../isShop}}
-                  <td>{{typeLabel}}</td>
-                  <td>{{subtypeLabel}}</td>
-                {{/unless}}
                 <td>{{rarityLabel}}</td>
+                <td>{{listPrice}}</td>
                 <td>{{buyPrice}}</td>
                 {{#unless ../isShop}}<td title="{{packId}}">{{source}}</td>{{/unless}}
                 {{#if ../isShop}}<td title="{{stockTitle}}">{{stockLabel}}</td>{{/if}}
@@ -297,7 +291,7 @@
               </tr>
             {{else}}
               <tr>
-                <td colspan="{{#if isShop}}5{{else}}7{{/if}}" class="ml-marketplace-empty-results">
+                <td colspan="6" class="ml-marketplace-empty-results">
                   <i class="fa-solid fa-magnifying-glass"></i>
                   No items match the selected filters.
                 </td>
@@ -308,9 +302,9 @@
       </div>
       {{#if buyResultCount}}
         <nav class="mlm-pagination" aria-label="Buy catalog pages">
-          <button type="button" data-action="changeBuyPage" data-page="{{previousBuyPage}}" {{#unless hasPreviousBuyPage}}disabled{{/unless}} title="Previous page"><i class="fa-solid fa-chevron-left"></i></button>
+          <button type="button" data-action="changeBuyPage" data-page="{{previousBuyPage}}" {{#unless hasPreviousBuyPage}}disabled{{/unless}} title="Previous page" aria-label="Previous page"><i class="fa-solid fa-chevron-left"></i></button>
           <span>Showing {{buyPageStart}}–{{buyPageEnd}} of {{buyResultCount}} · Page {{buyPage}} of {{buyPageCount}}</span>
-          <button type="button" data-action="changeBuyPage" data-page="{{nextBuyPage}}" {{#unless hasNextBuyPage}}disabled{{/unless}} title="Next page"><i class="fa-solid fa-chevron-right"></i></button>
+          <button type="button" data-action="changeBuyPage" data-page="{{nextBuyPage}}" {{#unless hasNextBuyPage}}disabled{{/unless}} title="Next page" aria-label="Next page"><i class="fa-solid fa-chevron-right"></i></button>
         </nav>
       {{/if}}
     </main>

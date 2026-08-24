@@ -10,6 +10,7 @@ import { PurchaseEligibilityService } from "./purchase-eligibility-service.js";
 import { ShopService } from "./shop-service.js";
 import { EntitlementService } from "./entitlement-service.js";
 import { PricingService } from "./pricing-service.js";
+import { CompendiumService } from "./compendium-service.js";
 
 export class TransactionApprovalService {
   static initialized = false;
@@ -276,7 +277,7 @@ export class TransactionApprovalService {
     const cartLines = transaction.payload?.items;
     if (Array.isArray(cartLines)) return this.executeApprovedBuyCart(transaction, actor, fundingActor, cartLines);
     const { packId, documentId } = transaction.payload ?? {};
-    const allowed = game.settings.get(MODULE_ID, "allowedCompendiums") ?? [];
+    const allowed = CompendiumService.getAllowedPackIds();
 
     if (!allowed.includes(packId)) {
       throw new Error("The source compendium is no longer allowed.");
@@ -365,7 +366,7 @@ export class TransactionApprovalService {
   }
 
   static async executeApprovedBuyCart(transaction, actor, fundingActor, lines) {
-    const allowed = new Set(game.settings.get(MODULE_ID, "allowedCompendiums") ?? []);
+    const allowed = new Set(CompendiumService.getAllowedPackIds());
     const documents = [];
     let liveTotal = 0;
     for (const line of lines) {

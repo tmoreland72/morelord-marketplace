@@ -21,8 +21,6 @@ export class MorelordMarketplaceSettingsApp extends HandlebarsApplicationMixin(A
     },
     actions: {
       save: MorelordMarketplaceSettingsApp.save,
-      selectAll: MorelordMarketplaceSettingsApp.selectAll,
-      selectNone: MorelordMarketplaceSettingsApp.selectNone,
       manageAccount: MorelordMarketplaceSettingsApp.manageAccount,
       refreshAccess: MorelordMarketplaceSettingsApp.refreshAccess
     }
@@ -35,22 +33,9 @@ export class MorelordMarketplaceSettingsApp extends HandlebarsApplicationMixin(A
   };
 
   async _prepareContext(options) {
-    const selected = game.settings.get(MODULE_ID, "allowedCompendiums") ?? [];
-
-    const packs = game.packs
-      .filter(p => p.metadata.type === "Item")
-      .map(p => ({
-        collection: p.collection,
-        label: CompendiumService.getPackSourceLabel(p),
-        packageName: p.metadata.packageName ?? "",
-        selected: selected.includes(p.collection)
-      }))
-      .sort((a, b) => a.label.localeCompare(b.label));
-
     const premium = EntitlementService.status();
 
     return {
-      packs,
       settings: {
         sellRate: game.settings.get(MODULE_ID, "sellRate"),
         enableSelling: game.settings.get(MODULE_ID, "enableSelling"),
@@ -95,9 +80,6 @@ export class MorelordMarketplaceSettingsApp extends HandlebarsApplicationMixin(A
     target.disabled = true;
 
     try {
-      const checked = Array.from(
-        this.element.querySelectorAll("input[name='compendium']:checked")
-      ).map(input => input.value);
       const settingValues = {
         sellRate: Number(this.element.querySelector("[name='sellRate']")?.value),
         enableSelling: Boolean(this.element.querySelector("[name='enableSelling']")?.checked),
@@ -110,7 +92,6 @@ export class MorelordMarketplaceSettingsApp extends HandlebarsApplicationMixin(A
         ui.notifications.error("Default Sell Rate must be between 0 and 1.");
         return;
       }
-      await game.settings.set(MODULE_ID, "allowedCompendiums", checked);
       for (const [key, value] of Object.entries(settingValues)) {
         await game.settings.set(MODULE_ID, key, value);
       }
@@ -126,15 +107,4 @@ export class MorelordMarketplaceSettingsApp extends HandlebarsApplicationMixin(A
     }
   }
 
-  static async selectAll(event, target) {
-    for (const input of this.element.querySelectorAll("input[name='compendium']")) {
-      input.checked = true;
-    }
-  }
-
-  static async selectNone(event, target) {
-    for (const input of this.element.querySelectorAll("input[name='compendium']")) {
-      input.checked = false;
-    }
-  }
 }

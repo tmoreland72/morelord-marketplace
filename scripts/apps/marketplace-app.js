@@ -194,20 +194,13 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
 
     let actor = shopperActors.find(candidate => candidate.id === this.actorId) ?? null;
     if (!actor) {
-      const detected = ActorService.getMarketplaceActor();
-      actor = shopperActors.find(candidate => candidate.id === detected?.id)
-        ?? shopperActors[0]
-        ?? null;
+      actor = ActorService.getDefaultActor(shopperActors);
       this.actorId = actor?.id ?? null;
     }
     this.actor = actor;
 
-    let fundingActor = null;
-    fundingActor = fundingActors.find(candidate => candidate.id === this.fundingActorId) ?? null;
-    if (!fundingActor && actor && ActorService.hasCurrency(actor)) {
-      fundingActor = fundingActors.find(candidate => candidate.id === actor.id) ?? null;
-    }
-    fundingActor ??= fundingActors[0] ?? null;
+    let fundingActor = fundingActors.find(candidate => candidate.id === this.fundingActorId) ?? null;
+    if (!fundingActor) fundingActor = ActorService.getDefaultActor(fundingActors);
     this.fundingActorId = fundingActor?.id ?? null;
 
     const selectedToken = game.canvas?.tokens?.controlled?.find(
@@ -330,12 +323,22 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       };
 
       const filteredBuyItems = CompendiumService.filterRows(catalog, runtimeFilters)
-        .filter(row => !shop || ShopService.isInStock(shop, row))
+        .filter(row => !shop || ShopService.isInStock(shop, row));
+      context.buyFacets = CompendiumService.buildFacets(catalog, this.filters);
+      context.buyResultCount = filteredBuyItems.length;
+      context.buyPageCount = Math.max(1, Math.ceil(filteredBuyItems.length / this.buyPageSize));
+      this.buyPage = Math.min(Math.max(1, this.buyPage), context.buyPageCount);
+      const pageStart = (this.buyPage - 1) * this.buyPageSize;
+      const cartTotalBefore = [...this.cart.values()]
+        .reduce((sum, entry) => sum + entry.row.buyPriceCp * entry.quantity, 0);
+      const wishlistUuids = WishlistService.getUuids({ actor });
+
+      context.buyItems = filteredBuyItems
+        .slice(pageStart, pageStart + this.buyPageSize)
         .map(row => {
           const key = ShopService.stockKey(row);
           const cartQty = this.cart.get(key)?.quantity ?? 0;
           const stock = shop ? ShopService.getStock(shop, row) : Infinity;
-          const cartTotalBefore = [...this.cart.values()].reduce((sum, entry) => sum + entry.row.buyPriceCp * entry.quantity, 0);
           const canAffordNext = cartTotalBefore + row.buyPriceCp <= availableCurrencyCp;
           const reservedTotal = shop ? ShopTransactionService.getReserved(shop.id, key) : 0;
           const effectiveReserved = Math.max(reservedTotal, cartQty);
@@ -343,7 +346,7 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
           const stockAllowsNext = !Number.isFinite(stock) || remainingStock > 0;
           return {
             ...row,
-            isWishlisted: WishlistService.has(row, actor),
+            isWishlisted: wishlistUuids.has(row.uuid),
             cartQty,
             reservedQty: effectiveReserved,
             stockLabel: Number.isFinite(remainingStock) ? `${remainingStock}${effectiveReserved > 0 ? "*" : ""}` : "∞",
@@ -351,12 +354,6 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
             canAddToCart: Boolean(actor && fundingActor) && canAffordNext && stockAllowsNext && context.canBuy
           };
         });
-      context.buyFacets = CompendiumService.buildFacets(catalog, this.filters);
-      context.buyResultCount = filteredBuyItems.length;
-      context.buyPageCount = Math.max(1, Math.ceil(filteredBuyItems.length / this.buyPageSize));
-      this.buyPage = Math.min(Math.max(1, this.buyPage), context.buyPageCount);
-      const pageStart = (this.buyPage - 1) * this.buyPageSize;
-      context.buyItems = filteredBuyItems.slice(pageStart, pageStart + this.buyPageSize);
       context.buyPage = this.buyPage;
       context.buyPageStart = filteredBuyItems.length ? pageStart + 1 : 0;
       context.buyPageEnd = Math.min(pageStart + this.buyPageSize, filteredBuyItems.length);

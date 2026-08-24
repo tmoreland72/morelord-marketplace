@@ -10,53 +10,36 @@ export class ActorService {
    * Resolve the actor the Marketplace should operate on.
    *
    * Priority:
-   * 1. Actor belonging to the first currently controlled token.
-   * 2. Character assigned to the current user.
-   *
-   * Players must have OWNER permission for the resolved actor.
-   * GMs may use any selected token actor.
+   * 1. Character assigned to the current user.
+   * 2. Character belonging to the first currently controlled token.
+   * 3. First available Group actor.
    *
    * @returns {Actor|null}
    */
   static getMarketplaceActor() {
+    return this.getDefaultActor(this.getShopperActors());
+  }
+
+  /** Resolve a default from an already permission-filtered actor list. */
+  static getDefaultActor(actors = []) {
+    const candidates = Array.from(actors);
+    const assignedActor = game.user.character ?? null;
+    const assignedCharacter = candidates.find(actor =>
+      actor.type === "character" && actor.id === assignedActor?.id
+    );
+    if (assignedCharacter) return assignedCharacter;
+
     const controlledTokens =
       game.canvas?.tokens?.controlled ??
-      canvas?.tokens?.controlled ??
+      globalThis.canvas?.tokens?.controlled ??
       [];
+    const activeCharacterId = controlledTokens
+      .map(token => token.actor)
+      .find(actor => actor?.type === "character")?.id;
+    const activeCharacter = candidates.find(actor => actor.id === activeCharacterId);
+    if (activeCharacter) return activeCharacter;
 
-    const selectedActor =
-      controlledTokens[0]?.actor ?? null;
-
-    const selectedIsShop = Boolean(selectedActor?.getFlag?.(MODULE_ID, "isShop"));
-
-    if (selectedActor && !selectedIsShop) {
-      const canUseSelectedActor =
-        game.user.isGM ||
-        selectedActor.testUserPermission(
-          game.user,
-          "OWNER"
-        );
-
-      if (canUseSelectedActor) {
-        return selectedActor;
-      }
-    }
-
-    const assignedActor =
-      game.user.character ?? null;
-
-    if (!assignedActor) return null;
-
-    const canUseAssignedActor =
-      game.user.isGM ||
-      assignedActor.testUserPermission(
-        game.user,
-        "OWNER"
-      );
-
-    return canUseAssignedActor
-      ? assignedActor
-      : null;
+    return candidates.find(actor => actor.type === "group") ?? null;
   }
 
   static getUserActor() {
@@ -86,8 +69,22 @@ export class ActorService {
 
   /** Return player characters and Group actors whose currency may fund a purchase. */
   static getFundingActors() {
+    const activeCharacterId = (
+      game.canvas?.tokens?.controlled ??
+      globalThis.canvas?.tokens?.controlled ??
+      []
+    ).map(token => token.actor)
+      .find(actor => actor?.type === "character")?.id;
+    const preferredCharacterIds = new Set([
+      game.user.character?.id,
+      activeCharacterId
+    ].filter(Boolean));
+
     return game.actors
-      .filter(actor => actor.type === "group" || (actor.type === "character" && (!game.user.isGM || actor.hasPlayerOwner)))
+      .filter(actor => actor.type === "group" || (
+        actor.type === "character"
+        && (!game.user.isGM || actor.hasPlayerOwner || preferredCharacterIds.has(actor.id))
+      ))
       .filter(actor => this.canUserOperateActor(actor))
       .filter(actor => this.hasCurrency(actor))
       .sort((a, b) => {

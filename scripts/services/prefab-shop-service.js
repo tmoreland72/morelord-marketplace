@@ -1,4 +1,5 @@
 import { MODULE_ID } from "../constants.js";
+import { CompendiumService } from "./compendium-service.js";
 
 export class PrefabShopService {
   static definitions = null;
@@ -85,8 +86,7 @@ export class PrefabShopService {
   }
 
   static getSourcePacks() {
-    const allowedPackIds =
-      game.settings.get(MODULE_ID, "allowedCompendiums") ?? [];
+    const allowedPackIds = CompendiumService.getAllowedPackIds();
 
     return allowedPackIds
       .map(packId => game.packs.get(packId))

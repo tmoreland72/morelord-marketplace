@@ -89,7 +89,7 @@ Game Masters can configure:
 - Global Marketplace buying enabled/disabled
 - Global Marketplace selling enabled/disabled
 - Sell percentage
-- Allowed compendiums
+- Catalog sources follow D&D5e Configure Sources
 - Shop pricing, reputation, inventory, stock, and restocking rules *(Shop Manager premium feature)*
 
 Shop definitions are stored in the Foundry world setting `morelord-marketplace.shops`. Shop Manager can export a shop to a portable JSON definition and import that definition into another world. Actor/token UUIDs are intentionally excluded from exported definitions and are recreated in the destination world.
@@ -132,7 +132,7 @@ The global Marketplace can be used for buying, selling, or lookup depending on t
 
 Use the global Marketplace for unrestricted catalog access, or open **Shop Manager** from the scene controls to create and manage premium scene vendors.
 
-Configure available compendiums and global buy/sell behavior under:
+Configure global buy/sell behavior under:
 
 ```
 Game Settings
@@ -140,6 +140,8 @@ Game Settings
 → Module Settings
 → Morelord Marketplace
 ```
+
+Configure catalog compendiums under **D&D5e → Configure Sources**.
 
 ---
 
