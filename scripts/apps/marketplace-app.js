@@ -200,6 +200,9 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
     this.actor = actor;
 
     let fundingActor = fundingActors.find(candidate => candidate.id === this.fundingActorId) ?? null;
+    if (!fundingActor && actor && ActorService.hasCurrency(actor)) {
+      fundingActor = fundingActors.find(candidate => candidate.id === actor.id) ?? null;
+    }
     if (!fundingActor) fundingActor = ActorService.getDefaultActor(fundingActors);
     this.fundingActorId = fundingActor?.id ?? null;
 

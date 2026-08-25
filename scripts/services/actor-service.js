@@ -13,6 +13,7 @@ export class ActorService {
    * 1. Character assigned to the current user.
    * 2. Character belonging to the first currently controlled token.
    * 3. First available Group actor.
+   * 4. First available actor.
    *
    * @returns {Actor|null}
    */
@@ -39,7 +40,7 @@ export class ActorService {
     const activeCharacter = candidates.find(actor => actor.id === activeCharacterId);
     if (activeCharacter) return activeCharacter;
 
-    return candidates.find(actor => actor.type === "group") ?? null;
+    return candidates.find(actor => actor.type === "group") ?? candidates[0] ?? null;
   }
 
   static getUserActor() {
@@ -67,24 +68,10 @@ export class ActorService {
       });
   }
 
-  /** Return player characters and Group actors whose currency may fund a purchase. */
+  /** Return operable characters and Group actors whose currency may fund a purchase. */
   static getFundingActors() {
-    const activeCharacterId = (
-      game.canvas?.tokens?.controlled ??
-      globalThis.canvas?.tokens?.controlled ??
-      []
-    ).map(token => token.actor)
-      .find(actor => actor?.type === "character")?.id;
-    const preferredCharacterIds = new Set([
-      game.user.character?.id,
-      activeCharacterId
-    ].filter(Boolean));
-
     return game.actors
-      .filter(actor => actor.type === "group" || (
-        actor.type === "character"
-        && (!game.user.isGM || actor.hasPlayerOwner || preferredCharacterIds.has(actor.id))
-      ))
+      .filter(actor => actor.type === "character" || actor.type === "group")
       .filter(actor => this.canUserOperateActor(actor))
       .filter(actor => this.hasCurrency(actor))
       .sort((a, b) => {
