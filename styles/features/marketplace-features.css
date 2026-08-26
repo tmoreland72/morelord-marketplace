@@ -2,7 +2,7 @@
 @import url("./marketplace-catalog.css");
 @import url("./marketplace-shops.css");
 /* Paginated marketplace results and shared buy/sell cart layouts. */
-.ml-marketplace-module .mlm-pagination {
+.ml-marketplace-module .ml-marketplace-pagination {
   display: grid;
   flex: 0 0 auto;
   grid-template-columns: 1fr auto 1fr;
@@ -12,21 +12,21 @@
   padding-top: 0.65rem;
 }
 
-.ml-marketplace-module .mlm-pagination button {
+.ml-marketplace-module .ml-marketplace-pagination button {
   width: 36px;
   min-width: 36px;
   margin: 0;
 }
 
-.ml-marketplace-module .mlm-pagination button:first-child {
+.ml-marketplace-module .ml-marketplace-pagination button:first-child {
   justify-self: start;
 }
 
-.ml-marketplace-module .mlm-pagination button:last-child {
+.ml-marketplace-module .ml-marketplace-pagination button:last-child {
   justify-self: end;
 }
 
-.ml-marketplace-module .mlm-pagination span {
+.ml-marketplace-module .ml-marketplace-pagination span {
   font-size: 0.85rem;
   opacity: 0.8;
   text-align: center;

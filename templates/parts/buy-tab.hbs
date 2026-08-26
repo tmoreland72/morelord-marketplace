@@ -301,7 +301,7 @@
         </table>
       </div>
       {{#if buyResultCount}}
-        <nav class="mlm-pagination" aria-label="Buy catalog pages">
+        <nav class="ml-marketplace-pagination" aria-label="Buy catalog pages">
           <button type="button" data-action="changeBuyPage" data-page="{{previousBuyPage}}" {{#unless hasPreviousBuyPage}}disabled{{/unless}} title="Previous page" aria-label="Previous page"><i class="fa-solid fa-chevron-left"></i></button>
           <span>Showing {{buyPageStart}}–{{buyPageEnd}} of {{buyResultCount}} · Page {{buyPage}} of {{buyPageCount}}</span>
           <button type="button" data-action="changeBuyPage" data-page="{{nextBuyPage}}" {{#unless hasNextBuyPage}}disabled{{/unless}} title="Next page" aria-label="Next page"><i class="fa-solid fa-chevron-right"></i></button>
