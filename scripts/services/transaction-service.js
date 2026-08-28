@@ -135,7 +135,7 @@ export class TransactionService {
     if (!enabled || !items.length) return null;
     const verb = type === "sell" ? "sold" : "bought";
     const rows = items.map(item => `<div class="ml-marketplace-cart-chat-line">${item.img ? `<img src="${this.escape(item.img)}" alt="${this.escape(item.name)}">` : ""}<span><strong>${Number(item.quantity)} ×</strong> ${this.contentLink(item.uuid, item.name)}</span><span>${this.escape(CurrencyService.formatCp(item.totalPriceCp))}</span></div>`).join("");
-    return ChatMessage.create({ speaker: ChatMessage.getSpeaker({ actor }), content: `<div class="morelord-marketplace-card ml-marketplace-transaction-card ml-marketplace-transaction-complete ml-marketplace-cart-transaction-card"><div class="ml-marketplace-transaction-source">Morelord Marketplace</div><p><strong>${this.escape(actor.name)}</strong> ${verb} a cart${shop?.name ? ` at <strong>${this.escape(shop.name)}</strong>` : ""}.</p><div class="ml-marketplace-cart-chat-items">${rows}</div><p><strong>Total:</strong> ${this.escape(CurrencyService.formatCp(totalCp))}</p>${type === "buy" && fundingActor?.id !== actor.id ? `<p><strong>Paid from:</strong> ${this.escape(fundingActor.name)}</p>` : ""}</div>` });
+    return ChatMessage.create({ speaker: ChatMessage.getSpeaker({ actor }), content: `<div class="ml-chat-card ml-marketplace-card ml-marketplace-transaction-card ml-marketplace-transaction-complete ml-marketplace-cart-transaction-card"><div class="ml-marketplace-transaction-source">Morelord Marketplace</div><p><strong>${this.escape(actor.name)}</strong> ${verb} a cart${shop?.name ? ` at <strong>${this.escape(shop.name)}</strong>` : ""}.</p><div class="ml-marketplace-cart-chat-items">${rows}</div><p><strong>Total:</strong> ${this.escape(CurrencyService.formatCp(totalCp))}</p>${type === "buy" && fundingActor?.id !== actor.id ? `<p><strong>Paid from:</strong> ${this.escape(fundingActor.name)}</p>` : ""}</div>` });
   }
 
   static async createPending({
@@ -197,13 +197,14 @@ export class TransactionService {
   static renderPendingCard(transaction) {
     const action = transaction.type === "sell" ? "sell" : "buy";
     const price = CurrencyService.formatCp(transaction.totalPriceCp);
+    const isCart = Array.isArray(transaction.payload?.items);
 
     const lines = this.renderApprovalLines(transaction);
     return `
       <div class="ml-chat-card ml-marketplace-card ml-marketplace-approval-card" data-ml-marketplace-transaction-id="${this.escape(transaction.id)}">
         <div class="ml-marketplace-transaction-source">Morelord Marketplace</div>
         <div class="ml-marketplace-transaction-summary">
-          ${transaction.itemImg ? `<img src="${this.escape(transaction.itemImg)}" alt="${this.escape(transaction.itemName)}">` : ""}
+          ${!isCart && transaction.itemImg ? `<img src="${this.escape(transaction.itemImg)}" alt="${this.escape(transaction.itemName)}">` : ""}
           <div>
             <p><strong>${this.escape(transaction.actorName)}</strong> requested to ${action} <strong>${this.escape(transaction.itemName)}</strong>.</p>
             ${lines}

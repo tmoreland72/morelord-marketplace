@@ -53,6 +53,49 @@
       </section>
 
       <section class="ml-marketplace-filter-group">
+        <h4>Rarity</h4>
+        <div class="ml-marketplace-filter-options">
+          {{#each buyFacets.rarities}}
+            <button
+              type="button"
+              class="ml-marketplace-tristate-filter state-{{state}}"
+              data-action="cycleFacetFilter"
+              data-filter-group="rarities"
+              data-filter-value="{{value}}"
+              title="{{stateTitle}}">
+              {{#if isIncluded}}
+                <i class="fa-solid fa-square-check"></i>
+              {{else if isExcluded}}
+                <i class="fa-solid fa-square-minus"></i>
+              {{else}}
+                <i class="fa-regular fa-square"></i>
+              {{/if}}
+              <span>{{label}}</span>
+              <small>{{count}}</small>
+            </button>
+          {{/each}}
+        </div>
+      </section>
+
+      <section class="ml-marketplace-filter-group">
+        <h4>Attunement</h4>
+        <div class="ml-marketplace-filter-options">
+          <label class="ml-marketplace-filter-option">
+            <input type="radio" name="attunement" value="" data-filter-control {{#if attunementAny}}checked{{/if}}>
+            <span>Any</span>
+          </label>
+          <label class="ml-marketplace-filter-option">
+            <input type="radio" name="attunement" value="required" data-filter-control {{#if attunementRequired}}checked{{/if}}>
+            <span>Required</span>
+          </label>
+          <label class="ml-marketplace-filter-option">
+            <input type="radio" name="attunement" value="not-required" data-filter-control {{#if attunementNotRequired}}checked{{/if}}>
+            <span>Not Required</span>
+          </label>
+        </div>
+      </section>
+
+      <section class="ml-marketplace-filter-group">
         <h4>Item Type</h4>
         <div class="ml-marketplace-filter-options">
           {{#each buyFacets.types}}
@@ -170,49 +213,6 @@
           </div>
         </section>
       {{/if}}
-
-      <section class="ml-marketplace-filter-group">
-        <h4>Rarity</h4>
-        <div class="ml-marketplace-filter-options">
-          {{#each buyFacets.rarities}}
-            <button
-              type="button"
-              class="ml-marketplace-tristate-filter state-{{state}}"
-              data-action="cycleFacetFilter"
-              data-filter-group="rarities"
-              data-filter-value="{{value}}"
-              title="{{stateTitle}}">
-              {{#if isIncluded}}
-                <i class="fa-solid fa-square-check"></i>
-              {{else if isExcluded}}
-                <i class="fa-solid fa-square-minus"></i>
-              {{else}}
-                <i class="fa-regular fa-square"></i>
-              {{/if}}
-              <span>{{label}}</span>
-              <small>{{count}}</small>
-            </button>
-          {{/each}}
-        </div>
-      </section>
-
-      <section class="ml-marketplace-filter-group">
-        <h4>Attunement</h4>
-        <div class="ml-marketplace-filter-options">
-          <label class="ml-marketplace-filter-option">
-            <input type="radio" name="attunement" value="" data-filter-control {{#if attunementAny}}checked{{/if}}>
-            <span>Any</span>
-          </label>
-          <label class="ml-marketplace-filter-option">
-            <input type="radio" name="attunement" value="required" data-filter-control {{#if attunementRequired}}checked{{/if}}>
-            <span>Required</span>
-          </label>
-          <label class="ml-marketplace-filter-option">
-            <input type="radio" name="attunement" value="not-required" data-filter-control {{#if attunementNotRequired}}checked{{/if}}>
-            <span>Not Required</span>
-          </label>
-        </div>
-      </section>
 
       <section class="ml-marketplace-filter-group">
         <h4>Source</h4>

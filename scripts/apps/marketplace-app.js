@@ -824,14 +824,31 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       this.shopSnapshot.revision = Number(result.shopRevision ?? this.shopRevision ?? 1);
       this.shopRevision = Number(this.shopSnapshot.revision ?? 1);
     }
-    await TransactionService.postCartPurchase({
-      actor: this.actor,
-      fundingActor,
-      shop,
-      items: result.items ?? []
-    });
-    ui.notifications.info(`Purchased ${(result.items ?? []).reduce((sum, line) => sum + Number(line.quantity ?? 0), 0)} item(s) from ${shop.name}.`);
-    await this.render();
+    try {
+      // Global marketplace purchases post their transaction card inside
+      // CompendiumService. Shop purchases return their resolved item lines here.
+      if (shop) {
+        await TransactionService.postCartPurchase({
+          actor: this.actor,
+          fundingActor,
+          shop,
+          items: result.items ?? []
+        });
+      }
+
+      if (result.status !== "pending") {
+        const purchasedItems = result.items?.length ? result.items : requestItems;
+        const quantity = purchasedItems.reduce((sum, line) => sum + Number(line.quantity ?? 0), 0);
+        const source = shop?.name ?? "the global marketplace";
+        ui.notifications.info(`Purchased ${quantity} item(s) from ${source}.`);
+      }
+    } catch (error) {
+      console.error(`[${MODULE_ID}] Purchase completed, but its confirmation could not be displayed`, error);
+      ui.notifications.warn("The purchase completed, but its confirmation could not be displayed.");
+    } finally {
+      // Always replace the rendered checkout state, even when confirmation UI fails.
+      await this.render();
+    }
   }
 
   static async changeBuyPage(event, target) {
