@@ -6,11 +6,6 @@ param(
 $ErrorActionPreference = "Stop"
 $ffmpeg = (Get-Command ffmpeg -ErrorAction Stop).Source
 $work = Join-Path $PSScriptRoot ".gm-render"
-$brand = Join-Path $PSScriptRoot "branding"
-$logo = Join-Path $brand "morelord-gaming-logo.png"
-$banner = Join-Path $brand "morelord-banner.png"
-$mascot = Join-Path $brand "morelord-mascot.png"
-
 New-Item -ItemType Directory -Force -Path $work | Out-Null
 
 $fps = 30
@@ -47,19 +42,16 @@ function New-BrandCard {
         "drawtext=fontfile='$fontBody':text='MORELORDGAMING.COM':fontcolor=${goldLight}:fontsize=25:x=190:y=760,"
     } else { "" }
 
-    $filter = "[0:v]scale=1920:1280,crop=1920:1080,boxblur=7:2,colorchannelmixer=aa=0.36[bg];" +
-        "[1:v]scale=460:-1[logo];[2:v]scale=430:-1[mascot];" +
-        "[bg]drawbox=x=0:y=0:w=iw:h=ih:color=${ink}@0.78:t=fill," +
+    $filter = "drawbox=x=0:y=0:w=iw:h=ih:color=${ink}:t=fill," +
         "drawbox=x=0:y=0:w=22:h=ih:color=${crimson}:t=fill," +
         "drawbox=x=22:y=0:w=8:h=ih:color=${gold}:t=fill," +
         "drawtext=fontfile='$fontTitle':text='$safeTitle':fontcolor=${parchment}:fontsize=74:x=190:y=430," +
         "drawtext=fontfile='$fontBody':text='$safeSubtitle':fontcolor=${goldLight}:fontsize=31:x=194:y=545," +
         $finalLine +
-        "fade=t=in:st=0:d=0.55,fade=t=out:st=${fadeOut}:d=0.65[card];" +
-        "[card][logo]overlay=x=176:y=115[tmp];[tmp][mascot]overlay=x=W-w-90:y=H-h+8:format=auto[out]"
+        "fade=t=in:st=0:d=0.55,fade=t=out:st=${fadeOut}:d=0.65[out]"
 
-    Invoke-FFmpeg @("-y", "-loop", "1", "-t", "$Duration", "-i", $banner, "-loop", "1", "-t", "$Duration", "-i", $logo,
-        "-loop", "1", "-t", "$Duration", "-i", $mascot, "-filter_complex", $filter, "-map", "[out]", "-an", "-r", "$fps",
+    Invoke-FFmpeg @("-y", "-f", "lavfi", "-i", "color=c=${ink}:s=1920x1080:r=${fps}:d=${Duration}",
+        "-filter_complex", $filter, "-map", "[out]", "-an", "-r", "$fps",
         "-c:v", "libx264", "-preset", "medium", "-crf", "18", "-pix_fmt", "yuv420p", $Path)
 }
 
@@ -81,11 +73,9 @@ function New-DemoClip {
         "drawbox=x=0:y=1000:w=iw:h=80:color=${ink}:t=fill," +
         "drawbox=x=32:y=1000:w=7:h=80:color=${crimson}:t=fill," +
         "drawtext=fontfile='$fontBody':text='$safeLabel':fontcolor=${parchment}:fontsize=22:x=55:y=1027," +
-        "fade=t=in:st=0:d=0.25,fade=t=out:st=${fadeOut}:d=0.35[base];" +
-        "[1:v]scale=250:-1,format=rgba,colorchannelmixer=aa=0.88[logo];" +
-        "[base][logo]overlay=x=W-w-28:y=8:format=auto:shortest=1[out]"
+        "fade=t=in:st=0:d=0.25,fade=t=out:st=${fadeOut}:d=0.35[out]"
 
-    Invoke-FFmpeg @("-y", "-i", $Source, "-loop", "1", "-i", $logo, "-filter_complex", $filter, "-map", "[out]", "-an",
+    Invoke-FFmpeg @("-y", "-i", $Source, "-filter_complex", $filter, "-map", "[out]", "-an",
         "-r", "$fps", "-c:v", "libx264", "-preset", "medium", "-crf", "19", "-pix_fmt", "yuv420p", $Path)
 }
 
