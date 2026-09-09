@@ -149,6 +149,21 @@
           </section>
 
           <section class="ml-marketplace-shop-config-card">
+            <h3>Location & Capability</h3>
+            <label>Morelord Location
+              <select name="locationId">{{#each selected.locations}}<option value="{{id}}" {{#if selected}}selected{{/if}}>{{name}}</option>{{/each}}</select>
+            </label>
+            <label>Maximum Normal Rarity
+              <select name="capabilityTier">{{#each selected.capabilityTiers}}<option value="{{key}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}</select>
+            </label>
+            {{#if selected.effectiveCapability.tier}}
+              <p class="hint">Effective tier: <strong>{{selected.effectiveCapability.tier}}</strong> from {{selected.effectiveCapability.source}}. Manually added inventory can exceed this limit.</p>
+            {{else}}
+              <p class="hint">No capability limit is active. Select a tier or inherit a Marketplace capability from the shared Location.</p>
+            {{/if}}
+          </section>
+
+          <section class="ml-marketplace-shop-config-card">
             <h3>Inventory</h3>
             <label>Mode
               <select name="inventoryMode">{{#each selected.inventoryModes}}<option value="{{key}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}</select>

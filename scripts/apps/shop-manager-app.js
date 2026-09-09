@@ -73,6 +73,8 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
 
     const itemTypeOptions = Object.entries(SHOP_ITEM_OPTIONS).map(([key, option]) => ({ key, label: option.label }));
     const rarityOptions = ["common", "uncommon", "rare", "veryrare", "legendary", "artifact"];
+    const locationApi = ShopService.getLocationApi();
+    const locations = locationApi?.list?.() ?? [];
     const checked = (values, key) => values?.includes(key);
     let inventory = [];
     let inventorySearchResults = [];
@@ -115,6 +117,19 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
       shops: shopCards,
       selected: selected ? {
         ...selected,
+        effectiveCapability: ShopService.getEffectiveCapability(selected),
+        locations: [
+          { id: "", name: "No shared Location", selected: !selected.locationId },
+          ...locations.map(location => ({ ...location, selected: location.id === selected.locationId }))
+        ],
+        capabilityTiers: [
+          { key: "", label: "Inherit from Location", selected: !selected.capabilityTier },
+          ...(locationApi?.capabilityTiers ?? ["common", "uncommon", "rare", "veryRare", "legendary"]).map(key => ({
+            key,
+            label: key === "veryRare" ? "Very Rare" : key.charAt(0).toUpperCase() + key.slice(1),
+            selected: key === selected.capabilityTier
+          }))
+        ],
         isDraft: selected.id === this.draftShop?.id,
         itemTypeOptions: itemTypeOptions.map(option => ({ ...option, checked: checked(selected.itemOptions, option.key) })),
         rarityOptions: rarityOptions.map(key => ({ key, checked: checked((selected.rarities ?? []).map(ShopService.normalizeRarity), key), label: key === "veryrare" ? "Very Rare" : key.charAt(0).toUpperCase() + key.slice(1) })),
@@ -263,6 +278,8 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
     shop.name = String(data.get("name") ?? shop.name).trim() || shop.name;
     shop.img = String(data.get("img") ?? shop.img).trim() || shop.img;
     shop.reputation = String(data.get("reputation") ?? "neutral");
+    shop.locationId = String(data.get("locationId") ?? "").trim() || null;
+    shop.capabilityTier = String(data.get("capabilityTier") ?? "").trim() || null;
     shop.inventoryMode = String(data.get("inventoryMode") ?? "hybrid");
     shop.buyModifier = Number(data.get("buyModifier") ?? 1);
     shop.sellModifier = Number(data.get("sellModifier") ?? 0.5);

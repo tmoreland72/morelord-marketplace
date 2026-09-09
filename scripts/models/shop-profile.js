@@ -134,6 +134,8 @@ export class ShopProfileModel {
       buyModifier: preset.buyModifier,
       sellModifier: preset.sellModifier,
       reputation: "neutral",
+      locationId: null,
+      capabilityTier: null,
       inventoryMode: "hybrid",
       stock: {},
       prefabId: null,

@@ -17,9 +17,13 @@
         <div class="ml-actions ml-marketplace-header-actions ml-marketplace-shop-header-actions">
           <button type="button" data-action="refreshShop" title="Refresh shop inventory and clear the cart"><i class="fa-solid fa-rotate"></i> Refresh</button>
           {{#if canManageShops}}<button type="button" class="ml-marketplace-manage-shops-button" data-action="manageShops"><i class="fa-solid fa-shop"></i> Manage Shops</button>{{/if}}
+          {{#if canManageLocations}}<button type="button" data-action="manageLocations"><i class="fa-solid fa-map-location-dot"></i> Manage Locations</button>{{/if}}
         </div>
-      {{else if canManageShops}}
-        <button type="button" class="ml-marketplace-manage-shops-button" data-action="manageShops"><i class="fa-solid fa-shop"></i> Manage Shops</button>
+      {{else}}
+        <div class="ml-actions">
+          {{#if canManageShops}}<button type="button" class="ml-marketplace-manage-shops-button" data-action="manageShops"><i class="fa-solid fa-shop"></i> Manage Shops</button>{{/if}}
+          {{#if canManageLocations}}<button type="button" data-action="manageLocations"><i class="fa-solid fa-map-location-dot"></i> Manage Locations</button>{{/if}}
+        </div>
       {{/if}}
     </div>
 

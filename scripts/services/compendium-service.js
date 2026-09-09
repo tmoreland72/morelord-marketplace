@@ -386,6 +386,7 @@ export class CompendiumService {
     const rarityKey = this.normalizeRarity(
       system.rarity
     );
+    const rawRarity = this.normalize(system.rarity);
 
     const subtypeKey = this.getSubtypeKey(
       typeKey,
@@ -422,6 +423,7 @@ export class CompendiumService {
       ...weaponClassification,
 
       rarityKey,
+      isMagicItem: Boolean(rawRarity && rawRarity !== "none" && rawRarity !== "mundane"),
       rarityLabel:
         this.getRarityLabel(rarityKey),
 
@@ -700,31 +702,7 @@ export class CompendiumService {
   }
 
   static resolveSourceBookLabel(book) {
-    const rawBook = String(book ?? "").trim();
-
-    if (!rawBook) return "";
-
-    const sourceBooks =
-      CONFIG.DND5E?.sourceBooks ??
-      CONFIG.DND5E?.sources ??
-      {};
-
-    const configured =
-      sourceBooks[rawBook] ??
-      sourceBooks[this.normalize(rawBook)];
-
-    const configuredLabel =
-      this.extractLabel(configured);
-
-    if (configuredLabel) {
-      return configuredLabel;
-    }
-
-    if (game.i18n?.has?.(rawBook)) {
-      return game.i18n.localize(rawBook);
-    }
-
-    return rawBook;
+    return globalThis.MorelordCore.sources.resolveBookLabel({ book });
   }
 
   static normalizeSourceKey(source) {

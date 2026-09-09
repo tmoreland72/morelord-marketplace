@@ -44,6 +44,7 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       clearSellCart: MorelordMarketplaceApp.clearSellCart,
       checkoutSellCart: MorelordMarketplaceApp.checkoutSellCart,
       manageShops: MorelordMarketplaceApp.manageShops,
+      manageLocations: MorelordMarketplaceApp.manageLocations,
       refreshShop: MorelordMarketplaceApp.refreshShop,
       addToWishlist: MorelordMarketplaceApp.addToWishlist,
       removeFromWishlist: MorelordMarketplaceApp.removeFromWishlist
@@ -243,6 +244,7 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       tokenImg,
       isGM: game.user.isGM,
       canManageShops: Boolean(game.user.isGM && EntitlementService.hasShopManager()),
+      canManageLocations: Boolean(game.user.isGM),
       shopStale,
       shopRevision: this.shopRevision,
       activeTab: this.activeTab,
@@ -866,6 +868,17 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       return;
     }
     new MorelordShopManagerApp({ shopId: this.shopId }).render(true);
+  }
+
+  static manageLocations(event) {
+    event.preventDefault();
+    const locations = game.modules.get("morelord-core")?.api?.locations
+      ?? globalThis.MorelordCore?.locations;
+    if (typeof locations?.open !== "function") {
+      ui.notifications.warn("Morelord Locations is unavailable. Update and enable Morelord Core.");
+      return;
+    }
+    return locations.open();
   }
 
   static async refreshShop(event) {

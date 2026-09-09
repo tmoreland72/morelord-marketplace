@@ -13,6 +13,8 @@ import { TransactionApprovalService } from "./services/transaction-approval-serv
 import { Logger } from "./logger.js";
 import { EntitlementService } from "./services/entitlement-service.js";
 import { ShopTransactionService } from "./services/shop-transaction-service.js";
+import { WishlistService } from "./services/wishlist-service.js";
+import { CurrencyService } from "./services/currency-service.js";
 
 Logger.log("main.js loaded");
 
@@ -121,6 +123,62 @@ Hooks.once("ready", async () => {
     },
     hasPremiumApprovals: () => EntitlementService.hasGmApprovals(),
     hasShopManager: () => EntitlementService.hasShopManager(),
+    shops: Object.freeze({
+      list: () => ShopService.getShops(),
+      get: shopId => ShopService.getShop(shopId),
+      getEffectiveCapability: shopOrId => ShopService.getEffectiveCapability(
+        typeof shopOrId === "string" ? ShopService.getShop(shopOrId) : shopOrId
+      ),
+      canNormallyOffer: (shopOrId, rarity) => {
+        const shop = typeof shopOrId === "string" ? ShopService.getShop(shopOrId) : shopOrId;
+        return ShopService.canNormallyOffer(shop, rarity);
+      }
+    }),
+    sourcing: Object.freeze({
+      listWishlist: async actorUuid => {
+        const actor = await fromUuid(String(actorUuid ?? ""));
+        if (!actor || actor.type !== "character") return [];
+        const catalog = await CompendiumService.getBuyableCatalog();
+        const catalogByUuid = new Map(catalog.map(row => [row.uuid, row]));
+        return WishlistService.getEntries(actor)
+          .map(saved => catalogByUuid.get(saved.uuid))
+          .filter(row => row?.isMagicItem)
+          .filter(row => (CompendiumService.RARITY_DEFINITIONS.find(entry => entry.value === row.rarityKey)?.order ?? Infinity) <= 4)
+          .map(row => ({ uuid: row.uuid, packId: row.packId, documentId: row.documentId, name: row.name, img: row.img, rarity: row.rarityKey, rarityLabel: row.rarityLabel, typeLabel: row.typeLabel, source: row.source }));
+      },
+      randomItems: async ({ maxRarity = "legendary", count = 1, excludeUuids = [] } = {}) => {
+        const maximum = CompendiumService.RARITY_DEFINITIONS.find(entry => entry.value === CompendiumService.normalizeRarity(maxRarity))?.order ?? 4;
+        const excluded = new Set(Array.from(excludeUuids, String));
+        const catalog = await CompendiumService.getBuyableCatalog();
+        return catalog
+          .filter(row => row.isMagicItem && !excluded.has(row.uuid))
+          .filter(row => (CompendiumService.RARITY_DEFINITIONS.find(entry => entry.value === row.rarityKey)?.order ?? Infinity) <= maximum)
+          .map(row => ({ row, order: Math.random() }))
+          .sort((left, right) => left.order - right.order)
+          .slice(0, Math.max(0, Math.floor(Number(count) || 0)))
+          .map(({ row }) => ({ uuid: row.uuid, packId: row.packId, documentId: row.documentId, name: row.name, img: row.img, rarity: row.rarityKey, rarityLabel: row.rarityLabel, typeLabel: row.typeLabel, source: row.source }));
+      },
+      spendInvestment: async ({ actorUuid, amountGp } = {}) => {
+        const actor = await fromUuid(String(actorUuid ?? ""));
+        const gp = Number(amountGp);
+        if (!actor || actor.type !== "character") throw new Error("Sourcing investment requires a character.");
+        if (!Number.isFinite(gp) || gp <= 0) throw new Error("Sourcing investment must be positive.");
+        await CurrencyService.deductCurrency(actor, Math.round(gp * 100));
+        return true;
+      },
+      availableInvestmentGp: async actorUuid => {
+        const actor = await fromUuid(String(actorUuid ?? ""));
+        if (!actor || actor.type !== "character") return 0;
+        return Math.floor(CurrencyService.currencyToCp(CurrencyService.getCurrency(actor)) / 100);
+      },
+      refundInvestment: async ({ actorUuid, amountGp } = {}) => {
+        const actor = await fromUuid(String(actorUuid ?? ""));
+        const gp = Number(amountGp);
+        if (!actor || actor.type !== "character" || !Number.isFinite(gp) || gp <= 0) return false;
+        await CurrencyService.addCurrency(actor, Math.round(gp * 100));
+        return true;
+      }
+    }),
     refreshEntitlements: options => EntitlementService.refresh(options)
   };
 

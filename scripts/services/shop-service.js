@@ -2,6 +2,7 @@ import { MODULE_ID, FLAGS } from "../constants.js";
 import { WishlistService } from "./wishlist-service.js";
 import { SHOP_ITEM_OPTIONS, SHOP_TYPES, REPUTATION_TIERS, ShopProfileModel, getItemTypesForOptions } from "../models/shop-profile.js";
 import { PrefabShopService } from "./prefab-shop-service.js";
+import { inventoryEntryAllowedByCapability, normalizeCapabilityTier } from "./shop-capability.js";
 
 export class ShopService {
   static normalizeShop(shop) {
@@ -11,6 +12,8 @@ export class ShopService {
       : this.getLegacyItemOptions(shop.itemTypes);
     return {
       ...shop,
+      locationId: shop.locationId ? String(shop.locationId) : null,
+      capabilityTier: normalizeCapabilityTier(shop.capabilityTier),
       itemOptions,
       itemTypes: getItemTypesForOptions(itemOptions),
       revision: Math.max(1, Number(shop.revision ?? 1)),
@@ -52,6 +55,30 @@ export class ShopService {
 
   static getShopForToken(token) {
     return this.getShopForActor(token?.actor ?? token?.document?.actor);
+  }
+
+  static getLocationApi() {
+    return game.modules.get("morelord-core")?.api?.locations ?? globalThis.MorelordCore?.locations ?? null;
+  }
+
+  static getEffectiveCapability(shop) {
+    const explicitTier = normalizeCapabilityTier(shop?.capabilityTier);
+    if (explicitTier) return { tier: explicitTier, source: "shop", location: null };
+    const locationApi = this.getLocationApi();
+    const location = shop?.locationId ? locationApi?.get(shop.locationId) : null;
+    const capability = location?.capabilities?.find(entry => entry.type === "marketplace") ?? null;
+    return {
+      tier: normalizeCapabilityTier(capability?.tier),
+      source: capability ? "location" : "legacy",
+      location
+    };
+  }
+
+  static canNormallyOffer(shop, rarity) {
+    return inventoryEntryAllowedByCapability({
+      rarity: this.normalizeRarity(rarity),
+      capabilityTier: this.getEffectiveCapability(shop).tier
+    });
   }
 
   static async ensureShopActorAccess(actor) {
@@ -294,7 +321,8 @@ export class ShopService {
         : ""
     );
     if (uuid && shop.inventoryOverrides?.excluded?.includes(uuid)) return false;
-    if (uuid && shop.inventoryOverrides?.included?.includes(uuid)) return true;
+    const manuallyIncluded = Boolean(uuid && shop.inventoryOverrides?.included?.includes(uuid));
+    if (manuallyIncluded) return true;
 
     if (shop.prefabItemUuids?.length) {
       return Boolean(uuid && shop.prefabItemUuids.includes(uuid));
@@ -303,6 +331,8 @@ export class ShopService {
     if (shop.compendiums?.length && !shop.compendiums.includes(packId)) return false;
     if (!this.entryMatchesItemOptions(entry, shop)) return false;
     const rarity = this.normalizeRarity(entry?.rarityKey ?? entry?.system?.rarity);
+    const capability = this.getEffectiveCapability(shop);
+    if (!inventoryEntryAllowedByCapability({ rarity, capabilityTier: capability.tier, manuallyIncluded })) return false;
     if (shop.rarities?.length && !shop.rarities.map(value => this.normalizeRarity(value)).includes(rarity)) return false;
     return true;
   }
