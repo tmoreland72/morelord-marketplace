@@ -616,59 +616,11 @@ export class CompendiumService {
   }
 
   static getSourceBook(sourceData, pack) {
-    const candidate = this.extractSourceCandidate(
-      sourceData
-    );
-
-    if (candidate !== "") {
-      const resolved = this.resolveSourceBookLabel(candidate);
-      if (!this.isGenericSourceLabel(resolved)) return resolved;
-    }
-
-    return this.getPackSourceLabel(pack);
-  }
-
-  static getPackSourceLabel(pack) {
-    const metadata = pack?.metadata ?? {};
-    const packageId = String(metadata.packageName ?? pack?.collection?.split?.(".")?.[0] ?? "");
-    const moduleTitle = game.modules?.get?.(packageId)?.title;
-    const systemTitle = game.system?.id === packageId ? game.system?.title : "";
-    const sourceBook = metadata.flags?.dnd5e?.sourceBook;
-    const candidates = [
-      sourceBook,
-      metadata.packageTitle,
-      moduleTitle,
-      systemTitle,
-      metadata.label,
-      pack?.title,
-      metadata.name,
-      packageId,
-      pack?.collection
-    ].filter(Boolean).map(String);
-    const identity = candidates.join(" ").toLowerCase().replace(/[’‘`]/g, "'");
-
-    if (identity.includes("morelord-craftworks") || identity.includes("morelord craftworks")) {
-      return "Craftworks";
-    }
-    if (identity.includes("player's handbook") || identity.includes("players handbook") || identity.includes("dnd-players-handbook")) {
-      return "Player's Handbook";
-    }
-    if (identity.includes("dungeon master's guide") || identity.includes("dungeon masters guide") || identity.includes("dnd-dungeon-masters-guide")) {
-      return "Dungeon Master's Guide";
-    }
-    if (/srd[\s._-]*5[\s._-]*2/.test(identity)) return "SRD 5.2";
-    if (/srd[\s._-]*5[\s._-]*1/.test(identity) || packageId === "dnd5e") return "SRD 5.1";
-
-    const meaningful = candidates.find(candidate => !this.isGenericSourceLabel(candidate));
-    return meaningful || "Unknown Source";
-  }
-
-  static isGenericSourceLabel(value) {
-    const normalized = this.normalize(value);
-    if (!normalized || /^\d+$/.test(normalized)) return true;
-    return new Set([
-      "item", "items", "equipment", "weapon", "weapons", "armor", "tool", "tools", "loot", "consumable", "consumables"
-    ]).has(normalized);
+    return globalThis.MorelordCore.sources.resolveBookLabel({
+      book: this.extractSourceCandidate(sourceData),
+      custom: typeof sourceData === "object" ? sourceData?.custom : "",
+      pack
+    });
   }
 
   static extractSourceCandidate(sourceData) {
@@ -699,10 +651,6 @@ export class CompendiumService {
     }
 
     return String(candidate ?? "").trim();
-  }
-
-  static resolveSourceBookLabel(book) {
-    return globalThis.MorelordCore.sources.resolveBookLabel({ book });
   }
 
   static normalizeSourceKey(source) {

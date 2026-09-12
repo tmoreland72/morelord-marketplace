@@ -121,7 +121,7 @@
 
         <div class="ml-marketplace-shop-editor-scroll" data-ml-marketplace-preserve-scroll="shop-editor">
           <div class="ml-marketplace-shop-section-grid">
-          <section class="ml-marketplace-shop-config-card">
+          <section class="ml-surface ml-stack ml-marketplace-shop-config-card">
             <h3>Identity & Access</h3>
             <label>Name <input type="text" name="name" value="{{selected.name}}"></label>
             <label>Token Image
@@ -136,7 +136,7 @@
             </div>
           </section>
 
-          <section class="ml-marketplace-shop-config-card">
+          <section class="ml-surface ml-stack ml-marketplace-shop-config-card">
             <h3>Pricing & Reputation</h3>
             <label>Party Reputation
               <select name="reputation">{{#each selected.reputations}}<option value="{{key}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}</select>
@@ -148,7 +148,7 @@
             <p class="hint">Reputation modifies both values automatically. Hostile parties cannot trade.</p>
           </section>
 
-          <section class="ml-marketplace-shop-config-card">
+          <section class="ml-surface ml-stack ml-marketplace-shop-config-card">
             <h3>Location & Capability</h3>
             <label>Morelord Location
               <select name="locationId">{{#each selected.locations}}<option value="{{id}}" {{#if selected}}selected{{/if}}>{{name}}</option>{{/each}}</select>
@@ -163,7 +163,7 @@
             {{/if}}
           </section>
 
-          <section class="ml-marketplace-shop-config-card">
+          <section class="ml-surface ml-stack ml-marketplace-shop-config-card">
             <h3>Inventory</h3>
             <label>Mode
               <select name="inventoryMode">{{#each selected.inventoryModes}}<option value="{{key}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}</select>
@@ -179,7 +179,7 @@
             </div>
           </section>
 
-          <section class="ml-marketplace-shop-config-card">
+          <section class="ml-surface ml-stack ml-marketplace-shop-config-card">
             <h3>Restocking</h3>
             <label>Rule
               <select name="restockRule">{{#each selected.restockRules}}<option value="{{key}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}</select>
@@ -190,7 +190,7 @@
             <p class="hint">Restock manually with <strong>Restock Now</strong>, or choose Never for shops whose inventory is managed entirely by the GM.</p>
           </section>
 
-          <section class="ml-marketplace-shop-config-card ml-marketplace-shop-config-wide">
+          <section class="ml-surface ml-stack ml-marketplace-shop-config-card ml-marketplace-shop-config-wide">
             <h3>Products</h3>
             <div class="ml-marketplace-option-columns">
               <div><strong>Item Options</strong>{{#each selected.itemTypeOptions}}<label><input type="checkbox" name="itemOptions" value="{{key}}" {{#if checked}}checked{{/if}}> {{label}}</label>{{/each}}</div>
@@ -198,7 +198,7 @@
             </div>
           </section>
 
-          <section class="ml-marketplace-shop-config-card ml-marketplace-shop-config-wide ml-marketplace-shop-inventory-card">
+          <section class="ml-surface ml-stack ml-marketplace-shop-config-card ml-marketplace-shop-config-wide ml-marketplace-shop-inventory-card">
             <div class="ml-marketplace-shop-inventory-heading">
               <div>
                 <h3>Current Inventory <span class="ml-marketplace-shop-count">{{selected.inventoryCount}}</span></h3>
@@ -237,6 +237,7 @@
                   <img src="{{img}}" alt="">
                   <div class="ml-marketplace-shop-inventory-details">
                     <a class="content-link ml-marketplace-shop-inventory-item-link" data-link data-uuid="{{uuid}}" title="Open {{name}} from its compendium">{{name}}</a>
+                    {{#if isManualStock}}<span class="ml-badge" data-tone="info" title="Manually added stock. Restocking preserves its remaining quantity instead of rerolling it."><i class="fa-solid fa-thumbtack" aria-hidden="true"></i> Manual</span>{{/if}}
                     <small>{{source}} · {{rarityLabel}} {{typeLabel}}</small>
                   </div>
                   {{#if finite}}

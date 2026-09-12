@@ -3,25 +3,6 @@
    Application Layout
    ========================================================= */
 
-.ml-marketplace-module .window-content {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  min-height: 0;
-  overflow: hidden;
-}
-
-.ml-marketplace-module .ml-marketplace-shell {
-  display: flex;
-  flex: 1 1 auto;
-  flex-direction: column;
-  min-width: 0;
-  min-height: 0;
-  overflow: hidden;
-  padding: var(--ml-space-5);
-}
-
-
 /* =========================================================
    Marketplace Header
    ========================================================= */
@@ -53,7 +34,7 @@
   flex: 0 0 auto;
   width: 52px;
   height: 52px;
-  border: 1px solid var(--color-border-light-primary);
+  border: 1px solid var(--ml-color-border);
   border-radius: 8px;
   object-fit: cover;
   background: rgba(255, 255, 255, 0.04);
@@ -82,7 +63,6 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  margin-bottom: 1rem;
 }
 
 .ml-marketplace-module .ml-marketplace-shopper-identity {
@@ -97,7 +77,7 @@
   flex: 0 0 auto;
   width: 48px;
   height: 48px;
-  border: 1px solid var(--color-border-light-primary);
+  border: 1px solid var(--ml-color-border);
   border-radius: 50%;
 }
 
@@ -140,7 +120,7 @@
   align-items: center;
   gap: 0.65rem;
   padding-left: 1rem;
-  border-left: 1px solid var(--color-border-light-primary);
+  border-left: 1px solid var(--ml-color-border);
 }
 
 .ml-marketplace-module .ml-marketplace-shopper-wallet > i {
@@ -171,66 +151,6 @@
    Marketplace Tabs
    ========================================================= */
 
-.ml-marketplace-module .ml-marketplace-tabs {
-  display: flex;
-  align-items: flex-end;
-  gap: 0;
-  margin: 0;
-  padding-left: 0.5rem;
-  border-bottom: 1px solid var(--color-border-light-primary);
-}
-
-.ml-marketplace-module .ml-marketplace-tab-button {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  min-width: 105px;
-  margin: 0 0 -1px;
-  padding: 0.65rem 1rem;
-  border: 1px solid transparent;
-  border-bottom: none;
-  border-radius: 7px 7px 0 0;
-  background: transparent;
-  box-shadow: none;
-  color: inherit;
-  font-weight: 500;
-}
-
-.ml-marketplace-module .ml-marketplace-tab-button:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.045);
-}
-
-.ml-marketplace-module .ml-marketplace-tab-button.active {
-  z-index: 2;
-  border-color: var(--color-border-light-primary);
-  background: var(--color-cool-5);
-  font-weight: 700;
-}
-
-.ml-marketplace-module .ml-marketplace-tab-button.active::after {
-  position: absolute;
-  right: 0;
-  bottom: -1px;
-  left: 0;
-  height: 2px;
-  background: var(--color-cool-5);
-  content: "";
-}
-
-.ml-marketplace-module .ml-marketplace-tab-button:disabled {
-  cursor: wait;
-  opacity: 0.68;
-}
-
-.ml-marketplace-module .ml-marketplace-tab-count {
-  min-width: 1.35rem;
-  padding: 0.1rem 0.35rem;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.1);
-  font-size: 0.7rem;
-}
-
 .ml-marketplace-module .ml-marketplace-wishlist-button.active { color: var(--ml-color-danger); }
 .ml-marketplace-module .ml-marketplace-wishlist-help { margin: 0 0 0.75rem; opacity: 0.72; }
 .ml-marketplace-module .ml-marketplace-wishlist-status {
@@ -248,23 +168,6 @@
    Shared Tab Layout
    ========================================================= */
 
-.ml-marketplace-module .ml-marketplace-tab {
-  display: flex;
-  flex: 1 1 auto;
-  flex-direction: column;
-  min-width: 0;
-  min-height: 0;
-  padding-top: 0.9rem;
-  overflow: hidden;
-}
-
-.ml-marketplace-module .ml-marketplace-tab h3 {
-  flex: 0 0 auto;
-  margin: 0.5rem 0 0.75rem;
-  font-size: 1.4rem;
-}
-
-
 /* =========================================================
    Tables
    ========================================================= */
@@ -274,7 +177,7 @@
   min-width: 0;
   min-height: 0;
   overflow: auto;
-  border: 1px solid var(--color-border-light-primary);
+  border: 1px solid var(--ml-color-border);
   border-radius: 6px;
 }
 
@@ -298,7 +201,7 @@
   position: sticky;
   top: 0;
   z-index: 5;
-  background: var(--color-cool-5);
+  background: var(--ml-color-surface);
 }
 
 .ml-marketplace-module tbody tr {
@@ -369,25 +272,6 @@
    Buy Tab Header
    ========================================================= */
 
-.ml-marketplace-module .ml-marketplace-buy-heading {
-  display: flex;
-  flex: 0 0 auto;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 0.75rem;
-}
-
-.ml-marketplace-module .ml-marketplace-buy-heading > div {
-  display: flex;
-  align-items: baseline;
-  gap: 0.6rem;
-}
-
-.ml-marketplace-module .ml-marketplace-buy-heading h3 {
-  margin: 0;
-}
-
 .ml-marketplace-module .ml-marketplace-result-count {
   opacity: 0.7;
   font-size: 0.85rem;
@@ -437,13 +321,12 @@
   overflow-x: hidden;
   overflow-y: auto;
   padding-right: 0.5rem;
-  border-right: 1px solid var(--color-border-light-primary);
+  border-right: 1px solid var(--ml-color-border);
   scrollbar-gutter: stable;
 }
 
 .ml-marketplace-module .ml-marketplace-filter-search {
   flex: 0 0 auto;
-  margin-bottom: 1rem;
 }
 
 .ml-marketplace-module .ml-marketplace-filter-search > label {
@@ -512,7 +395,7 @@
 .ml-marketplace-module .ml-marketplace-filter-group {
   flex: 0 0 auto;
   padding: 0.75rem 0;
-  border-top: 1px solid var(--color-border-light-primary);
+  border-top: 1px solid var(--ml-color-border);
 }
 
 .ml-marketplace-module .ml-marketplace-filter-group:first-of-type {
@@ -717,7 +600,6 @@
   display: flex;
   flex: 0 0 auto;
   gap: 0.5rem;
-  margin-bottom: 1rem;
 }
 
 .ml-marketplace-settings__section { margin-top: 1rem; }
@@ -747,7 +629,7 @@
 }
 
 .ml-marketplace-module .ml-marketplace-affordable-filter.active {
-  box-shadow: 0 0 0 1px var(--color-border-highlight);
+  box-shadow: 0 0 0 1px var(--ml-color-accent);
 }
 
 .ml-marketplace-module .ml-marketplace-filter-key {
@@ -756,7 +638,7 @@
   gap: 0.35rem 0.7rem;
   margin-bottom: 0.75rem;
   padding: 0.45rem 0.55rem;
-  border: 1px solid var(--color-border-light-primary);
+  border: 1px solid var(--ml-color-border);
   border-radius: 6px;
   font-size: 0.78rem;
   opacity: 0.9;
@@ -824,7 +706,7 @@
   gap: 1rem;
   min-width: 0;
   min-height: 0;
-  border: 1px solid var(--color-border-light-primary);
+  border: 1px solid var(--ml-color-border);
   border-radius: 8px;
   background: rgba(0, 0, 0, 0.12);
 }
@@ -860,7 +742,7 @@
   gap: 0.35rem 0.8rem;
   margin: 0 0 0.75rem;
   padding: 0.55rem 0.65rem;
-  border: 1px solid var(--color-border-light-primary);
+  border: 1px solid var(--ml-color-border);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.035);
   font-size: 0.78rem;
@@ -947,7 +829,7 @@
   width: 40px;
   height: 40px;
   object-fit: cover;
-  border: 1px solid var(--color-border-light-primary);
+  border: 1px solid var(--ml-color-border);
   border-radius: 4px;
 }
 
@@ -961,7 +843,7 @@
   gap: 0.4rem;
   margin-top: 0.6rem;
   padding: 0.45rem 0.55rem;
-  border: 1px solid var(--color-border-light-primary);
+  border: 1px solid var(--ml-color-border);
   border-radius: 6px;
   font-weight: 600;
 }
@@ -1014,7 +896,7 @@
   gap: 0.4rem;
   margin-top: 0.55rem;
   padding-top: 0.45rem;
-  border-top: 1px solid var(--color-border-light-primary);
+  border-top: 1px solid var(--ml-color-border);
   font-size: 0.8rem;
   font-style: italic;
   line-height: 1.3;

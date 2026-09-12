@@ -44,4 +44,5 @@
 
 .ml-marketplace-module .ml-marketplace-sell-layout > .ml-marketplace-cart-panel {
   width: 235px;
+  min-width: 0;
 }

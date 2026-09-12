@@ -439,9 +439,8 @@ export class ShopService {
   }
 
   static randomStockQuantity(rarity) {
-    // The configured rarity counts represent how many different product
-    // listings a restock should choose. Each chosen listing can itself have
-    // multiple units on hand so Limited Stock does not collapse to quantity 1.
+    // Rarity counts are draws; duplicate draws merge into one listing.
+    // Each draw can also supply multiple units of that product.
     const maxByRarity = { common: 6, uncommon: 4, rare: 2, veryrare: 1, legendary: 1 };
     const max = Math.max(1, Number(maxByRarity[this.normalizeRarity(rarity)] ?? 1));
     return 1 + Math.floor(Math.random() * max);
@@ -452,6 +451,7 @@ export class ShopService {
     const config = shop.randomInventory ?? {};
     const counts = config.counts ?? {};
     const groups = new Map();
+    const wishedUuids = WishlistService.getUuids({ allActors: true });
 
     for (const row of catalog) {
       if (!this.isLimited(shop, row)) continue;
@@ -465,19 +465,17 @@ export class ShopService {
     for (const [rarity, rows] of groups.entries()) {
       const target = Math.max(0, Number(counts[rarity] ?? 0));
       if (!target || !rows.length) continue;
-      const wishedUuids = WishlistService.getUuids({ allActors: true });
-      const wished = rows.filter(row => wishedUuids.has(row.uuid));
-      const others = rows.filter(row => !wishedUuids.has(row.uuid));
-      const shuffle = values => values
-        .map(value => ({ value, order: Math.random() }))
-        .sort((left, right) => left.order - right.order)
-        .map(entry => entry.value);
-      const pool = [...shuffle(wished), ...shuffle(others)];
+      // A wishlist gives 25% more weight, never a guaranteed inventory slot.
+      const pool = rows.map(row => ({ row, weight: wishedUuids.has(row.uuid) ? 1.25 : 1 }));
       for (let index = 0; index < target; index += 1) {
         if (!pool.length) break;
-        const priorityPoolSize = wished.length ? wished.length : pool.length;
-        const pickIndex = config.allowDuplicates ? Math.floor(Math.random() * priorityPoolSize) : 0;
-        const row = pool[pickIndex];
+        let roll = Math.random() * pool.reduce((total, entry) => total + entry.weight, 0);
+        let pickIndex = 0;
+        while (pickIndex < pool.length - 1 && roll >= pool[pickIndex].weight) {
+          roll -= pool[pickIndex].weight;
+          pickIndex += 1;
+        }
+        const { row } = pool[pickIndex];
         const key = this.stockKey(row);
         nextStock[key] = (nextStock[key] ?? 0) + this.randomStockQuantity(rarity);
         if (!config.allowDuplicates) pool.splice(pickIndex, 1);

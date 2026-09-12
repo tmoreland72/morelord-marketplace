@@ -176,7 +176,7 @@ export class TransactionService {
 
     const recipients = [
       requestedByUserId,
-      ...game.users
+      ...(globalThis.MorelordCore?.users?.list() ?? game.users)
         .filter(user => user.isGM)
         .map(user => user.id)
     ].filter(Boolean);

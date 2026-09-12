@@ -34,7 +34,7 @@
         "id": "morelord-core",
         "type": "module",
         "compatibility": {
-          "minimum": "0.1.0"
+          "minimum": "0.3.5"
         },
         "manifest": "https://raw.githubusercontent.com/tmoreland72/morelord-core/main/module.json"
       }

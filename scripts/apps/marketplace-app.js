@@ -12,6 +12,11 @@ import { WishlistService } from "../services/wishlist-service.js";
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(ApplicationV2) {
+  render(...args) {
+    const preserve = globalThis.MorelordCore?.ui?.renderPreservingScroll;
+    return preserve ? preserve(this, () => super.render(...args)) : super.render(...args);
+  }
+
   static DEFAULT_OPTIONS = {
     id: "morelord-marketplace",
     classes: ["ml-window", "ml-marketplace-module"],
@@ -26,6 +31,7 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       height: 820
     },
     actions: {
+      openDocumentation: MorelordMarketplaceApp.openDocumentation,
       switchTab: MorelordMarketplaceApp.switchTab,
       sellOne: MorelordMarketplaceApp.sellOne,
       sellAll: MorelordMarketplaceApp.sellAll,
@@ -58,6 +64,20 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
   };
 
   static instances = new Set();
+  static openDocumentation() {
+    const documentation = game.modules.get("morelord-core")?.api?.ui?.documentation;
+    if (!documentation) return;
+    documentation.register({
+      id: "morelord-marketplace", title: "Morelord Marketplace", icon: "fa-solid fa-store",
+      subtitle: "Buy, sell, and manage adventuring gear.",
+      sections: [
+        { id: "shopping", title: "Buy and Sell", icon: "fa-solid fa-cart-shopping", introduction: "Choose the character you are shopping as. Browse and filter available items, add purchases to the cart, review the totals, and check out. Use the sell tab to select items from the character's inventory for sale." },
+        { id: "shops", title: "Shops and Locations", icon: "fa-solid fa-store", introduction: "GMs use Manage Shops to configure vendors and their inventory. Manage Locations opens the shared Morelord location registry. In a vendor window, Refresh reloads inventory and clears the cart." },
+        { id: "wishlist", title: "Wishlist", icon: "fa-solid fa-bookmark", introduction: "Keep desired items on the wishlist while browsing, and remove them when they are no longer needed." }
+      ]
+    });
+    return documentation.open("morelord-marketplace");
+  }
   static shopOpening = false;
 
   static openShop(shopId) {

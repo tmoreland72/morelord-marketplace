@@ -84,7 +84,7 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
         .filter(row => ShopService.isInStock(selected, row))
         .map(row => {
           const quantity = ShopService.getStock(selected, row);
-          return { ...row, quantity, quantityLabel: Number.isFinite(quantity) ? quantity : "∞", finite: Number.isFinite(quantity) };
+          return { ...row, quantity, quantityLabel: Number.isFinite(quantity) ? quantity : "∞", finite: Number.isFinite(quantity), isManualStock: selected.inventoryOverrides.limited.includes(row.uuid) };
         });
       const query = this.inventorySearchQuery.trim().toLowerCase();
       if (this.inventoryLookupOpen && query.length >= 2) {

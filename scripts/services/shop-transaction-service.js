@@ -21,7 +21,7 @@ export class ShopTransactionService {
   }
 
   static #activeGmIds() {
-    return game.users
+    return (globalThis.MorelordCore?.users?.list() ?? game.users)
       .filter(user => user.active && user.isGM)
       .map(user => user.id)
       .sort((a, b) => String(a).localeCompare(String(b)));
