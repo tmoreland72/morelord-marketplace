@@ -7,12 +7,7 @@ import { CurrencyService } from "./currency-service.js";
 
 export class TransactionService {
   static escape(value) {
-    return String(value ?? "")
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#039;");
+    return foundry.utils.escapeHTML(String(value ?? ""));
   }
 
 

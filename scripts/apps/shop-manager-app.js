@@ -1,3 +1,4 @@
+import { renderPreservingScroll } from "../../../morelord-core/scripts/ui/scroll-preservation.js";
 import { MODULE_ID } from "../constants.js";
 import { ShopService } from "../services/shop-service.js";
 import { CompendiumService } from "../services/compendium-service.js";
@@ -8,6 +9,9 @@ import { SHOP_ITEM_OPTIONS, ShopProfileModel, getItemTypesForOptions } from "../
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 export class MorelordShopManagerApp extends HandlebarsApplicationMixin(ApplicationV2) {
+  render(...args) {
+    return renderPreservingScroll(this, () => super.render(...args), { positions: this.panelScrollPositions });
+  }
   static DEFAULT_OPTIONS = {
     id: "morelord-marketplace-shops",
     classes: ["ml-window", "ml-marketplace-module", "ml-marketplace-shop-manager"],
@@ -51,13 +55,6 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
   }
 
   async _prepareContext() {
-    for (const panel of this.element?.querySelectorAll?.("[data-ml-marketplace-preserve-scroll]") ?? []) {
-      this.panelScrollPositions.set(panel.dataset.mlMarketplacePreserveScroll, {
-        top: panel.scrollTop,
-        left: panel.scrollLeft
-      });
-    }
-
     const shops = ShopService.getShops();
     const selected = this.draftShop?.id === this.selectedShopId
       ? ShopService.normalizeShop(this.draftShop)
@@ -175,21 +172,6 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
 
   _onRender(context, options) {
     super._onRender(context, options);
-
-    for (const panel of this.element.querySelectorAll("[data-ml-marketplace-preserve-scroll]")) {
-      const key = panel.dataset.mlMarketplacePreserveScroll;
-      const position = this.panelScrollPositions.get(key);
-      if (position) {
-        panel.scrollTop = position.top;
-        panel.scrollLeft = position.left;
-      }
-      panel.addEventListener("scroll", () => {
-        this.panelScrollPositions.set(key, {
-          top: panel.scrollTop,
-          left: panel.scrollLeft
-        });
-      }, { passive: true });
-    }
 
     const search = this.element.querySelector('[name="inventorySearch"]');
     search?.addEventListener("input", event => {

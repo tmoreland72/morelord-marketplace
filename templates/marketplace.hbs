@@ -46,7 +46,7 @@
     <div class="ml-section-heading"><div><h2>Shopper and Payer</h2><p>Choose whose inventory to use and who funds purchases. Sale proceeds go to the shopper.</p></div></div>
     <div class="ml-marketplace-shopper-card ml-marketplace-shop-context-card">
         <div class="ml-marketplace-shop-selector-block">
-          <span class="ml-marketplace-shopper-label">Shopping As</span>
+          <label><span class="ml-marketplace-shopper-label">Shopping As</span>
           {{#if showShopperSelector}}
             <select data-ml-marketplace-shopper-select aria-label="Shopping As">
               {{#each shopperOptions}}
@@ -58,11 +58,12 @@
           {{else}}
             <strong>No character selected</strong>
           {{/if}}
+          </label>
           <small>Purchases go to and sales come from this actor or group.</small>
         </div>
 
         <div class="ml-marketplace-shop-selector-block ml-marketplace-funding-selector-block">
-          <span class="ml-marketplace-shopper-label">Paying As</span>
+          <label><span class="ml-marketplace-shopper-label">Paying As</span>
           {{#if showFundingSelector}}
             <select data-ml-marketplace-funding-select aria-label="Paying As">
               {{#each fundingOptions}}
@@ -72,6 +73,7 @@
           {{else}}
             <strong>No eligible funds actor</strong>
           {{/if}}
+          </label>
           <small>Purchase coin is deducted from this actor or group.</small>
         </div>
 

@@ -12,7 +12,8 @@
     "README.md",
     "scripts",
     "styles",
-    "templates"
+    "templates",
+    "docs"
   ],
   "optionalPaths": [
     "data",
@@ -21,5 +22,6 @@
     "LICENSE",
     "LICENSE.md",
     "CHANGELOG.md"
-  ]
+  ],
+  "productDocumentationPath": "docs/README.md"
 }

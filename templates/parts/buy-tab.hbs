@@ -15,7 +15,7 @@
   </div>
 
   <div class="ml-marketplace-buy-layout">
-    <aside class="ml-marketplace-filter-sidebar" aria-label="Buy item filters" data-ml-marketplace-preserve-scroll="buy-filters">
+    <aside class="ml-marketplace-filter-sidebar" aria-label="Buy item filters" data-ml-scroll-key="buy-filters">
       <div class="ml-marketplace-filter-search">
         <label for="ml-marketplace-buy-search">Search</label>
         <div class="ml-marketplace-search">
@@ -242,7 +242,7 @@
     </aside>
 
     <main class="ml-marketplace-buy-results">
-      <div class="ml-marketplace-table-container" data-ml-marketplace-preserve-scroll="buy-results">
+      <div class="ml-marketplace-table-container" data-ml-scroll-key="buy-results">
         <table>
           <thead>
             <tr>
@@ -315,7 +315,7 @@
           <div class="ml-marketplace-cart-title"><i class="fa-solid fa-cart-shopping"></i><strong>Cart</strong></div>
           <span class="ml-marketplace-cart-count">{{cartCount}}</span>
         </div>
-        <div class="ml-marketplace-cart-items" data-ml-marketplace-preserve-scroll="buy-cart">
+        <div class="ml-marketplace-cart-items" data-ml-scroll-key="buy-cart">
           {{#each cartItems}}
             <div class="ml-marketplace-cart-line">
               <img src="{{img}}" alt="{{name}}" data-link data-uuid="{{uuid}}" title="Open {{name}}">

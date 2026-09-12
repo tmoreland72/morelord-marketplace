@@ -113,7 +113,7 @@ Install this URL using:
 ## Requirements
 
 - Foundry VTT v14
-- Morelord Core v0.1.0 or later
+- Morelord Core 0.3.6 or later
 - dnd5e System compatible with Foundry v14
 
 ---
@@ -187,7 +187,7 @@ Before publishing the next release, smoke-test these scenarios in Foundry:
 ## Morelord Modules
 
 - Morelord Marketplace
-- Morelord Drakkenheim Harvesting
+- Morelord Craftworks
 - Morelord Character Export
 - Morelord Character Manager *(in development)*
 
@@ -212,7 +212,7 @@ MIT License
 Created by **Morelord Gaming**
 ## Standard release workflow
 
-All Morelord Foundry modules use the same `release.ps1`. Project-specific values are stored in `release.config.json`, so improvements to the workflow can be copied between repositories without editing module logic.
+Production Morelord Foundry modules use the same `release.ps1`. Character Export and Downtime are currently excluded from these release steps. Project-specific values are stored in `release.config.json`, so improvements to the workflow can be copied between repositories without editing module logic.
 
 Before a normal release, create `RELEASE-NOTES-x.y.z.md`. The same Markdown file is used for the GitHub Release and parsed into the public Morelord Gaming `/releases` feed. Recognized headings are `Added`, `Features`, `Improvements`, `Changed`, `Fixed`, `Breaking Changes`, and `Security`. Prefix a bullet with `[Premium]` or `[Champion]` when the change is tier-specific; otherwise it is treated as Standard.
 
@@ -248,3 +248,7 @@ Use `-SkipWebsitePublish` only when intentionally creating a normal GitHub/Found
 ### Limited-stock quantities
 
 Random inventory rarity counts control how many different product listings are selected during a restock. Each selected limited-stock product also receives a randomized quantity: Common 1–6, Uncommon 1–4, Rare 1–2, and Very Rare/Legendary 1. This is independent of the "Allow duplicate random items" option.
+
+### Release documentation check
+
+Production releases require the `docs` directory in the archive. Before releasing, update the manuals and set `docs/README.md` frontmatter to the target version; the shared release script rejects a missing or mismatched documentation landing page. Review all manuals as part of each code change, including behavior and compatibility requirements.

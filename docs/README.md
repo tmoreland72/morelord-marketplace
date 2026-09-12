@@ -2,7 +2,7 @@
 title: Morelord Marketplace Documentation
 slug: morelord-marketplace
 product: morelord-marketplace
-version: 0.6.0
+version: 0.9.5
 ---
 
 # Morelord Marketplace Documentation
@@ -38,4 +38,7 @@ Choose the guide that matches your role:
 - [Game Master Manual](gm-manual.md) — installation, world configuration, premium access, approvals, and Shop Manager.
 - [Player Manual](player-manual.md) — selecting a character, browsing, buying, selling, and using scene shops.
 
-These manuals describe Morelord Marketplace 0.6.0 for Foundry Virtual Tabletop v14 and the dnd5e game system.
+These manuals describe Morelord Marketplace 0.9.5 for Foundry Virtual Tabletop v14 and the dnd5e game system.
+
+
+These manuals cover Marketplace 0.9.5 with Morelord Core 0.3.6 or later. Buy and Sell use carts; shops support shared Locations, capability limits, and weighted random stock.

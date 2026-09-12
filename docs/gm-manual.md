@@ -4,7 +4,7 @@ description: Install, configure, and operate Morelord Marketplace, including pre
 slug: morelord-marketplace/gm
 product: morelord-marketplace
 audience: game-master
-version: 0.6.0
+version: 0.9.5
 foundry: 14
 ---
 
@@ -12,7 +12,7 @@ foundry: 14
 
 Morelord Marketplace gives a Foundry VTT world a global catalog for buying and selling dnd5e items. With Tools Premium or Tools Champion access, it also provides GM transaction approvals and Shop Manager for configurable scene vendors.
 
-This manual applies to Morelord Marketplace 0.6.0, Foundry VTT v14, and the dnd5e system.
+This manual applies to Morelord Marketplace 0.9.5, Foundry VTT v14, and the dnd5e system.
 
 ## Contents
 
@@ -49,8 +49,8 @@ The global Marketplace remains usable if premium access expires. Saved premium s
 
 - Foundry Virtual Tabletop v14
 - The dnd5e game system
-- Morelord Core v0.1.0 or later
-- Morelord Marketplace v0.6.0 or later
+- Morelord Core 0.3.6 or later
+- Morelord Marketplace v0.9.5 or later
 
 ### Install with the manifest
 
@@ -67,7 +67,7 @@ The global Marketplace remains usable if premium access expires. Saved premium s
 
 ## Configure the global Marketplace
 
-Open **Game Settings → Configure Settings → Module Settings → Morelord Marketplace**.
+Open **Game Settings → Configure Settings → Module Settings → Morelord Marketplace → Configure Marketplace**.
 
 ![Morelord Marketplace world settings in Foundry VTT](assets/marketplace-configuration.png)
 
@@ -275,7 +275,7 @@ When **Allow duplicate random items** is enabled, the same listing may be select
 
 Select **Restock Now** to perform a manual restock. Restocking advances the shop revision, so anyone with an older open shop must refresh it before completing a transaction.
 
-Restock rules such as daily or weekly schedules are stored for automation hooks and future world-time integration. In version 0.6.0, they do not run automatically; use **Restock Now**.
+Restock rules such as daily or weekly schedules are stored for automation hooks and future world-time integration. In version 0.9.5, they do not run automatically; use **Restock Now**.
 
 ### Carts, reservations, and stale shops
 
@@ -358,3 +358,13 @@ Marketplace lists supported sellable item types with a positive price. Items fla
 ## Support
 
 Report reproducible problems at [Morelord Marketplace Issues](https://github.com/tmoreland72/morelord-marketplace/issues). Include the Marketplace version, Foundry version, dnd5e version, relevant console error, and steps to reproduce the problem.
+
+## Current catalog and shop controls
+
+Global Buy and Sell both use carts. Adding items only prepares a transaction; Purchase or Sell Cart submits it. When global GM approval is enabled, the complete cart is one request and current prices, funds, availability, and quantities are revalidated before commitment. Buy results are paginated at 50 items per page while filters cover the entire catalog.
+
+Shop Manager can associate a shop with a shared Core Location. Normal stock can inherit its capability tier or use the shop's maximum normal rarity override. Manually included inventory may exceed that limit; its Manual badge identifies stock whose remaining quantity is preserved during restocking.
+
+Eligible wishlist items receive a 1.25x selection weight during random restocking. They are not guaranteed picks, whether duplicate selection is enabled or disabled. The rarity counts still control the number of draws, and the documented unit ranges apply to selected listings.
+
+Use the shared Manage Locations action to edit Core Locations. Shopping As and Paying As remain separate choices, now with Core character portraits. Page and tab scroll positions are retained while browsing and updating carts.

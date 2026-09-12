@@ -162,7 +162,7 @@
 
 .ml-marketplace-module .ml-marketplace-shop-selector-block select {
   width: 100%;
-  min-width: 180px;
+  min-width: 0;
 }
 
 .ml-marketplace-module .ml-marketplace-shop-selector-block small {

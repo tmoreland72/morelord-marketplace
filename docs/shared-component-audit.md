@@ -1,5 +1,7 @@
 # Marketplace shared-component audit — September 11, 2026
 
+September 12 follow-up: Marketplace and Shop Manager now consume Core's shared page and keyed-panel scroll service. Shopper and payer selects use Core portrait decoration with an actor-ID resolver, preserving their stored IDs. TransactionService delegates escaping to Foundry's native utility. The manifest already requires Core 0.3.5; the manuals now agree. The corresponding findings below are historical. Specialized shop/editor styling and live responsive-layout acceptance remain separate work.
+
 Marketplace uses Core, but it is not yet entirely standardized. The customer-facing page now follows the suite's section structure. Shop Manager, catalog filters, and transaction cards still contain substantial custom presentation. This audit distinguishes completed fixes from remaining consolidation opportunities.
 
 Reviewed the three application classes and templates, loaded tab partials, all three feature stylesheets, service boundaries, module manifest, Core's shared UI/services and design checker, and the Downtime section/render patterns. The supplied screenshot was unavailable. This is a source and template audit, not a live-world visual or transaction test.

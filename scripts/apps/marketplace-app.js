@@ -1,3 +1,5 @@
+import { renderPreservingScroll } from "../../../morelord-core/scripts/ui/scroll-preservation.js";
+import { decorateActorSelect } from "../../../morelord-core/scripts/ui/actor-identity.js";
 import { MODULE_ID } from "../constants.js";
 import { ActorService } from "../services/actor-service.js";
 import { CurrencyService } from "../services/currency-service.js";
@@ -13,8 +15,7 @@ const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(ApplicationV2) {
   render(...args) {
-    const preserve = globalThis.MorelordCore?.ui?.renderPreservingScroll;
-    return preserve ? preserve(this, () => super.render(...args)) : super.render(...args);
+    return renderPreservingScroll(this, () => super.render(...args), { positions: this.panelScrollPositions });
   }
 
   static DEFAULT_OPTIONS = {
@@ -197,16 +198,6 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
   }
 
   async _prepareContext(options) {
-    // ApplicationV2 prepares the next context while the previous DOM is still
-    // mounted, so capture exact positions even if the browser has not delivered
-    // the latest passive scroll event yet.
-    for (const panel of this.element?.querySelectorAll?.("[data-ml-marketplace-preserve-scroll]") ?? []) {
-      this.panelScrollPositions.set(panel.dataset.mlMarketplacePreserveScroll, {
-        top: panel.scrollTop,
-        left: panel.scrollLeft
-      });
-    }
-
     const liveShop = this.shopId ? ShopService.getShop(this.shopId) : null;
     const shop = this.shopId ? (this.shopSnapshot ?? foundry.utils.deepClone(liveShop)) : null;
     const shopStale = Boolean(shop && liveShop && Number(liveShop.revision ?? 1) !== Number(this.shopRevision ?? 1));
@@ -446,17 +437,8 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
   _onRender(context, options) {
     super._onRender(context, options);
 
-    for (const panel of this.element.querySelectorAll("[data-ml-marketplace-preserve-scroll]")) {
-      const key = panel.dataset.mlMarketplacePreserveScroll;
-      const position = this.panelScrollPositions.get(key);
-      panel.scrollTop = typeof position === "number" ? position : position?.top ?? 0;
-      panel.scrollLeft = typeof position === "object" ? position?.left ?? 0 : 0;
-      panel.addEventListener("scroll", () => {
-        this.panelScrollPositions.set(key, {
-          top: panel.scrollTop,
-          left: panel.scrollLeft
-        });
-      }, { passive: true });
+    for (const select of this.element.querySelectorAll("[data-ml-marketplace-shopper-select], [data-ml-marketplace-funding-select]")) {
+      decorateActorSelect(select, id => game.actors.get(id)?.uuid);
     }
 
     if (this.shopId && this.isLoadingBuy && !this._initialShopLoadStarted) {

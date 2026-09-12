@@ -4,7 +4,7 @@ description: Browse, buy, and sell items through the global Marketplace and GM-c
 slug: morelord-marketplace/player
 product: morelord-marketplace
 audience: player
-version: 0.6.0
+version: 0.9.5
 foundry: 14
 ---
 
@@ -12,7 +12,7 @@ foundry: 14
 
 Morelord Marketplace lets you browse, buy, and sell dnd5e items from your character in Foundry VTT. Your GM may also place individual vendors with their own products, prices, reputation, and stock.
 
-This manual applies to Morelord Marketplace 0.6.0.
+This manual applies to Morelord Marketplace 0.9.5.
 
 ## Contents
 
@@ -100,7 +100,8 @@ Select an item's linked name to open its source compendium entry and read its fu
 1. Confirm the correct character is shown.
 2. Open **Buy**.
 3. Find the item you want.
-4. Select its cart-plus button.
+4. Select its cart-plus button to add units to the Buy cart. Repeat for other items, including items on other catalog pages.
+5. Review quantities and the total, then select **Purchase** to submit the cart. Adding an item alone does not spend currency.
 
 If the transaction completes immediately, Marketplace deducts the price from the character and adds the item to that character's inventory. If GM approval is enabled, the request remains pending until a GM approves or denies it.
 
@@ -112,7 +113,8 @@ The purchase button may be unavailable when global buying is disabled. Marketpla
 2. Open **Sell**.
 3. Review each item's quantity, list price, and offered sell price.
 4. Optionally use **Sort by** to order the list by name, type, quantity, list price, or sell price.
-5. Select the coin button to **Sell One**, or the sack button to **Sell All**.
+5. Use **Add one to sell cart** or **Add all to sell cart** to collect the items you want to sell.
+6. Review the Sell Cart, remove unwanted quantities, then select **Sell Cart** to submit the sale. **Clear Cart** removes the planned sale without changing inventory.
 
 When the sale completes, Marketplace removes the sold quantity and deposits the proceeds into the character's currency. If GM approval is enabled, the item and payment remain unchanged until the GM approves the request.
 
@@ -253,3 +255,9 @@ The transaction no longer matched the world state when the GM approved it. Check
 ## Getting help
 
 Ask your GM first for world-specific questions about enabled compendiums, prices, permissions, shops, and approvals. Reproducible module problems can be reported at [Morelord Marketplace Issues](https://github.com/tmoreland72/morelord-marketplace/issues).
+
+## Wishlists and browsing
+
+Buy results are paginated at 50 items per page. Filters apply to the full catalog, and changing a filter resets the page. Cart selections persist across pages. Shopping As selects the receiving inventory; Paying As selects the funding actor. Their portraits identify the selected characters without changing these choices.
+
+Save desired items to the selected shopper's Wishlist. A wishlist does not reserve stock or guarantee that a vendor will carry an item. Eligible wishlist items receive a modest preference during random restocking and may still be absent.
