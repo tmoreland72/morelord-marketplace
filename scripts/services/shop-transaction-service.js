@@ -1,3 +1,4 @@
+import { itemRarity } from "../../../morelord-core/scripts/services/item-rarity.js";
 import { MODULE_ID } from "../constants.js";
 import { CurrencyService } from "./currency-service.js";
 import { PricingService } from "./pricing-service.js";
@@ -233,7 +234,7 @@ export class ShopTransactionService {
         uuid: `Compendium.${line.packId}.Item.${line.documentId}`,
         typeKey,
         subtypeKey: CompendiumService.getSubtypeKey(typeKey, item.system ?? {}),
-        rarityKey: CompendiumService.normalizeRarity(item.system?.rarity)
+        rarityKey: CompendiumService.normalizeRarity(itemRarity(item.system))
       };
       if (!ShopService.entryPassesShop(row, shop, line.packId)) {
         throw new Error(`${item.name} is not sold by ${shop.name}. Refresh the shop and review your cart.`);

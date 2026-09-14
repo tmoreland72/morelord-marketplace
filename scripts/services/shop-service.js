@@ -1,3 +1,4 @@
+import { itemRarity } from "../../../morelord-core/scripts/services/item-rarity.js";
 import { MODULE_ID, FLAGS } from "../constants.js";
 import { WishlistService } from "./wishlist-service.js";
 import { SHOP_ITEM_OPTIONS, SHOP_TYPES, REPUTATION_TIERS, ShopProfileModel, getItemTypesForOptions } from "../models/shop-profile.js";
@@ -330,7 +331,7 @@ export class ShopService {
 
     if (shop.compendiums?.length && !shop.compendiums.includes(packId)) return false;
     if (!this.entryMatchesItemOptions(entry, shop)) return false;
-    const rarity = this.normalizeRarity(entry?.rarityKey ?? entry?.system?.rarity);
+    const rarity = this.normalizeRarity(entry?.rarityKey ?? itemRarity(entry?.system));
     const capability = this.getEffectiveCapability(shop);
     if (!inventoryEntryAllowedByCapability({ rarity, capabilityTier: capability.tier, manuallyIncluded })) return false;
     if (shop.rarities?.length && !shop.rarities.map(value => this.normalizeRarity(value)).includes(rarity)) return false;

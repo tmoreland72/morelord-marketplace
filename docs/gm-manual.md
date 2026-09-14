@@ -369,3 +369,7 @@ Shop Manager can associate a shop with a shared Core Location. Normal stock can 
 Eligible wishlist items receive a 1.25x selection weight during random restocking. They are not guaranteed picks, whether duplicate selection is enabled or disabled. The rarity counts still control the number of draws, and the documented unit ranges apply to selected listings.
 
 Use the shared Manage Locations action to edit Core Locations. Shopping As and Paying As remain separate choices, now with Core character portraits. Page and tab scroll positions are retained while browsing and updating carts.
+
+## D&D 5e rarity compatibility
+
+Catalogs and shops accept legacy rarity fields and v6 rarity collections. Items with multiple rarities use the lowest listed rarity for classification and shop limits, matching the system single-rarity Item getter. An empty rarity collection is mundane; nonmagical items retain their existing Common catalog grouping.

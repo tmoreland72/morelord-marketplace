@@ -1,3 +1,4 @@
+import { itemRarity } from "../../../morelord-core/scripts/services/item-rarity.js";
 import { MODULE_ID, FLAGS } from "../constants.js";
 import { PricingService } from "./pricing-service.js";
 import { CurrencyService } from "./currency-service.js";
@@ -321,7 +322,7 @@ export class CompendiumService {
         "type",
         "img",
         "system.price",
-        "system.rarity",
+        "system.rarity", "system.rarities",
         "system.type",
         "system.armor",
         "system.properties",
@@ -384,9 +385,9 @@ export class CompendiumService {
     );
 
     const rarityKey = this.normalizeRarity(
-      system.rarity
+      itemRarity(system)
     );
-    const rawRarity = this.normalize(system.rarity);
+    const rawRarity = this.normalize(itemRarity(system));
 
     const subtypeKey = this.getSubtypeKey(
       typeKey,

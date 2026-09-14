@@ -5,7 +5,7 @@
   "version": "0.9.6",
   "compatibility": {
     "minimum": "14",
-    "verified": "14"
+    "verified": "14.367"
   },
   "authors": [
     {
@@ -34,7 +34,7 @@
         "id": "morelord-core",
         "type": "module",
         "compatibility": {
-          "minimum": "0.3.7"
+          "minimum": "0.3.8"
         },
         "manifest": "https://raw.githubusercontent.com/tmoreland72/morelord-core/main/module.json"
       }
