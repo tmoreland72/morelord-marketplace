@@ -1,24 +1,22 @@
 <section class="ml-app ml-app-shell ml-marketplace-settings">
-<section class="ml-access-card" data-state="{{#if premium.entitled}}active{{else}}locked{{/if}}">
+  <header class="ml-hero"><i class="fa-solid fa-store ml-hero__icon"></i><div class="ml-hero__body"><h1>Morelord Marketplace Settings</h1><p>Configure Marketplace trading behavior. Catalog sources follow D&amp;D5e Configure Sources.</p></div></header>
+  <section class="ml-surface ml-stack">
+    <div class="ml-section-heading"><div><h2>Morelord Account</h2><p>Review account access and manage your connection through Morelord Core.</p></div></div>
+<section class="ml-access-card" data-state="{{#if premium.connected}}active{{else}}locked{{/if}}">
   <div class="ml-access-card__icon">
     <i class="fa-solid fa-crown"></i>
   </div>
 
   <div class="ml-access-card__body">
-    <strong>GM Approval Workflow</strong>
+    <strong>Morelord Account</strong>
 
-    {{#if premium.entitled}}
-      <span>Unlocked with {{premium.tierLabel}}</span>
+    {{#if premium.connected}}
+      <span>Connected with {{premium.tierLabel}}</span>
+      <small>GM Approval Workflow: {{#if premium.entitled}}Available{{else}}Premium Access Required{{/if}}</small>
+    {{else if premium.coreActive}}
+      <span>Connect a Morelord account through Morelord Core.</span>
     {{else}}
-      {{#if premium.connected}}
-        <span>Locked — this account does not currently include premium module features.</span>
-      {{else}}
-        {{#if premium.coreActive}}
-          <span>Connect a Morelord account to unlock premium Marketplace features.</span>
-        {{else}}
-          <span>Morelord Core must be enabled to manage premium access.</span>
-        {{/if}}
-      {{/if}}
+      <span>Morelord Core must be enabled to manage premium access.</span>
     {{/if}}
 
     {{#if premium.validatedAtLabel}}
@@ -39,51 +37,51 @@
     {{/if}}
   </div>
 </section>
+  </section>
 
-  <header class="ml-marketplace-settings-header">
-    <h2>Morelord Marketplace</h2>
-    <p>Configure Marketplace trading behavior. Catalog sources follow D&amp;D5e Configure Sources.</p>
-  </header>
-
-  <section class="ml-settings-section ml-marketplace-settings__section">
-    <div class="ml-settings-section__heading">
+  <section class="ml-surface ml-stack">
+    <div class="ml-section-heading">
       <div>
-        <h3><i class="fa-solid fa-coins"></i> Trading</h3>
+        <h2><i class="fa-solid fa-coins"></i> Trading</h2>
         <p>Configure global Marketplace buying, selling, approvals, and chat activity. Individual shops retain their own trade rules.</p>
       </div>
     </div>
 
-    <div class="ml-marketplace-settings__grid">
-      <label class="ml-marketplace-setting-row">
+    <div class="ml-stack">
+      <label class="ml-setting-row">
+        <span><strong>Default Buy Rate</strong><small>Multiplier of list price for global purchases: 1 for 100%, 1.5 for 150%. Minimum 1.</small></span>
+        <input type="number" name="buyRate" value="{{settings.buyRate}}" min="1" step="0.05" required>
+      </label>
+      <label class="ml-setting-row">
         <span><strong>Default Sell Rate</strong><small>Fraction of list price received when selling, from 0 to 1.</small></span>
         <input type="number" name="sellRate" value="{{settings.sellRate}}" min="0" max="1" step="0.05">
       </label>
-      <label class="ml-marketplace-setting-row">
+      <label class="ml-setting-row">
         <span><strong>Enable Global Marketplace Selling</strong><small>Allow sales through the unrestricted global Marketplace.</small></span>
         <input type="checkbox" name="enableSelling" {{#if settings.enableSelling}}checked{{/if}}>
       </label>
-      <label class="ml-marketplace-setting-row">
+      <label class="ml-setting-row">
         <span><strong>Enable Global Marketplace Buying</strong><small>Allow purchases through the unrestricted global Marketplace.</small></span>
         <input type="checkbox" name="enableBuying" {{#if settings.enableBuying}}checked{{/if}}>
       </label>
-      <label class="ml-marketplace-setting-row">
+      <label class="ml-setting-row">
         <span><strong>Require GM Approval for Sales</strong><small>Player sales remain pending until a GM resolves them.</small></span>
         <input type="checkbox" name="requireSellApproval" {{#if settings.requireSellApproval}}checked{{/if}}>
       </label>
-      <label class="ml-marketplace-setting-row">
+      <label class="ml-setting-row">
         <span><strong>Require GM Approval for Purchases</strong><small>Player purchases remain pending until a GM resolves them.</small></span>
         <input type="checkbox" name="requireBuyApproval" {{#if settings.requireBuyApproval}}checked{{/if}}>
       </label>
-      <label class="ml-marketplace-setting-row">
+      <label class="ml-setting-row">
         <span><strong>Post Transaction Cards</strong><small>Post completed and pending Marketplace transactions to chat.</small></span>
         <input type="checkbox" name="postTransactionCards" {{#if settings.postTransactionCards}}checked{{/if}}>
       </label>
     </div>
   </section>
 
-  <div class="ml-toolbar ml-page-footer ml-marketplace-settings-toolbar">
-    <button type="button" data-action="save" class="ml-marketplace-save-button">
+  <footer class="ml-page-footer ml-actions">
+    <button type="button" data-action="save">
       <i class="fa-solid fa-floppy-disk"></i> Save
     </button>
-  </div>
+  </footer>
 </section>

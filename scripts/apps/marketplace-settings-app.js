@@ -37,6 +37,7 @@ export class MorelordMarketplaceSettingsApp extends HandlebarsApplicationMixin(A
 
     return {
       settings: {
+        buyRate: game.settings.get(MODULE_ID, "buyRate"),
         sellRate: game.settings.get(MODULE_ID, "sellRate"),
         enableSelling: game.settings.get(MODULE_ID, "enableSelling"),
         enableBuying: game.settings.get(MODULE_ID, "enableBuying"),
@@ -81,6 +82,7 @@ export class MorelordMarketplaceSettingsApp extends HandlebarsApplicationMixin(A
 
     try {
       const settingValues = {
+        buyRate: Number(this.element.querySelector("[name='buyRate']")?.value),
         sellRate: Number(this.element.querySelector("[name='sellRate']")?.value),
         enableSelling: Boolean(this.element.querySelector("[name='enableSelling']")?.checked),
         enableBuying: Boolean(this.element.querySelector("[name='enableBuying']")?.checked),
@@ -88,6 +90,10 @@ export class MorelordMarketplaceSettingsApp extends HandlebarsApplicationMixin(A
         requireBuyApproval: Boolean(this.element.querySelector("[name='requireBuyApproval']")?.checked),
         postTransactionCards: Boolean(this.element.querySelector("[name='postTransactionCards']")?.checked)
       };
+      if (!Number.isFinite(settingValues.buyRate) || settingValues.buyRate < 1) {
+        ui.notifications.error("Default Buy Rate must be 1 or higher.");
+        return;
+      }
       if (!Number.isFinite(settingValues.sellRate) || settingValues.sellRate < 0 || settingValues.sellRate > 1) {
         ui.notifications.error("Default Sell Rate must be between 0 and 1.");
         return;

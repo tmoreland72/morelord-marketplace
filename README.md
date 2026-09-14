@@ -89,6 +89,7 @@ Game Masters can configure:
 - Global Marketplace buying enabled/disabled
 - Global Marketplace selling enabled/disabled
 - Sell percentage
+- Default global buy rate (minimum `1`; `1.5` charges 150% of list price)
 - Catalog sources follow D&D5e Configure Sources
 - Shop pricing, reputation, inventory, stock, and restocking rules *(Shop Manager premium feature)*
 
@@ -113,7 +114,7 @@ Install this URL using:
 ## Requirements
 
 - Foundry VTT v14
-- Morelord Core 0.3.6 or later
+- Morelord Core 0.3.7 or later
 - dnd5e System compatible with Foundry v14
 
 ---
@@ -212,7 +213,7 @@ MIT License
 Created by **Morelord Gaming**
 ## Standard release workflow
 
-Production Morelord Foundry modules use the same `release.ps1`. Character Export and Downtime are currently excluded from these release steps. Project-specific values are stored in `release.config.json`, so improvements to the workflow can be copied between repositories without editing module logic.
+Production Morelord Foundry modules use the same `release.ps1`. Character Export follows these release steps; Downtime remains excluded. Project-specific values are stored in `release.config.json`, so improvements to the workflow can be copied between repositories without editing module logic.
 
 Before a normal release, create `RELEASE-NOTES-x.y.z.md`. The same Markdown file is used for the GitHub Release and parsed into the public Morelord Gaming `/releases` feed. Recognized headings are `Added`, `Features`, `Improvements`, `Changed`, `Fixed`, `Breaking Changes`, and `Security`. Prefix a bullet with `[Premium]` or `[Champion]` when the change is tier-specific; otherwise it is treated as Standard.
 
@@ -252,3 +253,15 @@ Random inventory rarity counts control how many different product listings are s
 ### Release documentation check
 
 Production releases require the `docs` directory in the archive. Before releasing, update the manuals and set `docs/README.md` frontmatter to the target version; the shared release script rejects a missing or mismatched documentation landing page. Review all manuals as part of each code change, including behavior and compatibility requirements.
+
+
+Shopping As and Paying From use Core’s shared character eligibility: player-owned characters and character members of the primary party. Existing actor permissions, currency checks, and Group inventory choices still apply.
+
+
+Marketplace Settings uses Core’s standard page footer so Save stays visible below the scrolling settings.
+
+
+Settings use Morelord Core’s shared headers, sections, content cards, settings rows, and footer. Descriptions remain beside checkboxes at narrow widths.
+
+
+The Morelord Account section above Trading shows account connection, membership, and GM approval access, with Connect/Manage Account and Refresh controls.

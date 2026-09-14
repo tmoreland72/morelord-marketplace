@@ -23,7 +23,10 @@ export class PricingService {
   }
 
   static getBuyPriceCp(basePriceCp, shop = null) {
-    if (!shop) return Math.round(basePriceCp);
+    if (!shop) {
+      const rate = Number(game.settings.get(MODULE_ID, "buyRate") ?? 1);
+      return Math.round(basePriceCp * (Number.isFinite(rate) ? Math.max(1, rate) : 1));
+    }
     const reputation = ShopService.getReputationTier(shop);
     if (reputation.buyModifier === null) return null;
     return Math.max(0, Math.round(basePriceCp * Number(shop.buyModifier ?? 1) * reputation.buyModifier));

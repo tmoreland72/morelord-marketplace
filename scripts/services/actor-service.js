@@ -1,3 +1,4 @@
+import { listCharacterActors } from "../../../morelord-core/scripts/ui/actor-participation.js";
 import { MODULE_ID, ITEM_TYPES } from "../constants.js";
 import { PricingService } from "./pricing-service.js";
 import { CurrencyService } from "./currency-service.js";
@@ -58,8 +59,7 @@ export class ActorService {
 
   /** Return characters and groups the current user can shop, sell, or receive items as. */
   static getShopperActors() {
-    return game.actors
-      .filter(actor => actor.type === "character" || actor.type === "group")
+    return [...listCharacterActors(), ...game.actors.filter(actor => actor.type === "group")]
       .filter(actor => this.canUserOperateActor(actor))
       .sort((a, b) => {
         const aGroup = a.type === "group" ? 0 : 1;
@@ -70,8 +70,7 @@ export class ActorService {
 
   /** Return operable characters and Group actors whose currency may fund a purchase. */
   static getFundingActors() {
-    return game.actors
-      .filter(actor => actor.type === "character" || actor.type === "group")
+    return [...listCharacterActors(), ...game.actors.filter(actor => actor.type === "group")]
       .filter(actor => this.canUserOperateActor(actor))
       .filter(actor => this.hasCurrency(actor))
       .sort((a, b) => {

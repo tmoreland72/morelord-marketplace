@@ -4,7 +4,7 @@ description: Install, configure, and operate Morelord Marketplace, including pre
 slug: morelord-marketplace/gm
 product: morelord-marketplace
 audience: game-master
-version: 0.9.5
+version: 0.9.6
 foundry: 14
 ---
 
@@ -12,7 +12,7 @@ foundry: 14
 
 Morelord Marketplace gives a Foundry VTT world a global catalog for buying and selling dnd5e items. With Tools Premium or Tools Champion access, it also provides GM transaction approvals and Shop Manager for configurable scene vendors.
 
-This manual applies to Morelord Marketplace 0.9.5, Foundry VTT v14, and the dnd5e system.
+This manual applies to Morelord Marketplace 0.9.6, Foundry VTT v14, and the dnd5e system.
 
 ## Contents
 
@@ -35,7 +35,7 @@ This manual applies to Morelord Marketplace 0.9.5, Foundry VTT v14, and the dnd5
 | Browse the global catalog | Yes | Yes |
 | Buy and sell in the global Marketplace | Yes | Yes |
 | Configure allowed item compendiums | Yes | Yes |
-| Configure the default sell rate | Yes | Yes |
+| Configure the default buy and sell rates | Yes | Yes |
 | Post transaction cards to chat | Yes | Yes |
 | Require GM approval for global purchases and sales | No | Yes |
 | Create and manage scene shops | No | Yes |
@@ -49,8 +49,8 @@ The global Marketplace remains usable if premium access expires. Saved premium s
 
 - Foundry Virtual Tabletop v14
 - The dnd5e game system
-- Morelord Core 0.3.6 or later
-- Morelord Marketplace v0.9.5 or later
+- Morelord Core 0.3.7 or later
+- Morelord Marketplace v0.9.6 or later
 
 ### Install with the manifest
 
@@ -77,6 +77,7 @@ Open **Game Settings → Configure Settings → Module Settings → Morelord Mar
 
 | Setting | Default | Effect |
 | --- | --- | --- |
+| **Default Buy Rate** | `1` | Multiplier of list price for global purchases, at least `1`. Enter `1.5` for 150%. Applies to catalog prices, checkout, and approvals; shops retain their own pricing. |
 | **Default Sell Rate** | `1` | Fraction of an item's list price paid for global sales. Enter `0.5` for 50% or `1` for 100%. Shops can override this value. |
 | **Enable Global Marketplace Selling** | On | Enables selling in the global Marketplace. It does not affect shop-specific selling. |
 | **Enable Global Marketplace Buying** | On | Enables direct global purchases. If off, players can still browse the catalog as a reference. It does not affect shop-specific buying. |
@@ -275,7 +276,7 @@ When **Allow duplicate random items** is enabled, the same listing may be select
 
 Select **Restock Now** to perform a manual restock. Restocking advances the shop revision, so anyone with an older open shop must refresh it before completing a transaction.
 
-Restock rules such as daily or weekly schedules are stored for automation hooks and future world-time integration. In version 0.9.5, they do not run automatically; use **Restock Now**.
+Restock rules such as daily or weekly schedules are stored for automation hooks and future world-time integration. In version 0.9.6, they do not run automatically; use **Restock Now**.
 
 ### Carts, reservations, and stale shops
 

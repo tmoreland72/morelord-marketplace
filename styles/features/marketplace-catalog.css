@@ -561,58 +561,6 @@
   }
 }
 
-
-/* =========================================================
-   Settings Window
-   ========================================================= */
-
-.ml-marketplace-settings-window .window-content {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
-  scrollbar-gutter: stable;
-}
-
-.ml-marketplace-settings-window .ml-marketplace-settings {
-  display: flex;
-  flex: 0 0 auto;
-  flex-direction: column;
-  min-height: 0;
-  overflow: visible;
-  padding: 1rem;
-}
-
-.ml-marketplace-settings-window .ml-marketplace-settings-header {
-  flex: 0 0 auto;
-}
-
-.ml-marketplace-settings-window .ml-marketplace-settings-header h2 {
-  margin: 0 0 0.35rem;
-}
-
-.ml-marketplace-settings-window .ml-marketplace-settings-header p {
-  margin: 0 0 1rem;
-}
-
-.ml-marketplace-settings-window .ml-marketplace-settings-toolbar {
-  display: flex;
-  flex: 0 0 auto;
-  gap: 0.5rem;
-}
-
-.ml-marketplace-settings__section { margin-top: 1rem; }
-.ml-marketplace-settings__grid { display: grid; gap: var(--ml-space-2); }
-.ml-marketplace-setting-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--ml-space-4); padding: var(--ml-space-2) 0; border-bottom: 1px solid var(--ml-color-border); }
-.ml-marketplace-setting-row:last-child { border-bottom: 0; }
-.ml-marketplace-setting-row > span { display: grid; gap: var(--ml-space-1); }
-.ml-marketplace-setting-row input[type="number"] { width: 90px; }
-
-.ml-marketplace-settings-window .ml-marketplace-save-button {
-  margin-left: auto;
-}
-
 /* =========================================================
    Tri-State Buy Filters
    ========================================================= */

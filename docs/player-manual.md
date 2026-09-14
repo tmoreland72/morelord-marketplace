@@ -4,7 +4,7 @@ description: Browse, buy, and sell items through the global Marketplace and GM-c
 slug: morelord-marketplace/player
 product: morelord-marketplace
 audience: player
-version: 0.9.5
+version: 0.9.6
 foundry: 14
 ---
 
@@ -12,7 +12,7 @@ foundry: 14
 
 Morelord Marketplace lets you browse, buy, and sell dnd5e items from your character in Foundry VTT. Your GM may also place individual vendors with their own products, prices, reputation, and stock.
 
-This manual applies to Morelord Marketplace 0.9.5.
+This manual applies to Morelord Marketplace 0.9.6.
 
 ## Contents
 
