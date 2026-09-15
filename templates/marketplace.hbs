@@ -38,6 +38,8 @@
       {{#if canManageShops}}<button type="button" class="ml-marketplace-manage-shops-button" data-action="manageShops"><i class="fa-solid fa-shop"></i> Manage Shops</button>{{/if}}
       {{#if canManageLocations}}<button type="button" data-action="manageLocations"><i class="fa-solid fa-map-location-dot"></i> Manage Locations</button>{{/if}}
     </div>
+    {{#if isGM}}<label class="ml-check"><input type="checkbox" data-action="toggleGlobalRates" {{#if ignoreGlobalRates}}checked{{/if}}><span>Temporarily ignore buy and sell rates (both ×1)</span></label>{{/if}}
+    {{#if ignoreGlobalRates}}<p class="notes">Global rate override is active: purchases and sales use full list price. Shop rates are independent.</p>{{/if}}
     {{/if}}
 
   </header>

@@ -19,6 +19,7 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
     window: { title: "Marketplace Shops", icon: "fa-solid fa-store", resizable: true },
     position: { width: 1240, height: 820 },
     actions: {
+      openDocumentation: async () => (await import("./marketplace-app.js")).MorelordMarketplaceApp.openDocumentation(),
       createShop: MorelordShopManagerApp.createShop,
       createPrefabShop: MorelordShopManagerApp.createPrefabShop,
       selectShop: MorelordShopManagerApp.selectShop,
@@ -136,14 +137,6 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
           { key: "limited", label: "Limited Stock" },
           { key: "hybrid", label: "Hybrid" }
         ].map(mode => ({ ...mode, selected: mode.key === selected.inventoryMode })),
-        restockRules: [
-          { key: "manual", label: "GM Restock" },
-          { key: "never", label: "Never" }
-        ].map(rule => ({ ...rule, selected: rule.key === selected.restock?.rule })),
-        restockBehaviors: [
-          { key: "replace", label: "Reroll / replace inventory" },
-          { key: "topup", label: "Top up inventory" }
-        ].map(behavior => ({ ...behavior, selected: behavior.key === selected.restock?.behavior })),
         inventory,
         inventoryCount: inventory.length
       } : null,
@@ -281,11 +274,6 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
         veryrare: Number(data.get("stockVeryrare") ?? 0),
         legendary: Number(data.get("stockLegendary") ?? 0)
       }
-    };
-    shop.restock = {
-      ...(shop.restock ?? {}),
-      rule: String(data.get("restockRule") ?? "manual"),
-      behavior: String(data.get("restockBehavior") ?? "replace")
     };
 
     const saved = await ShopService.saveShop(shop, { bumpRevision: !isDraft });

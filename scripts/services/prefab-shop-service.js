@@ -1,6 +1,9 @@
 import { MODULE_ID } from "../constants.js";
 import { CompendiumService } from "./compendium-service.js";
 
+import { Dnd5eSourceFilterService } from "../../../morelord-core/scripts/services/dnd5e-source-filter-service.js";
+const sources = new Dnd5eSourceFilterService();
+
 export class PrefabShopService {
   static definitions = null;
   static resolvedCache = new Map();
@@ -129,7 +132,7 @@ export class PrefabShopService {
       .sort()
       .join("|");
 
-    const cacheKey = `lookup:${packSignature}`;
+    const cacheKey = `lookup:${packSignature}:${JSON.stringify(sources.configuration)}`;
     if (this.resolvedCache.has(cacheKey)) {
       return this.resolvedCache.get(cacheKey);
     }
@@ -143,10 +146,11 @@ export class PrefabShopService {
 
     for (const pack of sortedPacks) {
       const index = await pack.getIndex({
-        fields: ["name", "img"]
+        fields: ["name", "img", "type", "system.source"]
       });
 
       for (const entry of index) {
+        if (!sources.isSourceEnabled(sources.sourceLabelForItem(entry, { pack }), { itemType: entry.type })) continue;
         const item = {
           packId: pack.collection,
           documentId: entry._id,
@@ -169,7 +173,7 @@ export class PrefabShopService {
 
     const lookup = {
       packs: sortedPacks,
-      packSignature,
+      packSignature: cacheKey,
       exact,
       signatures
     };
@@ -229,11 +233,18 @@ export class PrefabShopService {
       definitions.map(definition => this.resolveDefinition(definition))
     );
 
+    const seenNames = new Set();
     return resolved
       .filter(prefab => prefab.matchedCount >= minimumMatches)
       .sort((a, b) => {
         const count = b.matchedCount - a.matchedCount;
         return count || a.name.localeCompare(b.name);
+      })
+      .filter(prefab => {
+        const key = this.normalizeName(prefab.name);
+        if (seenNames.has(key)) return false;
+        seenNames.add(key);
+        return true;
       });
   }
 

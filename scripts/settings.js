@@ -13,6 +13,10 @@ export function registerSettings() {
     restricted: true
   });
 
+  game.settings.register(MODULE_ID, "ignoreGlobalRates", {
+    name: "Ignore Global Buy and Sell Rates", scope: "world", config: false, type: Boolean, default: false
+  });
+
   game.settings.register(MODULE_ID, "buyRate", {
     name: "Default Buy Rate",
     hint: "Multiplier of list price for global purchases. Use 1 for 100% or 1.5 for 150%; minimum 1.",

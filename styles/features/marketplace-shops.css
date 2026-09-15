@@ -130,7 +130,6 @@
 .ml-marketplace-shop-editor-empty { height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; opacity:.7; text-align:center; }
 .ml-marketplace-shop-editor-empty i { font-size:42px; }
 .ml-marketplace-module button.primary { font-weight:700; }
-.ml-marketplace-module button.danger { border-color:var(--ml-color-danger); color:var(--ml-color-danger); }
 
 
 /* Shop-first browsing state: the vendor opens even before a customer is selected. */
@@ -746,3 +745,5 @@
   font-weight: 700;
   white-space: nowrap;
 }
+
+.ml-marketplace-shops-heading { grid-column: 1 / -1; }

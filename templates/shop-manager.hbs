@@ -8,13 +8,9 @@
       </div>
     </div>
   {{/if}}
+  <header class="ml-hero ml-marketplace-shops-heading"><i class="fa-solid fa-store ml-hero__icon"></i><div class="ml-hero__body"><h1>Marketplace Shops</h1><p>Manage existing stores or start from a template or prefab.</p></div><div class="ml-actions"><button type="button" data-action="openDocumentation"><i class="fa-solid fa-book-open"></i> Documentation</button></div></header>
   <aside class="ml-marketplace-shop-list-panel" data-ml-scroll-key="shop-library">
     <div class="ml-marketplace-shop-manager-heading">
-      <div class="ml-marketplace-shop-manager-title">
-        <span class="ml-marketplace-shop-manager-eyebrow">Vendor Library</span>
-        <h2>Marketplace Shops</h2>
-        <p>Manage existing stores or start from a template or prefab.</p>
-      </div>
       <button type="button" class="ml-marketplace-shop-import-button" data-action="importShop" title="Import a portable shop definition">
         <i class="fa-solid fa-file-import"></i><span>Import Shop</span>
       </button>
@@ -145,7 +141,7 @@
               <label>Buy Multiplier <input type="number" name="buyModifier" min="0" step="0.05" value="{{selected.buyModifier}}"></label>
               <label>Base Sell Rate <input type="number" name="sellModifier" min="0" step="0.05" value="{{selected.sellModifier}}"></label>
             </div>
-            <p class="hint">Reputation modifies both values automatically. Hostile parties cannot trade.</p>
+            <p class="hint">New shops start with the Marketplace settings rates; edit these values for this shop. Reputation modifies both values automatically. Hostile parties cannot trade.</p>
           </section>
 
           <section class="ml-surface ml-stack ml-marketplace-shop-config-card">
@@ -170,6 +166,7 @@
             </label>
             <label><input type="checkbox" name="randomEnabled" {{#if selected.randomInventory.enabled}}checked{{/if}}> Generate limited stock randomly</label>
             <label><input type="checkbox" name="allowDuplicates" {{#if selected.randomInventory.allowDuplicates}}checked{{/if}}> Allow duplicate random items</label>
+            <p class="notes">The settings below control how many items are randomly selected at each rarity when creating or restocking this shop. Without duplicates, each selection is a different item, up to the number available. With duplicates, repeated selections increase that item's stock. Set a rarity to 0 to select none. Only selected product rarities are eligible.</p>
             <div class="ml-marketplace-stock-counts">
               <label>Common <input type="number" name="stockCommon" min="0" value="{{selected.randomInventory.counts.common}}"></label>
               <label>Uncommon <input type="number" name="stockUncommon" min="0" value="{{selected.randomInventory.counts.uncommon}}"></label>
@@ -179,16 +176,6 @@
             </div>
           </section>
 
-          <section class="ml-surface ml-stack ml-marketplace-shop-config-card">
-            <h3>Restocking</h3>
-            <label>Rule
-              <select name="restockRule">{{#each selected.restockRules}}<option value="{{key}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}</select>
-            </label>
-            <label>Behavior
-              <select name="restockBehavior">{{#each selected.restockBehaviors}}<option value="{{key}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}</select>
-            </label>
-            <p class="hint">Restock manually with <strong>Restock Now</strong>, or choose Never for shops whose inventory is managed entirely by the GM.</p>
-          </section>
 
           <section class="ml-surface ml-stack ml-marketplace-shop-config-card ml-marketplace-shop-config-wide">
             <h3>Products</h3>
@@ -249,7 +236,7 @@
                   {{else}}
                     <span class="ml-marketplace-shop-inventory-infinite" title="This listing is unlimited"><i class="fa-solid fa-infinity"></i> Unlimited</span>
                   {{/if}}
-                  {{#unless ../selected.isDraft}}<button type="button" class="danger ml-marketplace-shop-inventory-remove" data-action="removeInventoryItem" data-stock-key="{{packId}}:{{documentId}}" title="Remove {{name}} from this shop"><i class="fa-solid fa-trash"></i></button>{{/unless}}
+                  {{#unless ../selected.isDraft}}<button type="button" class="ml-icon-button ml-marketplace-shop-inventory-remove" data-action="removeInventoryItem" data-stock-key="{{packId}}:{{documentId}}" aria-label="Remove {{name}} from this shop" title="Remove {{name}} from this shop"><i class="fa-solid fa-trash"></i></button>{{/unless}}
                 </article>
               {{else}}
           <div class="ml-empty-message ml-marketplace-shop-empty">This shop currently has no available inventory. Add an item or restock it.</div>
@@ -258,7 +245,7 @@
           </section>
           </div>
 
-          {{#unless selected.isDraft}}<footer class="ml-marketplace-shop-editor-footer"><button type="button" data-action="exportShop"><i class="fa-solid fa-file-export"></i> Export Shop</button><button type="button" class="danger" data-action="deleteShop"><i class="fa-solid fa-trash"></i> Delete Shop</button></footer>{{/unless}}
+          {{#unless selected.isDraft}}<footer class="ml-marketplace-shop-editor-footer"><button type="button" data-action="exportShop"><i class="fa-solid fa-file-export"></i> Export Shop</button><button type="button" data-action="deleteShop"><i class="fa-solid fa-trash"></i> Delete Shop</button></footer>{{/unless}}
         </div>
       </form>
     {{else}}

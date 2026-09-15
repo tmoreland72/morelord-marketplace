@@ -306,7 +306,7 @@ Hooks.on("createActor", actor => {
 });
 
 Hooks.on("updateSetting", setting => {
-  if (setting?.key === "dnd5e.packSourceConfiguration") {
+  if (["dnd5e.packSourceConfiguration", `${MODULE_ID}.buyRate`, `${MODULE_ID}.sellRate`, `${MODULE_ID}.ignoreGlobalRates`].includes(setting?.key)) {
     // D&D5e only refreshes its own Compendium Browser when Configure Sources
     // changes. Marketplace keeps separate indexes/catalogs, so invalidate them
     // and refresh every open Marketplace surface before an excluded pack can
@@ -314,6 +314,7 @@ Hooks.on("updateSetting", setting => {
     CompendiumService.clearCache();
     foundry.applications.instances?.forEach(app => {
       if (app instanceof MorelordMarketplaceApp || app instanceof MorelordShopManagerApp) {
+        if (app instanceof MorelordMarketplaceApp && !app.shopId) { app.cart.clear(); app.sellCart.clear(); }
         void app.render({ force: true });
       }
     });

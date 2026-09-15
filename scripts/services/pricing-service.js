@@ -24,6 +24,7 @@ export class PricingService {
 
   static getBuyPriceCp(basePriceCp, shop = null) {
     if (!shop) {
+      if (game.settings.get(MODULE_ID, "ignoreGlobalRates") === true) return Math.max(0, Math.round(basePriceCp));
       const rate = Number(game.settings.get(MODULE_ID, "buyRate") ?? 1);
       return Math.round(basePriceCp * (Number.isFinite(rate) ? Math.max(1, rate) : 1));
     }
@@ -34,6 +35,7 @@ export class PricingService {
 
   static getSellPriceCp(basePriceCp, shop = null, globalSellRate = 1) {
     if (!shop) {
+      if (game.settings.get(MODULE_ID, "ignoreGlobalRates") === true) return Math.max(0, Math.round(basePriceCp));
       if (basePriceCp <= 0) return 0;
       return Math.max(1, Math.floor(basePriceCp * globalSellRate));
     }

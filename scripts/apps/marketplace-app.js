@@ -33,6 +33,7 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
     },
     actions: {
       openDocumentation: MorelordMarketplaceApp.openDocumentation,
+      toggleGlobalRates: MorelordMarketplaceApp.toggleGlobalRates,
       switchTab: MorelordMarketplaceApp.switchTab,
       sellOne: MorelordMarketplaceApp.sellOne,
       sellAll: MorelordMarketplaceApp.sellAll,
@@ -79,6 +80,12 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
     });
     return documentation.open("morelord-marketplace");
   }
+  static async toggleGlobalRates(event) {
+    event.preventDefault();
+    if (!game.user.isGM || this.shopId) return;
+    await game.settings.set(MODULE_ID, "ignoreGlobalRates", game.settings.get(MODULE_ID, "ignoreGlobalRates") !== true);
+  }
+
   static shopOpening = false;
 
   static openShop(shopId) {
@@ -254,6 +261,7 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       shopReputation: ShopService.getReputationTier(shop)?.label ?? null,
       tokenImg,
       isGM: game.user.isGM,
+      ignoreGlobalRates: game.settings.get(MODULE_ID, "ignoreGlobalRates") === true,
       canManageShops: Boolean(game.user.isGM && EntitlementService.hasShopManager()),
       canManageLocations: Boolean(game.user.isGM),
       shopStale,

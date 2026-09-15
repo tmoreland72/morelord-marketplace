@@ -253,11 +253,11 @@ Within a shop, **Shopping As** controls which character receives purchased items
 
 ![Shop Manager product, inventory, random-stock, and restocking controls](assets/shop-manager-products-stock.png)
 
-*Inventory mode, random-listing counts, duplicate selection, restock rule, and replacement behavior define how a vendor's limited stock is generated.*
+*Inventory mode, rarity draw counts, and duplicate selection control limited-stock generation. Older screenshots may show the removed Restocking section.*
 
 ### Random inventory
 
-Enable **Generate limited stock randomly**, then choose how many distinct listings to select at each rarity. Those counts choose product listings, not units. Each selected listing receives a random quantity:
+Enable **Generate limited stock randomly**, then choose how many item draws to make at each rarity. Without duplicates, this is the maximum number of distinct listings; fewer are selected if the eligible pool is smaller. Those counts choose product listings, not units. Each selected listing receives a random quantity:
 
 | Rarity | Units per selected listing |
 | --- | ---: |
@@ -269,14 +269,9 @@ Enable **Generate limited stock randomly**, then choose how many distinct listin
 
 When **Allow duplicate random items** is enabled, the same listing may be selected more than once, increasing its resulting stock.
 
-### Restock behavior
+### Manual restocking
 
-- **Replace** discards current limited-stock counts and uses the newly generated stock.
-- **Top Up** retains existing stock and applies newly generated quantities for selected listings.
-
-Select **Restock Now** to perform a manual restock. Restocking advances the shop revision, so anyone with an older open shop must refresh it before completing a transaction.
-
-Restock rules such as daily or weekly schedules are stored for automation hooks and future world-time integration. In version 0.9.6, they do not run automatically; use **Restock Now**.
+Select **Restock Now** to regenerate limited stock. The shop-definition Restocking section has been removed. New shops replace generated stock; existing saved replacement/top-up metadata remains intact. Manually overridden inventory is preserved. Restocking advances the shop revision, so an older open shop must be refreshed before another purchase.
 
 ### Carts, reservations, and stale shops
 
@@ -373,3 +368,9 @@ Use the shared Manage Locations action to edit Core Locations. Shopping As and P
 ## D&D 5e rarity compatibility
 
 Catalogs and shops accept legacy rarity fields and v6 rarity collections. Items with multiple rarities use the lowest listed rarity for classification and shop limits, matching the system single-rarity Item getter. An empty rarity collection is mundane; nonmagical items retain their existing Common catalog grouping.
+
+## Global rate override and shop defaults
+
+The GM’s **Temporarily ignore buy and sell rates (both ×1)** toggle applies list prices to global purchases and sales for everyone. Switch it off to resume the unchanged configured rates. It persists across reloads, leaves shop pricing alone, and clears global carts when changed. New shops copy the configured buy/sell rates; their values remain editable.
+
+Prefab choices show one entry per normalized shop name, keeping the variant with the most available matches. Previously saved prefab IDs remain resolvable. SRD items copied into other packs still honor their canonical D&D5e source exclusions.

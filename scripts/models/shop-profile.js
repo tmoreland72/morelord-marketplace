@@ -1,3 +1,4 @@
+import { MODULE_ID, DEFAULT_SELL_RATE } from "../constants.js";
 export const SHOP_ITEM_OPTIONS = {
   weapon: { label: "Weapons", itemTypes: ["weapon"] },
   armor: { label: "Armor", itemTypes: ["equipment"], subtypes: ["light", "medium", "heavy", "shield", "armor"] },
@@ -131,8 +132,8 @@ export class ShopProfileModel {
       itemTypes: getItemTypesForOptions(preset.itemOptions),
       rarities: [...preset.rarities],
       categories: [],
-      buyModifier: preset.buyModifier,
-      sellModifier: preset.sellModifier,
+      buyModifier: Number(game.settings.get(MODULE_ID, "buyRate") ?? 1),
+      sellModifier: Number(game.settings.get(MODULE_ID, "sellRate") ?? DEFAULT_SELL_RATE),
       reputation: "neutral",
       locationId: null,
       capabilityTier: null,

@@ -91,7 +91,7 @@ Game Masters can configure:
 - Sell percentage
 - Default global buy rate (minimum `1`; `1.5` charges 150% of list price)
 - Catalog sources follow D&D5e Configure Sources
-- Shop pricing, reputation, inventory, stock, and restocking rules *(Shop Manager premium feature)*
+- Shop pricing, reputation, inventory, stock, and manual restocking *(Shop Manager premium feature)*
 
 Shop definitions are stored in the Foundry world setting `morelord-marketplace.shops`. Shop Manager can export a shop to a portable JSON definition and import that definition into another world. Actor/token UUIDs are intentionally excluded from exported definitions and are recreated in the destination world.
 
@@ -167,7 +167,7 @@ Shop definitions are world data stored in `morelord-marketplace.shops`. Use **Ex
 
 ### Global Marketplace vs. Shops
 
-The global Marketplace remains available as the Standard catalog/lookup experience. GMs can independently disable global buying and global selling while leaving catalog browsing available to players. Shop Manager is premium and provides constrained scene vendors with stock, pricing, reputation, and restocking rules.
+The global Marketplace remains available as the Standard catalog/lookup experience. GMs can independently disable global buying and global selling while leaving catalog browsing available to players. Shop Manager is premium and provides constrained scene vendors with stock, pricing, reputation, and manual restocking.
 
 ### Marketplace pagination and transaction carts
 
@@ -213,7 +213,7 @@ MIT License
 Created by **Morelord Gaming**
 ## Standard release workflow
 
-Production Morelord Foundry modules use the same `release.ps1`. Character Export follows these release steps; Downtime remains excluded. Project-specific values are stored in `release.config.json`, so improvements to the workflow can be copied between repositories without editing module logic.
+Production Morelord Foundry modules use the same `release.ps1`. Character Export and Downtime follow these release steps. Project-specific values are stored in `release.config.json`, so improvements to the workflow can be copied between repositories without editing module logic.
 
 Before a normal release, create `RELEASE-NOTES-x.y.z.md`. The same Markdown file is used for the GitHub Release and parsed into the public Morelord Gaming `/releases` feed. Recognized headings are `Added`, `Features`, `Improvements`, `Changed`, `Fixed`, `Breaking Changes`, and `Security`. Prefix a bullet with `[Premium]` or `[Champion]` when the change is tier-specific; otherwise it is treated as Standard.
 
@@ -248,7 +248,7 @@ Use `-SkipWebsitePublish` only when intentionally creating a normal GitHub/Found
 
 ### Limited-stock quantities
 
-Random inventory rarity counts control how many different product listings are selected during a restock. Each selected limited-stock product also receives a randomized quantity: Common 1–6, Uncommon 1–4, Rare 1–2, and Very Rare/Legendary 1. This is independent of the "Allow duplicate random items" option.
+Random inventory rarity settings control how many items are selected during creation or restocking. Without duplicates, the configured count is the maximum number of distinct listings; a smaller eligible pool yields fewer. With duplicates enabled, repeated selections increase the same listing's stock. Set a rarity to zero to select none. Stock quantity is randomized separately from these selection counts.
 
 ### Release documentation check
 
@@ -265,3 +265,9 @@ Settings use Morelord Core’s shared headers, sections, content cards, settings
 
 
 The Morelord Account section above Trading shows account connection, membership, and GM approval access, with Connect/Manage Account and Refresh controls.
+
+### Temporary global rates and shop defaults
+
+The GM can enable **Temporarily ignore buy and sell rates (both ×1)** in the global Marketplace. Everyone then buys and sells there at list price until the GM switches it off. Configured rates and shop prices are preserved. Rate changes refresh open windows and clear global carts so totals can be reviewed again. This is a world toggle, so it remains active across reloads until disabled.
+
+New template and prefab shops copy the buy and sell rates from Marketplace settings; the GM can edit each shop’s values. Existing shops retain their saved rates. Shop Manager uses Core’s standard header and keeps **Restock Now**; the Restocking editor section is removed without erasing saved restock metadata. Prefab names are deduplicated in the picker, preserving old IDs and saved shops. Configure Sources applies to copied SRD items as well as their containing packs.

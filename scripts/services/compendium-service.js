@@ -7,6 +7,9 @@ import { TransactionService } from "./transaction-service.js";
 import { TransactionApprovalService } from "./transaction-approval-service.js";
 import { PurchaseEligibilityService } from "./purchase-eligibility-service.js";
 
+import { Dnd5eSourceFilterService } from "../../../morelord-core/scripts/services/dnd5e-source-filter-service.js";
+const sources = new Dnd5eSourceFilterService();
+
 export class CompendiumService {
   static indexCache = new Map();
   static catalogCache = new Map();
@@ -21,14 +24,9 @@ export class CompendiumService {
   ];
 
   static getAllowedPackIds() {
-    const configured = game.settings.get(
-      "dnd5e",
-      "packSourceConfiguration"
-    ) ?? {};
-
     return game.packs
       .filter(pack => pack.documentName === "Item")
-      .filter(pack => configured[pack.collection] !== false)
+      .filter(pack => sources.isPackEnabled(pack))
       .map(pack => pack.collection);
   }
 
@@ -60,6 +58,9 @@ export class CompendiumService {
       packs: packs
         .map(pack => pack.collection)
         .sort(),
+      sourceConfiguration: sources.configuration,
+      globalBuyRate: game.settings.get(MODULE_ID, "buyRate"),
+      ignoreGlobalRates: game.settings.get(MODULE_ID, "ignoreGlobalRates") === true,
       shopId: currentShop?.id ?? null,
       shop: currentShop ? {
         id: currentShop.id,
@@ -399,6 +400,8 @@ export class CompendiumService {
       system.source,
       pack
     );
+
+    if (!sources.isSourceEnabled(source, { itemType: typeKey })) return null;
 
     const sourceKey =
       this.normalizeSourceKey(source);
