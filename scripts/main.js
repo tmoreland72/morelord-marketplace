@@ -91,6 +91,11 @@ function installAllShopActorSheetRedirects() {
 }
 
 Hooks.once("ready", async () => {
+  const telemetry = globalThis.MorelordCore?.telemetry;
+  telemetry?.windows(MODULE_ID, { "morelord-marketplace": "marketplace.opened", "morelord-marketplace-shops": "shops.opened" });
+  telemetry?.observe(MODULE_ID, ShopTransactionService, { checkout: "shop.checkout" });
+  telemetry?.observe(MODULE_ID, CompendiumService, { buyCart: "catalog.buy-cart", buyCompendiumItem: "catalog.buy-item" });
+  telemetry?.observe(MODULE_ID, ActorService, { sellCart: "sell.cart", sellItem: "sell.item" });
   Logger.log("Ready");
 
   await initializeMarketplaceSources();

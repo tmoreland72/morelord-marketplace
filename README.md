@@ -1,5 +1,7 @@
 # Morelord Marketplace
 
+Optional reporting: with a compatible Core and fresh GM consent, marketplace/shop opens and buy/sell service attempts, returns and failures are reported without account linking. Core owns privacy, transport and sanitized errors; see [Core telemetry](../morelord-core/TELEMETRY.md). Existing Core versions keep working without reporting. The website endpoint must be deployed before release.
+
 A modern, immersive marketplace for **Foundry Virtual Tabletop** that allows characters to buy and sell items directly from their inventories using configurable compendiums, dynamic pricing, and an intuitive shopping experience.
 
 ---
@@ -271,3 +273,7 @@ The Morelord Account section above Trading shows account connection, membership,
 The GM can enable **Temporarily ignore buy and sell rates (both ×1)** in the global Marketplace. Everyone then buys and sells there at list price until the GM switches it off. Configured rates and shop prices are preserved. Rate changes refresh open windows and clear global carts so totals can be reviewed again. This is a world toggle, so it remains active across reloads until disabled.
 
 New template and prefab shops copy the buy and sell rates from Marketplace settings; the GM can edit each shop’s values. Existing shops retain their saved rates. Shop Manager uses Core’s standard header and keeps **Restock Now**; the Restocking editor section is removed without erasing saved restock metadata. Prefab names are deduplicated in the picker, preserving old IDs and saved shops. Configure Sources applies to copied SRD items as well as their containing packs.
+
+## Release dependency
+
+This release requires Morelord Core 0.3.10 or newer for the shared UI and service updates. Optional integrations remain optional.
