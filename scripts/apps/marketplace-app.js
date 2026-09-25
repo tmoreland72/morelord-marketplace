@@ -319,6 +319,10 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
 
     if (context.isSellTab) {
       const sellItems = actor ? await ActorService.getSellableItems(actor, { shop }) : [];
+      const sellableIds = new Set(sellItems.map(row => row.ownedItemId));
+      for (const itemId of this.sellCart.keys()) {
+        if (!sellableIds.has(itemId)) this.sellCart.delete(itemId);
+      }
       context.sellItems = this.sortSellItems(sellItems).map(row => ({
         ...row,
         cartQty: this.sellCart.get(row.ownedItemId)?.quantity ?? 0,

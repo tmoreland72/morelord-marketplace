@@ -261,3 +261,7 @@ Ask your GM first for world-specific questions about enabled compendiums, prices
 Buy results are paginated at 50 items per page. Filters apply to the full catalog, and changing a filter resets the page. Cart selections persist across pages. Shopping As selects the receiving inventory; Paying As selects the funding actor. Their portraits identify the selected characters without changing these choices.
 
 Save desired items to the selected shopper's Wishlist. A wishlist does not reserve stock or guarantee that a vendor will carry an item. Eligible wishlist items receive a modest preference during random restocking and may still be absent.
+
+## Shops with specific purchase lists
+
+A vendor may accept only specific items. Its Sell tab then shows only matching items owned by your selected shopper. Other items cannot be sold to that vendor, even if they belong to the same product category. The GM can change the list; refresh the shop if its configuration changes.

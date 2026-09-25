@@ -40,3 +40,24 @@ test("global override uses list price on both sides, preserves settings and leav
   assert.equal(PricingService.getBuyPriceCp(1000), 1500);
   assert.equal(PricingService.getSellPriceCp(1000, null, .4), 400);
 });
+
+test("unpriced items use known rarity values without overriding explicit prices", () => {
+  for (const [rarity, gp] of Object.entries({ common: 100, uncommon: 400, rare: 4000, veryrare: 40000, legendary: 200000 })) {
+    for (const price of [undefined, 0, { value: 0 }, { value: null }, { value: NaN }]) {
+      for (const data of [{ rarity }, { rarities: [rarity] }, { rarities: new Set([rarity]) }]) {
+        assert.equal(PricingService.getItemPriceCp({ system: { ...data, price } }), gp * 100);
+      }
+    }
+  }
+  for (const rarity of [undefined, '', 'none']) {
+    assert.equal(PricingService.getItemPriceCp({ system: { rarity } }), 10000);
+  }
+  for (const rarity of ['artifact', 'unknown']) {
+    assert.equal(PricingService.getItemPriceCp({ system: { rarity } }), 0);
+  }
+  assert.equal(PricingService.getItemPriceCp({ system: { rarity: 'rare', price: { value: 5, denomination: 'sp' } } }), 50);
+  assert.equal(PricingService.getItemPriceCp({ system: { rarity: 'rare', price: 12 } }), 1200);
+  for (const value of [0, 7]) {
+    assert.equal(PricingService.getItemPriceCp({ system: { rarity: 'rare' }, flags: { 'morelord-marketplace': { customPrice: { value, denomination: 'gp' } } } }), value * 100);
+  }
+});

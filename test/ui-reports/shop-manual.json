@@ -1,0 +1,57 @@
+{
+  "kind": "offline-template-css",
+  "results": [
+    {
+      "theme": "dark",
+      "width": 1240,
+      "magicToggled": true,
+      "matchingRows": true,
+      "matchingHeaders": true,
+      "purchaseRowFits": true,
+      "editorFits": true,
+      "searchHasLabel": true,
+      "toggled": true,
+      "coreLoaded": true,
+      "lookupResults": 1
+    },
+    {
+      "theme": "light",
+      "width": 1240,
+      "magicToggled": true,
+      "matchingRows": true,
+      "matchingHeaders": true,
+      "purchaseRowFits": true,
+      "editorFits": true,
+      "searchHasLabel": true,
+      "toggled": true,
+      "coreLoaded": true,
+      "lookupResults": 1
+    },
+    {
+      "theme": "dark",
+      "width": 700,
+      "magicToggled": true,
+      "matchingRows": true,
+      "matchingHeaders": true,
+      "purchaseRowFits": true,
+      "editorFits": true,
+      "searchHasLabel": true,
+      "toggled": true,
+      "coreLoaded": true,
+      "lookupResults": 1
+    },
+    {
+      "theme": "light",
+      "width": 700,
+      "magicToggled": true,
+      "matchingRows": true,
+      "matchingHeaders": true,
+      "purchaseRowFits": true,
+      "editorFits": true,
+      "searchHasLabel": true,
+      "toggled": true,
+      "coreLoaded": true,
+      "lookupResults": 1
+    }
+  ]
+}

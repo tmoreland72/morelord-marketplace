@@ -34,6 +34,7 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
       closeInventoryLookup: MorelordShopManagerApp.closeInventoryLookup,
       addInventoryItem: MorelordShopManagerApp.addInventoryItem,
       adjustInventoryQuantity: MorelordShopManagerApp.adjustInventoryQuantity,
+      removePurchaseItem: MorelordShopManagerApp.removePurchaseItem,
       removeInventoryItem: MorelordShopManagerApp.removeInventoryItem
     }
   };
@@ -79,7 +80,7 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
     if (selected) {
       const catalog = await CompendiumService.getBuyableCatalog(selected);
       inventory = catalog
-        .filter(row => ShopService.isInStock(selected, row))
+        .filter(row => ShopService.isInStock(selected, row) || selected.inventoryOverrides.included.includes(row.uuid))
         .map(row => {
           const quantity = ShopService.getStock(selected, row);
           return { ...row, quantity, quantityLabel: Number.isFinite(quantity) ? quantity : "∞", finite: Number.isFinite(quantity), isManualStock: selected.inventoryOverrides.limited.includes(row.uuid) };
@@ -91,6 +92,10 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
           .slice(0, 30);
       }
     }
+
+    const purchaseCatalog = selected?.purchaseItems.length
+      ? new Map((await CompendiumService.getInventorySearchCatalog()).map(row => [row.uuid, row]))
+      : new Map();
 
     const shopCards = shops.map(shop => {
       const preset = ShopService.getPresets().find(entry => entry.key === shop.type);
@@ -137,6 +142,7 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
           { key: "limited", label: "Limited Stock" },
           { key: "hybrid", label: "Hybrid" }
         ].map(mode => ({ ...mode, selected: mode.key === selected.inventoryMode })),
+        purchaseItems: selected.purchaseItems.map(item => ({ ...item, ...purchaseCatalog.get(item.uuid) })),
         inventory,
         inventoryCount: inventory.length
       } : null,
@@ -153,6 +159,7 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
       isWorking: this.isWorking,
       workingMessage: this.workingMessage || "Working…",
       inventoryLookupOpen: this.inventoryLookupOpen,
+      purchaseLookup: this.inventoryLookupTarget === "purchase",
       inventorySearchQuery: this.inventorySearchQuery,
       inventorySearchReady: this.inventorySearchQuery.trim().length >= 2,
       inventorySearchResults
@@ -260,6 +267,8 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
     shop.sellModifier = Number(data.get("sellModifier") ?? 0.5);
     shop.allowBuying = data.get("allowBuying") === "on";
     shop.allowSelling = data.get("allowSelling") === "on";
+    shop.manualInventoryOnly = data.get("manualInventoryOnly") === "on";
+    shop.excludeMagical = data.get("excludeMagical") === "on";
     shop.itemOptions = data.getAll("itemOptions").map(String);
     shop.itemTypes = getItemTypesForOptions(shop.itemOptions);
     shop.rarities = data.getAll("rarities").map(String);
@@ -285,6 +294,7 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
       await ShopService.restock(saved.id, catalog);
       CompendiumService.clearCatalogCache();
     }
+    ShopTransactionService.broadcastInventoryChanged(saved.id);
     ui.notifications.info(isDraft ? `${shop.name} created.` : `${shop.name} saved.`);
     await this.render();
   }
@@ -328,7 +338,7 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
     const catalog = await CompendiumService.getBuyableCatalog(shop);
     const restocked = await ShopService.restock(shop.id, catalog);
     ShopTransactionService.broadcastInventoryChanged(shop.id);
-    if (restocked?.inventoryMode === "unlimited") {
+    if (restocked?.inventoryMode === "unlimited" && !restocked.manualInventoryOnly) {
       ui.notifications.warn(`${shop.name} uses an unlimited catalog, so restocking does not change its ${catalog.length} listings. Choose Limited or Hybrid inventory to rotate stock.`);
     } else {
       ui.notifications.info(`${shop.name} restocked.`);
@@ -416,8 +426,11 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
     input.click();
   }
 
-  static async openInventoryLookup(event) {
+  static async openInventoryLookup(event, target) {
     event.preventDefault();
+    if (!game.user.isGM || !EntitlementService.hasShopManager() || this.isWorking) return;
+    await MorelordShopManagerApp.saveShop.call(this, event);
+    this.inventoryLookupTarget = target?.dataset.lookupTarget ?? "inventory";
     this.inventoryLookupOpen = true;
     await this.render();
     this.element?.querySelector('[name="inventorySearch"]')?.focus();
@@ -435,12 +448,34 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
     if (!game.user.isGM || !EntitlementService.hasShopManager()) return;
     const row = (await CompendiumService.getInventorySearchCatalog()).find(entry => entry.uuid === target.dataset.itemUuid);
     if (!row) return ui.notifications.warn("That item is no longer available in an enabled compendium.");
-    await ShopService.addInventoryItem(this.selectedShopId, row, 1);
+    if (this.inventoryLookupTarget === "purchase") {
+      const shop = ShopService.getShop(this.selectedShopId);
+      if (!shop) return;
+      if (!shop.purchaseItems.some(item => item.uuid === row.uuid)) {
+        shop.purchaseItems.push({ uuid: row.uuid, name: row.name, type: row.typeKey, img: row.img });
+        await ShopService.saveShop(shop, { bumpRevision: true });
+      }
+    } else {
+      await ShopService.addInventoryItem(this.selectedShopId, row, 1);
+    }
     CompendiumService.clearCatalogCache();
     ShopTransactionService.broadcastInventoryChanged(this.selectedShopId);
     this.inventoryLookupOpen = false;
     this.inventorySearchQuery = "";
-    ui.notifications.info(`${row.name} added to the shop with quantity 1.`);
+    ui.notifications.info(this.inventoryLookupTarget === "purchase"
+      ? `${row.name} added to the items this shop will buy.`
+      : `${row.name} added to the shop with quantity 1.`);
+    await this.render();
+  }
+
+  static async removePurchaseItem(event, target) {
+    event.preventDefault();
+    if (!game.user.isGM || !EntitlementService.hasShopManager()) return;
+    const shop = ShopService.getShop(this.selectedShopId);
+    if (!shop) return;
+    shop.purchaseItems = shop.purchaseItems.filter(item => item.uuid !== target.dataset.itemUuid);
+    await ShopService.saveShop(shop, { bumpRevision: true });
+    ShopTransactionService.broadcastInventoryChanged(shop.id);
     await this.render();
   }
 

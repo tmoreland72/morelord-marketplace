@@ -1,5 +1,6 @@
 import {
   MODULE_ID,
+  ITEM_TYPES,
   FLAGS
 } from "../constants.js";
 import { Logger } from "../logger.js";
@@ -69,7 +70,7 @@ export class PurchaseEligibilityService {
    *    Marketplace price/compendium rules.
    */
   static isPurchasable(item) {
-    if (!item) return false;
+    if (!item || !ITEM_TYPES.BUYABLE.includes(item.type)) return false;
 
     const legacyMarketplaceFlag =
       this.getBooleanFlag(

@@ -128,7 +128,7 @@
             </label>
             <div class="ml-marketplace-inline-checks">
               <label><input type="checkbox" name="allowBuying" {{#if selected.allowBuying}}checked{{/if}}> Players can buy</label>
-              <label><input type="checkbox" name="allowSelling" {{#if selected.allowSelling}}checked{{/if}}> Shop buys items</label>
+              <label class="ml-check"><input type="checkbox" name="allowSelling" {{#if selected.allowSelling}}checked{{/if}}><span>Player can sell</span></label>
             </div>
           </section>
 
@@ -164,6 +164,8 @@
             <label>Mode
               <select name="inventoryMode">{{#each selected.inventoryModes}}<option value="{{key}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}</select>
             </label>
+            <label class="ml-check"><input type="checkbox" name="manualInventoryOnly" {{#if selected.manualInventoryOnly}}checked{{/if}} aria-describedby="manual-inventory-help"><span>Only sell manually added items</span></label>
+            <p id="manual-inventory-help" class="hint">Off by default. When enabled, only manually added listings are offered. Restock Now restores their configured quantities without adding random items. Adjust a listing's quantity to set its restock amount.</p>
             <label><input type="checkbox" name="randomEnabled" {{#if selected.randomInventory.enabled}}checked{{/if}}> Generate limited stock randomly</label>
             <label><input type="checkbox" name="allowDuplicates" {{#if selected.randomInventory.allowDuplicates}}checked{{/if}}> Allow duplicate random items</label>
             <p class="notes">The settings below control how many items are randomly selected at each rarity when creating or restocking this shop. Without duplicates, each selection is a different item, up to the number available. With duplicates, repeated selections increase that item's stock. Set a rarity to 0 to select none. Only selected product rarities are eligible.</p>
@@ -179,64 +181,81 @@
 
           <section class="ml-surface ml-stack ml-marketplace-shop-config-card ml-marketplace-shop-config-wide">
             <h3>Products</h3>
+            <label class="ml-check"><input type="checkbox" name="excludeMagical" {{#if selected.excludeMagical}}checked{{/if}} aria-describedby="exclude-magical-help"><span>Exclude magical items</span></label>
+            <p id="exclude-magical-help" class="notes">Hide items with the Magical property, including manually added items, and exclude them from restocking. This does not change which items the shop buys from players.</p>
             <div class="ml-marketplace-option-columns">
               <div><strong>Item Options</strong>{{#each selected.itemTypeOptions}}<label><input type="checkbox" name="itemOptions" value="{{key}}" {{#if checked}}checked{{/if}}> {{label}}</label>{{/each}}</div>
               <div><strong>Rarities</strong>{{#each selected.rarityOptions}}<label><input type="checkbox" name="rarities" value="{{key}}" {{#if checked}}checked{{/if}}> {{label}}</label>{{/each}}</div>
             </div>
           </section>
 
-          <section class="ml-surface ml-stack ml-marketplace-shop-config-card ml-marketplace-shop-config-wide ml-marketplace-shop-inventory-card">
-            <div class="ml-marketplace-shop-inventory-heading">
-              <div>
-                <h3>Current Inventory <span class="ml-marketplace-shop-count">{{selected.inventoryCount}}</span></h3>
-                <p class="hint">{{#if selected.isDraft}}Preview the catalog produced by these settings. Save the shop before overriding individual listings.{{else}}Override this shop's live listings. Restocking may change generated stock, but manually added and removed items remain overridden.{{/if}}</p>
-              </div>
-              {{#unless selected.isDraft}}<button type="button" data-action="openInventoryLookup"><i class="fa-solid fa-plus"></i> Add Item</button>{{/unless}}
+          <section class="ml-surface ml-stack ml-marketplace-shop-config-card ml-marketplace-shop-config-wide">
+            <div class="ml-section-heading" data-actions>
+              <div><h3>Items the shop will buy <span class="ml-badge">{{selected.purchaseItems.length}}</span></h3></div>
+              {{#unless selected.isDraft}}<div class="ml-actions"><button type="button" data-action="openInventoryLookup" data-lookup-target="purchase"><i class="fa-solid fa-plus"></i> Add Item</button></div>{{/unless}}
             </div>
+            <p class="notes">When this list has any items, players can sell only matching items from their inventory. An empty list uses the shop's Item Options. Player can sell must be enabled.</p>
+            {{#if selected.isDraft}}<p class="notes">Save the shop to add purchase items.</p>{{/if}}
+            <div class="ml-stack" data-gap="2">
+            {{#each selected.purchaseItems}}
+              <div class="ml-card ml-item-row">
+                <img src="{{img}}" alt="">
+                <div class="ml-stack" data-gap="1"><a class="content-link ml-item-link" data-link data-uuid="{{uuid}}" title="Open {{name}} from its compendium">{{name}}</a>{{#if source}}<small>{{source}} · {{rarityLabel}} {{typeLabel}}</small>{{/if}}</div>
+                <button type="button" class="ml-icon-button" data-action="removePurchaseItem" data-item-uuid="{{uuid}}" aria-label="Remove {{name}} from purchase items"><i class="fa-solid fa-trash"></i></button>
+              </div>
+            {{else}}<p class="ml-empty-message">No specific purchase items configured.</p>{{/each}}
+            </div>
+          </section>
 
             {{#if inventoryLookupOpen}}
-              <div class="ml-marketplace-shop-item-lookup">
-                <div class="ml-marketplace-shop-item-lookup-header">
-                  <div><strong>Add an Item</strong><small>Search enabled Item compendiums.</small></div>
-                  <button type="button" data-action="closeInventoryLookup" title="Close item search"><i class="fa-solid fa-xmark"></i></button>
+              <section class="ml-surface ml-stack ml-marketplace-shop-config-card ml-marketplace-shop-config-wide">
+                <div class="ml-toolbar">
+                  <div class="ml-stack"><strong>{{#if purchaseLookup}}Add a Purchase Item{{else}}Add an Item{{/if}}</strong><small>Search enabled Item compendiums.</small></div>
+                  <button type="button" class="ml-icon-button" data-action="closeInventoryLookup" aria-label="Close item search"><i class="fa-solid fa-xmark"></i></button>
                 </div>
-                <div class="ml-marketplace-shop-item-search">
-                  <i class="fa-solid fa-magnifying-glass"></i>
+                <label class="ml-stack">
+                  <span>Search items</span>
                   <input type="search" name="inventorySearch" value="{{inventorySearchQuery}}" placeholder="Type at least 2 characters…" autocomplete="off">
-                </div>
+                </label>
                 {{#if inventorySearchResults.length}}
-                  <div class="ml-marketplace-shop-item-search-results">
+                  <div class="ml-stack">
                     {{#each inventorySearchResults}}
-                      <button type="button" data-action="addInventoryItem" data-item-uuid="{{uuid}}">
-                        <img src="{{img}}" alt=""><span><strong>{{name}}</strong><small>{{source}} · {{typeLabel}}</small></span><i class="fa-solid fa-plus"></i>
+                      <button type="button" class="ml-card ml-item-row" data-action="addInventoryItem" data-item-uuid="{{uuid}}">
+                        <img src="{{img}}" alt=""><span class="ml-stack"><strong>{{name}}</strong><small>{{source}} · {{typeLabel}}</small></span><i class="fa-solid fa-plus"></i>
                       </button>
                     {{/each}}
                   </div>
                 {{else}}
                   <p class="hint">{{#if inventorySearchReady}}No matching items found.{{else}}Enter at least 2 characters to search.{{/if}}</p>
                 {{/if}}
-              </div>
+              </section>
             {{/if}}
 
-            <div class="ml-marketplace-shop-inventory-list">
+          <section class="ml-surface ml-stack ml-marketplace-shop-config-card ml-marketplace-shop-config-wide">
+            <div class="ml-section-heading" data-actions>
+              <div><h3>Current Inventory <span class="ml-badge">{{selected.inventoryCount}}</span></h3></div>
+              {{#unless selected.isDraft}}<div class="ml-actions"><button type="button" data-action="openInventoryLookup"><i class="fa-solid fa-plus"></i> Add Item</button></div>{{/unless}}
+            </div>
+            <p class="notes">{{#if selected.isDraft}}Preview the catalog produced by these settings. Save the shop before overriding individual listings.{{else}}Override this shop's live listings. Manual-only shops restock the configured quantities. Other shops preserve manual stock while restocking generated items. Removed items stay excluded.{{/if}}</p>
+            <div class="ml-stack" data-gap="2">
               {{#each selected.inventory}}
-                <article class="ml-marketplace-shop-inventory-row">
+                <article class="ml-card ml-item-row">
                   <img src="{{img}}" alt="">
-                  <div class="ml-marketplace-shop-inventory-details">
-                    <a class="content-link ml-marketplace-shop-inventory-item-link" data-link data-uuid="{{uuid}}" title="Open {{name}} from its compendium">{{name}}</a>
-                    {{#if isManualStock}}<span class="ml-badge" data-tone="info" title="Manually added stock. Restocking preserves its remaining quantity instead of rerolling it."><i class="fa-solid fa-thumbtack" aria-hidden="true"></i> Manual</span>{{/if}}
+                  <div class="ml-stack" data-gap="1">
+                    <a class="content-link ml-item-link" data-link data-uuid="{{uuid}}" title="Open {{name}} from its compendium">{{name}}</a>
+                    {{#if isManualStock}}<span class="ml-badge" data-tone="info" title="Manually added stock. Manual-only shops restore its configured quantity; other shops preserve remaining stock."><i class="fa-solid fa-thumbtack" aria-hidden="true"></i> Manual</span>{{/if}}
                     <small>{{source}} · {{rarityLabel}} {{typeLabel}}</small>
                   </div>
                   {{#if finite}}
-                    <div class="ml-marketplace-shop-inventory-quantity" aria-label="Quantity for {{name}}">
-                      <button type="button" data-action="adjustInventoryQuantity" data-delta="-1" data-stock-key="{{packId}}:{{documentId}}" title="Decrease {{name}} quantity"><i class="fa-solid fa-minus"></i></button>
-                      <span aria-label="Current quantity">{{quantity}}</span>
-                      <button type="button" data-action="adjustInventoryQuantity" data-delta="1" data-stock-key="{{packId}}:{{documentId}}" title="Increase {{name}} quantity"><i class="fa-solid fa-plus"></i></button>
+                    <div class="ml-actions" aria-label="Quantity for {{name}}">
+                      <button type="button" class="ml-icon-button" data-action="adjustInventoryQuantity" data-delta="-1" data-stock-key="{{packId}}:{{documentId}}" aria-label="Decrease {{name}} quantity" title="Decrease {{name}} quantity"><i class="fa-solid fa-minus"></i></button>
+                      <span class="ml-badge" aria-label="Current quantity">{{quantity}}</span>
+                      <button type="button" class="ml-icon-button" data-action="adjustInventoryQuantity" data-delta="1" data-stock-key="{{packId}}:{{documentId}}" aria-label="Increase {{name}} quantity" title="Increase {{name}} quantity"><i class="fa-solid fa-plus"></i></button>
                     </div>
                   {{else}}
-                    <span class="ml-marketplace-shop-inventory-infinite" title="This listing is unlimited"><i class="fa-solid fa-infinity"></i> Unlimited</span>
+                    <span class="ml-badge" title="This listing is unlimited"><i class="fa-solid fa-infinity"></i> Unlimited</span>
                   {{/if}}
-                  {{#unless ../selected.isDraft}}<button type="button" class="ml-icon-button ml-marketplace-shop-inventory-remove" data-action="removeInventoryItem" data-stock-key="{{packId}}:{{documentId}}" aria-label="Remove {{name}} from this shop" title="Remove {{name}} from this shop"><i class="fa-solid fa-trash"></i></button>{{/unless}}
+                  {{#unless ../selected.isDraft}}<button type="button" class="ml-icon-button" data-action="removeInventoryItem" data-stock-key="{{packId}}:{{documentId}}" aria-label="Remove {{name}} from this shop" title="Remove {{name}} from this shop"><i class="fa-solid fa-trash"></i></button>{{/unless}}
                 </article>
               {{else}}
           <div class="ml-empty-message ml-marketplace-shop-empty">This shop currently has no available inventory. Add an item or restock it.</div>

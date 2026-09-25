@@ -116,7 +116,7 @@ Install this URL using:
 ## Requirements
 
 - Foundry VTT v14
-- Morelord Core 0.3.7 or later
+- Morelord Core 0.3.15 or later
 - dnd5e System compatible with Foundry v14
 
 ---
@@ -276,4 +276,26 @@ New template and prefab shops copy the buy and sell rates from Marketplace setti
 
 ## Release dependency
 
-This release requires Morelord Core 0.3.10 or newer for the shared UI and service updates. Optional integrations remain optional.
+This release requires Morelord Core 0.3.15 or newer for the shared UI and service updates. Optional integrations remain optional.
+
+## Manually configured shop items
+
+**Player can sell** enables selling to the vendor. Under **Items the shop will buy**, use **Add Item** to search enabled Item compendiums. Once this list contains an item, it is exclusive: the Sell tab shows only matching owned items, and checkout checks the current list again. Removing the last entry restores the shop's normal Item Options filtering. This list is independent of inventory offered for sale.
+
+Items match their compendium origin (including renamed copies). Items without a recorded origin match by name and item type; copies from a different compendium origin require their own entry. Usual supported-type, positive-price, unsellable-flag, and reputation restrictions still apply.
+
+**Only sell manually added items** is off by default. Enable it to offer only manually added inventory in any inventory mode. **Restock Now** restores those listings to their configured quantities and never selects additional products. Adding a listing or adjusting its quantity sets that restock quantity; purchases reduce remaining stock without changing the target. Sold-out manual listings remain visible to the GM. Existing manual listings without a saved target use their remaining quantity, or one if sold out, on their first manual-only restock.
+
+Turning off **Generate limited stock randomly** only stops random stock generation. It does not remove existing generated stock or restrict Unlimited/Hybrid catalogs to manually added items, and it does not replenish manual stock.
+
+**Common** includes both mundane items (no rarity) and common magic items. It is not a mundane-only filter. Enable **Exclude magical items** under Products to reject the D&D5e Magical (`mgc`) property regardless of rarity. This also filters manually added and prefab listings, restock candidates, and checkout. The option defaults to off and does not alter the purchase list or player-selling rules. It depends on items having their Magical property correctly set.
+
+The purchase list and Current Inventory use the same Core section headings, count badges, Add Item actions, and item rows. Both show item artwork, a document link, available source details, and removal controls; inventory also has stock quantity controls.
+
+### Unpriced items
+
+Items with no positive source price use their known rarity's standard base value: Common 100 gp, Uncommon 400 gp, Rare 4,000 gp, Very Rare 40,000 gp, and Legendary 200,000 gp ([2024 SRD rarity table](https://media.dndbeyond.com/compendium-images/srd/5.2/SRD_CC_v5.2.pdf)). Marketplace uses the full rarity value as its fallback, including consumables. Blank or mundane rarity uses Common (100 gp), including Grenade, Fragmentation. Explicit positive source prices and GM custom prices take priority. Artifacts and unknown rarities require an explicit price. Global/shop rates then apply consistently to browsing, purchases, approvals, and sales. Source and purchase restrictions still apply; source documents are not modified.
+
+Regression: in Dev1, import `rarityPricingCheck` and `fragmentationGrenadeCheck` from `modules/morelord-marketplace/scripts/testing/rarity-pricing.mjs` and pass it to Core's `runInGameTests({ checks: [rarityPricingCheck, fragmentationGrenadeCheck] })`. It checks actual configured-source index entries against the catalog and full-document transaction pricing without buying or changing world data.
+
+Catalogs and purchase validation accept only supported physical item types (weapons, equipment, consumables, tools, loot, and containers); price fallback does not turn spells or character features into products.

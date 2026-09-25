@@ -233,6 +233,7 @@ export class ShopTransactionService {
         documentId: line.documentId,
         uuid: `Compendium.${line.packId}.Item.${line.documentId}`,
         typeKey,
+        properties: CompendiumService.getProperties(item.system ?? {}),
         subtypeKey: CompendiumService.getSubtypeKey(typeKey, item.system ?? {}),
         rarityKey: CompendiumService.normalizeRarity(itemRarity(item.system))
       };

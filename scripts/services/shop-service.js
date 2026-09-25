@@ -19,6 +19,10 @@ export class ShopService {
       itemTypes: getItemTypesForOptions(itemOptions),
       revision: Math.max(1, Number(shop.revision ?? 1)),
       stock: { ...(shop.stock ?? {}) },
+      manualInventoryOnly: shop.manualInventoryOnly === true,
+      excludeMagical: shop.excludeMagical === true,
+      manualStockTargets: { ...(shop.manualStockTargets ?? {}) },
+      purchaseItems: (shop.purchaseItems ?? []).map(item => ({ ...item })),
       inventoryOverrides: {
         included: [...(shop.inventoryOverrides?.included ?? [])],
         excluded: [...(shop.inventoryOverrides?.excluded ?? [])],
@@ -312,8 +316,16 @@ export class ShopService {
     return token;
   }
 
+  static hasMagicalProperty(entry) {
+    const properties = entry?.system?.properties ?? entry?.properties;
+    if (properties instanceof Set) return properties.has("mgc");
+    if (Array.isArray(properties)) return properties.some(property => (property?.value ?? property) === "mgc");
+    return Boolean(properties?.mgc);
+  }
+
   static entryPassesShop(entry, shop, packId) {
     if (!shop) return true;
+    if (shop.excludeMagical && this.hasMagicalProperty(entry)) return false;
 
     const documentId = entry?.documentId ?? entry?._id;
     const uuid = entry?.uuid ?? (
@@ -324,6 +336,7 @@ export class ShopService {
     if (uuid && shop.inventoryOverrides?.excluded?.includes(uuid)) return false;
     const manuallyIncluded = Boolean(uuid && shop.inventoryOverrides?.included?.includes(uuid));
     if (manuallyIncluded) return true;
+    if (shop.manualInventoryOnly) return false;
 
     if (shop.prefabItemUuids?.length) {
       return Boolean(uuid && shop.prefabItemUuids.includes(uuid));
@@ -336,6 +349,17 @@ export class ShopService {
     if (!inventoryEntryAllowedByCapability({ rarity, capabilityTier: capability.tier, manuallyIncluded })) return false;
     if (shop.rarities?.length && !shop.rarities.map(value => this.normalizeRarity(value)).includes(rarity)) return false;
     return true;
+  }
+
+  static acceptsPlayerItem(item, shop) {
+    if (!shop) return true;
+    if (shop.allowSelling === false) return false;
+    if (!shop.purchaseItems?.length) return this.entryMatchesItemOptions(item, shop);
+    const source = item._stats?.compendiumSource || item.getFlag?.("core", "sourceId");
+    return shop.purchaseItems.some(entry => source
+      ? entry.uuid === source
+      : entry.uuid === item.uuid || (entry.type === item.type
+        && entry.name?.trim().toLowerCase() === item.name?.trim().toLowerCase()));
   }
 
   static entryMatchesItemOptions(entry, shop) {
@@ -376,6 +400,7 @@ export class ShopService {
 
   static isLimited(shop, row) {
     if (!shop) return false;
+    if (shop.manualInventoryOnly && shop.inventoryOverrides?.included?.includes(row?.uuid)) return true;
     if (row?.uuid && shop.inventoryOverrides?.limited?.includes(row.uuid)) return true;
     if (shop.inventoryMode === "limited") return true;
     if (shop.inventoryMode === "unlimited") return false;
@@ -405,6 +430,9 @@ export class ShopService {
     if (!shop || !this.isLimited(shop, row)) return null;
     const key = this.stockKey(row);
     shop.stock = { ...(shop.stock ?? {}), [key]: Math.max(0, Math.floor(Number(quantity) || 0)) };
+    if (shop.inventoryOverrides?.included?.includes(row.uuid)) {
+      shop.manualStockTargets = { ...shop.manualStockTargets, [key]: shop.stock[key] };
+    }
     return this.saveShop(shop, { bumpRevision: true });
   }
 
@@ -421,6 +449,7 @@ export class ShopService {
       ...(shop.stock ?? {}),
       [this.stockKey(row)]: Math.max(1, Math.floor(Number(quantity) || 1))
     };
+    shop.manualStockTargets = { ...shop.manualStockTargets, [this.stockKey(row)]: shop.stock[this.stockKey(row)] };
     return this.saveShop(shop, { bumpRevision: true });
   }
 
@@ -436,6 +465,7 @@ export class ShopService {
     const stock = { ...(shop.stock ?? {}) };
     delete stock[this.stockKey(row)];
     shop.stock = stock;
+    delete shop.manualStockTargets?.[this.stockKey(row)];
     return this.saveShop(shop, { bumpRevision: true });
   }
 
@@ -455,6 +485,7 @@ export class ShopService {
     const wishedUuids = WishlistService.getUuids({ allActors: true });
 
     for (const row of catalog) {
+      if (shop.excludeMagical && this.hasMagicalProperty(row)) continue;
       if (!this.isLimited(shop, row)) continue;
       if (shop.inventoryOverrides?.limited?.includes(row.uuid)) continue;
       const rarity = this.normalizeRarity(row.rarityKey);
@@ -489,13 +520,24 @@ export class ShopService {
     const shop = this.getShop(shopId);
     if (!shop) return null;
 
+    if (shop.excludeMagical) catalog = catalog.filter(row => !this.hasMagicalProperty(row));
     const manualStock = Object.fromEntries(
       catalog
         .filter(row => shop.inventoryOverrides?.limited?.includes(row.uuid))
         .map(row => [this.stockKey(row), Math.max(0, Number(shop.stock?.[this.stockKey(row)] ?? 0))])
     );
 
-    if (shop.inventoryMode === "unlimited") {
+    if (shop.manualInventoryOnly) {
+      shop.stock = Object.fromEntries(catalog
+        .filter(row => shop.inventoryOverrides?.included?.includes(row.uuid)
+          && !shop.inventoryOverrides?.excluded?.includes(row.uuid))
+        .map(row => {
+          const key = this.stockKey(row);
+          const target = Math.max(0, Number(shop.manualStockTargets?.[key] ?? Math.max(1, shop.stock?.[key] ?? 0)));
+          shop.manualStockTargets[key] = target;
+          return [key, target];
+        }));
+    } else if (shop.inventoryMode === "unlimited") {
       shop.stock = manualStock;
     } else if (shop.randomInventory?.enabled) {
       const generated = this.buildRandomStock(shop, catalog);

@@ -27,3 +27,19 @@ test("legacy and v6 indexed magic items keep their rarity and shop capability re
   });
   assert.equal(mundane.isMagicItem, false);
 });
+
+test("unpriced known-rarity entries are retained by the catalog without document loading", () => {
+  globalThis.CONFIG = { DND5E: {}, Item: { typeLabels: {} } };
+  globalThis.game = { settings: { get: () => 1 }, modules: new Map(), system: {}, i18n: { localize: x => x } };
+  globalThis.MorelordCore = { sources: { resolveBookLabel } };
+  const pack = { collection: 'test.rarity' };
+  const entry = { _id: 'unpriced', name: 'Unpriced rare item', type: 'consumable', system: { rarities: ['rare'], price: { value: 0, denomination: 'gp' } } };
+  const row = CompendiumService.indexEntryToMarketplaceRow(pack, entry);
+  assert.equal(row.listPriceCp, 400000);
+  assert.equal(row.buyPriceCp, 400000);
+  for (const type of ['feat', 'spell', 'class', 'subclass', 'background', 'race']) {
+    assert.equal(CompendiumService.indexEntryToMarketplaceRow(pack, { ...entry, type }), null);
+  }
+  entry.flags = { 'morelord-marketplace': { purchasable: false } };
+  assert.equal(CompendiumService.indexEntryToMarketplaceRow(pack, entry), null);
+});

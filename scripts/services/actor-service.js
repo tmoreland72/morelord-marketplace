@@ -89,7 +89,7 @@ export class ActorService {
 
     return actor.items
       .filter(item => ITEM_TYPES.SELLABLE.includes(item.type))
-      .filter(item => ShopService.entryMatchesItemOptions(item, shop))
+      .filter(item => ShopService.acceptsPlayerItem(item, shop))
       .filter(item => !item.getFlag(MODULE_ID, "unsellable"))
       .map(item => {
         const quantity = Number(item.system?.quantity ?? 1);
@@ -113,6 +113,10 @@ export class ActorService {
   }
 
   static async sellItem(actor, itemId, quantity = 1, { shop = null } = {}) {
+    if (shop?.id) {
+      shop = ShopService.getShop(shop.id);
+      if (!shop) throw new Error("This shop no longer exists.");
+    }
     if (!actor) {
       ui.notifications.error("Marketplace actor not found.");
       return;
@@ -129,7 +133,7 @@ export class ActorService {
       return;
     }
 
-    if (item.getFlag(MODULE_ID, "unsellable")) {
+    if (!ShopService.acceptsPlayerItem(item, shop) || item.getFlag(MODULE_ID, "unsellable")) {
       ui.notifications.warn(`${item.name} cannot be sold.`);
       return;
     }
@@ -181,6 +185,10 @@ export class ActorService {
   }
 
   static async sellCart(actor, lines = [], { shop = null } = {}) {
+    if (shop?.id) {
+      shop = ShopService.getShop(shop.id);
+      if (!shop) throw new Error("This shop no longer exists.");
+    }
     if (!actor || !lines.length) return { status: "blocked" };
     if (!shop && !game.settings.get(MODULE_ID, "enableSelling")) {
       ui.notifications.warn("Selling through the global Marketplace is disabled.");
@@ -192,7 +200,7 @@ export class ActorService {
       const item = actor.items.get(line.itemId);
       const quantity = Number(line.quantity);
       const ownedQuantity = Number(item?.system?.quantity ?? 0);
-      if (!item || item.getFlag(MODULE_ID, "unsellable") || !Number.isInteger(quantity) || quantity < 1 || quantity > ownedQuantity) {
+      if (!item || !ShopService.acceptsPlayerItem(item, shop) || item.getFlag(MODULE_ID, "unsellable") || !Number.isInteger(quantity) || quantity < 1 || quantity > ownedQuantity) {
         throw new Error("An item in the sell cart is no longer available in the requested quantity.");
       }
       const unitPriceCp = PricingService.getSellPriceCp(PricingService.getItemPriceCp(item), shop, sellRate);

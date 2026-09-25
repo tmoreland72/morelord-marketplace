@@ -217,7 +217,7 @@ Choose any combination of:
 - Loot
 - Containers
 
-Then select permitted rarities: Common, Uncommon, Rare, Very Rare, Legendary, or Artifact. Product and rarity settings affect the shop's catalog, random stock, and the items it accepts from players.
+Then select permitted rarities: Common, Uncommon, Rare, Very Rare, Legendary, or Artifact. Product and rarity settings affect the shop's catalog and random stock. Item Options control accepted player sales unless a specific purchase list is configured.
 
 ### Inventory modes
 
@@ -359,7 +359,7 @@ Report reproducible problems at [Morelord Marketplace Issues](https://github.com
 
 Global Buy and Sell both use carts. Adding items only prepares a transaction; Purchase or Sell Cart submits it. When global GM approval is enabled, the complete cart is one request and current prices, funds, availability, and quantities are revalidated before commitment. Buy results are paginated at 50 items per page while filters cover the entire catalog.
 
-Shop Manager can associate a shop with a shared Core Location. Normal stock can inherit its capability tier or use the shop's maximum normal rarity override. Manually included inventory may exceed that limit; its Manual badge identifies stock whose remaining quantity is preserved during restocking.
+Shop Manager can associate a shop with a shared Core Location. Normal stock can inherit its capability tier or use the shop's maximum normal rarity override. Manually included inventory may exceed that limit; its Manual badge identifies manually managed stock. Normal restocking preserves remaining quantity; manual-only shops restore configured quantities.
 
 Eligible wishlist items receive a 1.25x selection weight during random restocking. They are not guaranteed picks, whether duplicate selection is enabled or disabled. The rarity counts still control the number of draws, and the documented unit ranges apply to selected listings.
 
@@ -374,3 +374,19 @@ Catalogs and shops accept legacy rarity fields and v6 rarity collections. Items 
 The GM’s **Temporarily ignore buy and sell rates (both ×1)** toggle applies list prices to global purchases and sales for everyone. Switch it off to resume the unchanged configured rates. It persists across reloads, leaves shop pricing alone, and clears global carts when changed. New shops copy the configured buy/sell rates; their values remain editable.
 
 Prefab choices show one entry per normalized shop name, keeping the variant with the most available matches. Previously saved prefab IDs remain resolvable. SRD items copied into other packs still honor their canonical D&D5e source exclusions.
+
+## Manually configured shop items
+
+**Player can sell** enables selling to the vendor. Under **Items the shop will buy**, use **Add Item** to search enabled Item compendiums. Once this list contains an item, it is exclusive: the Sell tab shows only matching owned items, and checkout checks the current list again. Removing the last entry restores the shop's normal Item Options filtering. This list is independent of inventory offered for sale.
+
+Items match their compendium origin (including renamed copies). Items without a recorded origin match by name and item type; copies from a different compendium origin require their own entry. Usual supported-type, positive-price, unsellable-flag, and reputation restrictions still apply.
+
+**Only sell manually added items** is off by default. Enable it to offer only manually added inventory in any inventory mode. **Restock Now** restores those listings to their configured quantities and never selects additional products. Adding a listing or adjusting its quantity sets that restock quantity; purchases reduce remaining stock without changing the target. Sold-out manual listings remain visible to the GM. Existing manual listings without a saved target use their remaining quantity, or one if sold out, on their first manual-only restock.
+
+Turning off **Generate limited stock randomly** only stops random stock generation. It does not remove existing generated stock or restrict Unlimited/Hybrid catalogs to manually added items, and it does not replenish manual stock.
+
+**Common** includes both mundane items (no rarity) and common magic items. It is not a mundane-only filter. Enable **Exclude magical items** under Products to reject the D&D5e Magical (`mgc`) property regardless of rarity. This also filters manually added and prefab listings, restock candidates, and checkout. The option defaults to off and does not alter the purchase list or player-selling rules. It depends on items having their Magical property correctly set.
+
+The purchase list and Current Inventory use the same Core section headings, count badges, Add Item actions, and item rows. Both show item artwork, a document link, available source details, and removal controls; inventory also has stock quantity controls.
+
+Unpriced source items receive a rarity-based base price: Common 100 gp, Uncommon 400 gp, Rare 4,000 gp, Very Rare 40,000 gp, and Legendary 200,000 gp. Blank/mundane rarity uses Common; artifacts and unknown rarities need an explicit price. Positive source prices and GM custom prices take priority. Normal buy/sell rates apply, and compendium data is unchanged.

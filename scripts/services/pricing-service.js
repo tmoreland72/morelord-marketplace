@@ -1,5 +1,11 @@
 import { MODULE_ID, DENOMINATION_TO_CP } from "../constants.js";
 import { ShopService } from "./shop-service.js";
+import { itemRarity } from "../../../morelord-core/scripts/services/item-rarity.js";
+
+// Standard rarity values in GP (2024 SRD); artifacts have no standard price.
+const RARITY_PRICE_GP = new Map(Object.entries({
+  common: 100, uncommon: 400, rare: 4000, veryrare: 40000, legendary: 200000
+}));
 
 export class PricingService {
   static getItemPrice(item) {
@@ -8,10 +14,12 @@ export class PricingService {
     if (override) return override;
 
     const price = item.system?.price;
-    if (!price) return null;
-
-    if (typeof price === "number") return { value: price, denomination: "gp" };
-    return { value: Number(price.value ?? 0), denomination: price.denomination ?? "gp" };
+    const value = Number(typeof price === "number" ? price : price?.value);
+    if (Number.isFinite(value) && value > 0) {
+      return { value, denomination: price?.denomination ?? "gp" };
+    }
+    const fallback = RARITY_PRICE_GP.get(itemRarity(item.system) ?? "common");
+    return fallback ? { value: fallback, denomination: "gp" } : null;
   }
 
   static getItemPriceCp(item) {

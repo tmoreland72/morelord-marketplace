@@ -72,6 +72,8 @@ export class CompendiumService {
         itemOptions: [...(currentShop.itemOptions ?? [])].sort(),
         rarities: [...(currentShop.rarities ?? [])].map(value => ShopService.normalizeRarity(value)).sort(),
         prefabItemUuids: [...(currentShop.prefabItemUuids ?? [])].sort(),
+        manualInventoryOnly: currentShop.manualInventoryOnly === true,
+        excludeMagical: currentShop.excludeMagical === true,
         inventoryOverrides: {
           included: [...(currentShop.inventoryOverrides?.included ?? [])].sort(),
           excluded: [...(currentShop.inventoryOverrides?.excluded ?? [])].sort(),
@@ -366,8 +368,8 @@ export class CompendiumService {
     let priceCp = PricingService.getItemPriceCp(entry);
 
     // Catalog browsing is strictly index-only. All pricing fields needed here
-    // are requested by getPackIndex; entries without an indexed price are not
-    // buyable. Full documents are fetched only for an actual transaction.
+    // are requested by getPackIndex, including rarity for unpriced items.
+    // Full documents are fetched only for an actual transaction.
     if (!priceCp) return null;
 
     const listPriceCp = priceCp;
