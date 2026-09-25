@@ -4,7 +4,7 @@ description: Browse, buy, and sell items through the global Marketplace and GM-c
 slug: morelord-marketplace/player
 product: morelord-marketplace
 audience: player
-version: 0.9.8
+version: 0.9.9
 foundry: 14
 ---
 

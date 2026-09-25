@@ -4,7 +4,7 @@ description: Install, configure, and operate Morelord Marketplace, including pre
 slug: morelord-marketplace/gm
 product: morelord-marketplace
 audience: game-master
-version: 0.9.8
+version: 0.9.9
 foundry: 14
 ---
 

@@ -2,7 +2,7 @@
 title: Morelord Marketplace Documentation
 slug: morelord-marketplace
 product: morelord-marketplace
-version: 0.9.8
+version: 0.9.9
 ---
 
 # Morelord Marketplace Documentation
@@ -42,3 +42,5 @@ These manuals describe Morelord Marketplace 0.9.6 for Foundry Virtual Tabletop v
 
 
 These manuals cover Marketplace 0.9.6 with Morelord Core 0.3.7 or later. Buy and Sell use carts; shops support shared Locations, capability limits, and weighted random stock.
+
+Version 0.9.9 adds manual-only shop stock, exclusive vendor purchase lists, Magical-property exclusion, and rarity-based prices for unpriced source items. Blank rarity defaults to Common at 100 gp; explicit prices and GM overrides take priority. Requires Morelord Core 0.3.15 or later.
