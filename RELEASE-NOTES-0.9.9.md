@@ -1,13 +1,15 @@
 # Morelord Marketplace 0.9.9
 
-## Improvements
+## What Changed
+
+### Improvements
 
 - [Premium] Shop Manager supports an exclusive list of items players can sell to a shop, checked both in the Sell tab and at checkout.
 - [Premium] Shops can offer only manually added products; restocking restores their configured quantities without introducing random items.
 - [Premium] Exclude magical items filters the Magical property across listings, restock candidates, and checkout, independently of rarity.
 - [Premium] Purchase lists and inventory share Core section actions and item-row presentation.
 
-## Fixed
+### Fixed
 
 - Configured-source items without a positive price now use standard rarity base values. Blank or mundane rarity uses Common at 100 gp, restoring items such as Grenade, Fragmentation to the catalog. Explicit prices and GM overrides take priority; normal buy/sell rates still apply.
 
