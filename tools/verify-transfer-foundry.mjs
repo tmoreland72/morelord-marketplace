@@ -15,9 +15,9 @@ try {
   await join(browser, 'Chuck');
   const report = JSON.parse(await browser.evaluate(`JSON.stringify(await (async()=>{
     const {runInGameTests}=await import('/modules/morelord-core/scripts/testing/in-game.js');
-    const {transferCheck,marketplaceLayoutCheck}=await import('/modules/morelord-marketplace/scripts/testing/transfer.mjs');
+    const {transferCheck,marketplaceLayoutCheck,containerTransferCheck}=await import('/modules/morelord-marketplace/scripts/testing/transfer.mjs');
     const {horizontalScrollCheck}=await import('/modules/morelord-core/scripts/testing/horizontal-scroll.js');
-    return runInGameTests({checks:[horizontalScrollCheck,transferCheck,marketplaceLayoutCheck]});
+    return runInGameTests({checks:[horizontalScrollCheck,transferCheck,marketplaceLayoutCheck,containerTransferCheck]});
   })())`));
   await mkdir(output, { recursive: true });
   await writeFile(new URL('transfer.json', output), JSON.stringify(report, null, 2));

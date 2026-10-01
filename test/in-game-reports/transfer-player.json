@@ -1,7 +1,7 @@
 {
   "suite": "morelord-core-smoke",
   "schemaVersion": 1,
-  "startedAt": "2026-10-01T17:59:35.048Z",
+  "startedAt": "2026-10-01T18:49:23.799Z",
   "environment": {
     "foundry": "14.368",
     "system": {
@@ -101,7 +101,7 @@
       },
       {
         "id": "morelord-core",
-        "version": "0.3.15"
+        "version": "0.4.0"
       },
       {
         "id": "morelord-craftworks",
@@ -125,7 +125,7 @@
       },
       {
         "id": "morelord-marketplace",
-        "version": "0.9.9"
+        "version": "0.10.0"
       },
       {
         "id": "quick-insert",
@@ -167,7 +167,7 @@
     {
       "id": "core.character-routing",
       "status": "pass",
-      "durationMs": 1
+      "durationMs": 2
     },
     {
       "id": "core.ignored-users-window",
@@ -178,7 +178,7 @@
     {
       "id": "morelord-marketplace.player-transfer",
       "status": "pass",
-      "durationMs": 11582
+      "durationMs": 10776
     }
   ],
   "summary": {

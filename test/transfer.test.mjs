@@ -11,7 +11,7 @@ function fixture() {
       const items = data.map(data => ({ ...structuredClone(data), id: data._id, uuid: `${this.uuid}.Item.${data._id}`, toObject() { const { toObject, ...copy } = this; return structuredClone(copy); } }));
       this.items.push(...items); return items;
     },
-    async updateEmbeddedDocuments(_, updates) { for (const update of updates) this.items.get(update._id).system.quantity = update['system.quantity']; },
+    async updateEmbeddedDocuments(_, updates) { for (const update of updates) { const item = this.items.get(update._id); for (const [key, value] of Object.entries(update)) if (key.startsWith('system.')) item.system[key.slice(7)] = value; } },
     async deleteEmbeddedDocuments(_, ids) { for (const id of ids) this.items.splice(this.items.findIndex(item => item.id === id), 1); }
   });
   const sender = actor('sender'), target = actor('recipient'), group = actor('party', 'group');
@@ -51,11 +51,43 @@ test('Group recipient and transfer validation reject unauthorized, malformed, ex
   await TransferService.execute(request, 'player'); assert.equal(f.group.items[0].system.quantity, 2);
 });
 
-test('nonempty containers are excluded; contained items transfer without stale container references', async () => {
+test('contained items transferred alone leave their container behind', async () => {
   const f = fixture(); await f.add('bag', 1, 'container'); await f.add('arrows', 5, 'loot', { container: 'bag' }); await f.add('feat', 1, 'feat');
-  assert.deepEqual(TransferService.items(f.sender).map(item => item.id), ['arrows']);
+  assert.deepEqual(TransferService.items(f.sender).map(item => item.id), ['bag', 'arrows']);
   await TransferService.execute({ actorId: 'sender', targetId: 'recipient', items: [{ itemId: 'arrows', quantity: 5 }] }, 'player');
   assert.equal(f.target.items[0].system.container, null); assert.equal(f.sender.items.get('bag').system.quantity, 1);
+});
+
+test('containers transfer all nested contents once and remap their organization', async () => {
+  const f = fixture(); await f.add('bag', 1, 'container'); await f.add('pouch', 1, 'container', { container: 'bag' }); await f.add('arrows', 5, 'loot', { container: 'pouch' });
+  await TransferService.execute({ actorId: 'sender', targetId: 'party', items: [{ itemId: 'arrows', quantity: 2 }, { itemId: 'bag', quantity: 1 }] }, 'player');
+  assert.equal(f.sender.items.length, 0); assert.equal(f.group.items.length, 3);
+  const bag = f.group.items.find(item => item.name === 'bag'), pouch = f.group.items.find(item => item.name === 'pouch'), arrows = f.group.items.find(item => item.name === 'arrows');
+  assert.equal(bag.system.container, null); assert.equal(pouch.system.container, bag.id); assert.equal(arrows.system.container, pouch.id); assert.equal(arrows.system.quantity, 5);
+  assert.match(f.cards[0].content, /Items transferred:<\/strong> 7/);
+});
+
+test('container failure restores contents and new contents added during creation cancel safely', async () => {
+  const f = fixture(); await f.add('bag', 1, 'container'); await f.add('arrows', 5, 'loot', { container: 'bag' });
+  const request = { actorId: 'sender', targetId: 'recipient', items: [{ itemId: 'bag', quantity: 1 }] };
+  const remove = f.sender.deleteEmbeddedDocuments;
+  f.sender.deleteEmbeddedDocuments = async (...args) => { await remove.apply(f.sender, args); throw Error('container deletion failed'); };
+  await assert.rejects(TransferService.execute(request, 'player'), /container deletion failed/);
+  assert.equal(f.sender.items.get('arrows').system.container, 'bag'); assert.equal(f.sender.items.get('bag').system.quantity, 1); assert.equal(f.target.items.length, 0);
+  f.sender.deleteEmbeddedDocuments = remove;
+  const create = f.target.createEmbeddedDocuments;
+  f.target.createEmbeddedDocuments = async (...args) => { const result = await create.apply(f.target, args); await f.add('new-child', 1, 'loot', { container: 'bag' }); return result; };
+  await assert.rejects(TransferService.execute(request, 'player'), /inventory changed/);
+  assert.equal(f.sender.items.length, 3); assert.equal(f.target.items.length, 0);
+});
+
+test('filled container stacks cannot split their contents and circular containment is rejected', async () => {
+  const f = fixture(); await f.add('bag', 2, 'container'); await f.add('pouch', 1, 'container', { container: 'bag' });
+  const request = { actorId: 'sender', targetId: 'recipient', items: [{ itemId: 'bag', quantity: 1 }] };
+  await assert.rejects(TransferService.execute(request, 'player'), /whole container stack/);
+  f.sender.items.get('bag').system.container = 'pouch';
+  await assert.rejects(TransferService.execute({ ...request, items: [{ itemId: 'bag', quantity: 2 }] }, 'player'), /circular/);
+  assert.equal(f.sender.items.length, 2); assert.equal(f.target.items.length, 0);
 });
 
 test('partial source deletion failure restores both inventories and does not remove unrelated recipient items', async () => {

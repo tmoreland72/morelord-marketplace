@@ -330,7 +330,7 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       const targets = TransferService.targets(actor);
       if (!targets.some(target => target.id === this.transferTargetId)) this.transferTargetId = null;
       context.transferTargets = targets.map(target => ({ id: target.id, name: target.name, selected: target.id === this.transferTargetId }));
-      const rows = TransferService.items(actor).map(item => ({ ownedItemId: item.id, uuid: item.uuid, name: item.name, img: item.img, quantity: item.system.quantity }));
+      const rows = TransferService.items(actor).map(item => ({ ownedItemId: item.id, uuid: item.uuid, name: item.name, img: item.img, quantity: item.system.quantity, contentsCount: item.type === "container" ? TransferService.contents(actor, item.id).reduce((sum, child) => sum + child.system.quantity, 0) : 0 }));
       for (const [id, quantity] of this.transferCart) {
         const row = rows.find(row => row.ownedItemId === id);
         if (!row) this.transferCart.delete(id);
@@ -338,7 +338,11 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       }
       context.transferItems = rows.map(row => ({ ...row, cartQty: this.transferCart.get(row.ownedItemId) ?? 0, canAdd: !this.isCheckingOut && (this.transferCart.get(row.ownedItemId) ?? 0) < row.quantity }));
       context.transferCartItems = context.transferItems.filter(row => row.cartQty > 0);
-      context.transferCartCount = [...this.transferCart.values()].reduce((sum, quantity) => sum + quantity, 0);
+      const quantities = new Map(this.transferCart);
+      for (const [id] of this.transferCart) if (actor.items.get(id)?.type === "container") {
+        for (const child of TransferService.contents(actor, id)) quantities.set(child.id, child.system.quantity);
+      }
+      context.transferCartCount = [...quantities.values()].reduce((sum, quantity) => sum + quantity, 0);
       context.canCheckoutTransfer = !this.isCheckingOut && Boolean(actor && this.transferTargetId && context.transferCartCount);
     }
 
@@ -690,7 +694,7 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
     if (this.isCheckingOut) return;
     const id = target.dataset.itemId, item = TransferService.items(this.actor).find(item => item.id === id);
     if (!item) return;
-    const requested = target.dataset.all ? item.system.quantity : 1;
+    const requested = target.dataset.all || (item.type === "container" && TransferService.contents(this.actor, id).length) ? item.system.quantity : 1;
     if (!Number.isInteger(requested) || requested < 1) return;
     this.transferCart.set(id, Math.min(item.system.quantity, (this.transferCart.get(id) ?? 0) + requested));
     await this.render();
@@ -709,7 +713,8 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
     const id = target.dataset.itemId, current = this.transferCart.get(id), item = this.actor?.items.get(id);
     const delta = Number(target.dataset.delta);
     if (!item || !current || ![-1, 1].includes(delta)) return;
-    const quantity = Math.max(0, Math.min(item.system.quantity, current + delta));
+    const quantity = item.type === "container" && TransferService.contents(this.actor, id).length
+      ? (delta < 0 ? 0 : item.system.quantity) : Math.max(0, Math.min(item.system.quantity, current + delta));
     if (quantity) this.transferCart.set(id, quantity);
     else this.transferCart.delete(id);
     await this.render();

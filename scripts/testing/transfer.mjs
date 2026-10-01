@@ -10,6 +10,58 @@ const wait = async (predicate, label = 'cart interaction') => {
   }
 };
 
+export const containerTransferCheck = {
+  id: 'morelord-marketplace.container-transfer',
+  async run() {
+    assert(game.user.isGM, 'Run as GM.');
+    const actors = [], baseline = new Set(game.messages.map(message => message.id));
+    let app;
+    try {
+      const player = game.users.find(user => !user.isGM);
+      for (const [name, type] of [['Sender', 'character'], ['Recipient', 'group']]) actors.push(await Actor.create({ name: `Container transfer test ${name}`, type, ownership: { [player.id]: 3 } }));
+      const [sender, target] = actors;
+      const [bag, pouch, arrows] = await sender.createEmbeddedDocuments('Item', [
+        { name: 'Container transfer test backpack', type: 'container', system: { quantity: 1 } },
+        { name: 'Container transfer test pouch', type: 'container', system: { quantity: 1 } },
+        { name: 'Container transfer test arrows', type: 'loot', system: { quantity: 5 } }
+      ]);
+      await sender.updateEmbeddedDocuments('Item', [{ _id: pouch.id, 'system.container': bag.id }, { _id: arrows.id, 'system.container': pouch.id }]);
+      app = new MorelordMarketplaceApp(); app.actorId = sender.id; app.activeTab = 'transfer'; await app.render(true);
+      const button = app.element.querySelector(`[data-action=addTransfer][data-item-id="${bag.id}"]`);
+      assert(button, 'A filled container appears in the inventory list.');
+      await MorelordMarketplaceApp.addTransfer.call(app, new Event('click'), button);
+      assert(app.element.textContent.includes('Includes 6 contained item(s)'), 'The cart describes nested contents.');
+      assert(app.element.textContent.includes('7 item(s) to transfer'), 'The cart total includes all contents.');
+      const remove = sender.deleteEmbeddedDocuments;
+      try {
+        sender.deleteEmbeddedDocuments = async (type) => { await remove.call(sender, type, [bag.id]); throw new Error('Container regression simulated partial deletion'); };
+        let failed = false;
+        try { await TransferService.checkout({ actorId: sender.id, targetId: target.id, items: [{ itemId: bag.id, quantity: 1 }] }); } catch { failed = true; }
+        assert(failed && target.items.size === 0 && sender.items.size === 3, 'Partial deletion restores both inventories.');
+        assert(sender.items.get(pouch.id).system.container === bag.id && sender.items.get(arrows.id).system.container === pouch.id, 'Recovery restores containment after dnd5e deletes the outer container.');
+      } finally { sender.deleteEmbeddedDocuments = remove; }
+      try { await TransferService.checkout({ actorId: sender.id, targetId: target.id, items: [{ itemId: bag.id, quantity: 1 }, { itemId: arrows.id, quantity: 2 }] }); }
+      catch (error) { throw new Error(`${error.message} Source: ${JSON.stringify(sender.items.map(item => ({ id: item.id, type: item.type, quantity: item.system.quantity, container: item.system.container })))}`); }
+      assert(sender.items.size === 0, 'Container and all contents leave the sender.');
+      const receivedBag = target.items.find(item => item.name === bag.name), receivedPouch = target.items.find(item => item.name === pouch.name), receivedArrows = target.items.find(item => item.name === arrows.name);
+      assert(target.items.size === 3 && receivedArrows.system.quantity === 5, 'Every document moves once with its full contained quantity.');
+      assert(receivedPouch.system.container === receivedBag.id && receivedArrows.system.container === receivedPouch.id, 'Nested organization survives real dnd5e creation.');
+      assert(!receivedBag.system.container, 'The outer container arrives at the top level.');
+      const receipt = game.messages.find(message => !baseline.has(message.id) && message.content.includes('Container transfer test'));
+      assert(receipt?.content.includes('Items transferred:</strong> 7'), 'The receipt includes contents and their quantities.');
+      try { await TransferService.checkout({ actorId: target.id, targetId: sender.id, items: [{ itemId: receivedArrows.id, quantity: 2 }] }); }
+      catch (error) { throw new Error(`${error.message} Recipient: ${JSON.stringify(target.items.map(item => ({ id: item.id, type: item.type, quantity: item.system.quantity, container: item.system.container })))}`); }
+      assert(sender.items.size === 1 && !sender.items.contents[0].system.container && sender.items.contents[0].system.quantity === 2, 'Contents can still be sent independently outside the container.');
+      assert(target.items.get(receivedArrows.id).system.quantity === 3 && target.items.get(receivedPouch.id).system.container === receivedBag.id, 'A standalone transfer leaves the container and remaining contents intact.');
+    } finally {
+      await app?.close();
+      const messages = game.messages.filter(message => !baseline.has(message.id) && message.content.includes('Container transfer test')).map(message => message.id);
+      if (messages.length) await ChatMessage.deleteDocuments(messages);
+      if (actors.length) await Actor.deleteDocuments(actors.map(actor => actor.id));
+    }
+  }
+};
+
 export const transferCheck = {
   id: 'morelord-marketplace.transfer',
   async run() {

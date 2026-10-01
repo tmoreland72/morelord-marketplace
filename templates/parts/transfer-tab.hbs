@@ -1,6 +1,6 @@
 <section class="ml-surface ml-stack" data-gap="3">
   <div class="ml-section-heading"><div><h2>Transfer</h2><p>Send inventory items to another character or Group.</p></div></div>
-  <p class="notes">Add one item, a quantity, or a full stack. Empty containers before transferring them. A connected GM is required; transfers complete automatically without approval.</p>
+  <p class="notes">Add one item, a quantity, or a full stack. Containers include all their contents, including nested containers. A connected GM is required; transfers complete automatically without approval.</p>
   <div class="ml-marketplace-transfer-layout">
     {{> "modules/morelord-marketplace/templates/parts/inventory-table.hbs" rows=transferItems transfer=true scrollKey="transfer-results"}}
     <aside class="ml-surface ml-stack" data-gap="3" aria-label="Transfer Shopping Cart">
@@ -15,6 +15,7 @@
       <div class="ml-card ml-item-row">
         <img src="{{img}}" alt="{{name}}">
         <div class="ml-stack" data-gap="1"><a class="content-link ml-item-link" data-link data-uuid="{{uuid}}">{{name}}</a>
+          {{#if contentsCount}}<small class="notes">Includes {{contentsCount}} contained item(s), including nested contents. Minus removes the container from the cart.</small>{{/if}}
         </div>
         {{> "modules/morelord-core/templates/components/quantity-controls.hbs" action="adjustTransferQuantity" itemId=ownedItemId name=name quantity=cartQty disabled=../isCheckingOut increaseEnabled=canAdd}}
       </div>

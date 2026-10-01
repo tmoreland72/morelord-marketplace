@@ -1,7 +1,7 @@
 {
   "suite": "morelord-core-smoke",
   "schemaVersion": 1,
-  "startedAt": "2026-10-01T17:58:54.267Z",
+  "startedAt": "2026-10-01T18:48:46.148Z",
   "environment": {
     "foundry": "14.368",
     "system": {
@@ -101,7 +101,7 @@
       },
       {
         "id": "morelord-core",
-        "version": "0.3.15"
+        "version": "0.4.0"
       },
       {
         "id": "morelord-craftworks",
@@ -125,7 +125,7 @@
       },
       {
         "id": "morelord-marketplace",
-        "version": "0.9.9"
+        "version": "0.10.0"
       },
       {
         "id": "quick-insert",
@@ -167,12 +167,12 @@
     {
       "id": "core.character-routing",
       "status": "pass",
-      "durationMs": 1
+      "durationMs": 2
     },
     {
       "id": "core.ignored-users-window",
       "status": "pass",
-      "durationMs": 6209
+      "durationMs": 5780
     },
     {
       "id": "core.horizontal-table-scroll",
@@ -182,16 +182,21 @@
     {
       "id": "morelord-marketplace.transfer",
       "status": "pass",
-      "durationMs": 2138
+      "durationMs": 1637
     },
     {
       "id": "morelord-marketplace.cart-filter-layout",
       "status": "pass",
-      "durationMs": 519
+      "durationMs": 462
+    },
+    {
+      "id": "morelord-marketplace.container-transfer",
+      "status": "pass",
+      "durationMs": 648
     }
   ],
   "summary": {
-    "pass": 7,
+    "pass": 8,
     "fail": 0,
     "skip": 0
   },
