@@ -1,6 +1,6 @@
 ---
 title: Morelord Marketplace Player Manual
-description: Browse, buy, and sell items through the global Marketplace and GM-created scene shops.
+description: Browse, buy, sell, transfer items, and use wishlists through Marketplace and GM-created scene shops.
 slug: morelord-marketplace/player
 product: morelord-marketplace
 audience: player
@@ -10,20 +10,22 @@ foundry: 14
 
 # Morelord Marketplace Player Manual
 
+Morelord Marketplace lets you browse, buy, sell eligible inventory items at rates set by the GM, transfer equipment, and save wishlists in Foundry VTT. Your GM may also place individual vendors with their own products, prices, reputation, and stock.
+
+This manual applies to Morelord Marketplace 0.10.1 with Morelord Core 0.4.0 or later.
+
 ## Transfer inventory items
 
-Open **Transfer**. **Shopping As** selects the sending inventory. Use the coin icon to add one item or the sack icon to add its stack to the **Shopping Cart**. Use minus/plus to choose the quantity; zero removes the line. Select another character or Group as **Recipient**, then click **Transfer Items**.
+Open **Transfer**. **Shopping As** selects the sending inventory. Use the coin icon to add one item or the sack icon to add its stack to the **Shopping Cart**. Use minus/plus to choose the quantity; zero removes the line. Select another eligible character or Group as **Recipient**, then click **Transfer Items**. You must own the sending inventory; you do not need permission to edit the recipient.
 
 Tabs run **Sell → Transfer → Buy → Wishlist**. Buy, Sell, and Transfer give the cart 30% of the desktop layout and stack it below inventory in narrow windows. Buy's **Filters** heading collapses its column; Core remembers its state. Source names use ellipsis; hover for the full name.
 
-A connected GM applies transfers automatically, including to recipients whose inventories you cannot edit. No currency changes or buy/sell approval is involved. Every completed transfer posts a transaction chat card. Unpriced and unsellable physical inventory items are eligible. Containers travel with all their contents, including nested containers, and preserve their organization. Items sent individually arrive outside their former container. Received items are unequipped and unattuned.
-
-Morelord Marketplace lets you browse, buy, and sell dnd5e items from your character in Foundry VTT. Your GM may also place individual vendors with their own products, prices, reputation, and stock.
-
-This manual applies to Morelord Marketplace 0.10.1.
+A connected GM applies transfers automatically, including to recipients whose inventories you cannot edit. No currency changes or buy/sell approval is involved. Every completed transfer posts a transaction chat card. Unpriced and unsellable physical inventory items are eligible. Containers travel with all their contents, including nested containers, and preserve their organization. Transfer the whole container stack to include its contents. Items selected individually and through a container move only once. Items sent individually arrive outside their former container. Received items are unequipped and unattuned.
 
 ## Contents
 
+- [Transfer inventory items](#transfer-inventory-items)
+- [Wishlists and browsing](#wishlists-and-browsing)
 - [Before you shop](#before-you-shop)
 - [Open the global Marketplace](#open-the-global-marketplace)
 - [Browse and filter items](#browse-and-filter-items)
@@ -48,16 +50,18 @@ Your character needs enough dnd5e currency to purchase an item. The Marketplace 
 
 ![The global Morelord Marketplace open in a player session](assets/player-marketplace-overview.png)
 
-*The player Marketplace identifies the active character, shows available coin, and provides separate Buy and Sell tabs without GM-only controls.*
+*The player Marketplace identifies the active character, shows available coin, and provides Sell, Transfer, Buy, and Wishlist tabs without GM-only controls. The screenshot predates the Transfer tab.*
 
 1. Open **Token Controls** on the left side of the scene.
 2. Select the **Morelord Marketplace** store icon.
 3. Confirm that the character shown near the top of the window is the character you intend to use.
 
-The global Marketplace contains two tabs:
+The global Marketplace contains four tabs, in this order:
 
+- **Sell** displays eligible items in your character's inventory at rates set by the GM.
+- **Transfer** sends eligible physical items to another character or Group without currency changes.
 - **Buy** displays the item catalog selected by your GM.
-- **Sell** displays eligible items in your character's inventory.
+- **Wishlist** saves desired items for the selected shopper without reserving stock.
 
 Your GM can disable global buying or selling independently. If buying is disabled, you may still browse the Buy catalog as a reference.
 

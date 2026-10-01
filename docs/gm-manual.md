@@ -10,9 +10,11 @@ foundry: 14
 
 # Morelord Marketplace Game Master Manual
 
+This guide covers Morelord Marketplace 0.10.1, Foundry VTT v14, dnd5e, and Morelord Core 0.4.0 or later. The global tabs run **Sell → Transfer → Buy → Wishlist**. Sell eligible inventory items at rates set by the GM; wishlists save desired items without reserving stock.
+
 ## Inventory transfers
 
-The **Transfer** tab lets players move physical inventory quantities or whole stacks to another eligible character or Group, including inventories they cannot edit. An active, non-ignored GM client must be connected to apply transfers automatically through Core. Transfers require no approval or premium access, do not change currency, and post a transaction chat card. Containers include all their contents and nested containers, with containment preserved at the recipient. If inventory rollback is incomplete, review both actors before retrying.
+The **Transfer** tab lets players move physical inventory quantities or whole stacks to another eligible character or Group, including inventories they cannot edit. An active, non-ignored GM client must be connected to apply transfers automatically through Core. Transfers require no approval or premium access, do not change currency, and post a transaction chat card. Containers include all their contents and nested containers, with containment preserved at the recipient. The player selects the sending inventory in **Shopping As**, adds one item or a whole stack to the cart, adjusts quantities, selects **Recipient**, and chooses **Transfer Items**. The sender must own the source inventory; recipient edit permission is not required. Transfer the whole container stack to include its contents. Overlapping individual and container selections move each item only once. Individual contents can be sent separately. If inventory rollback is incomplete, review both actors before retrying.
 
 Morelord Marketplace gives a Foundry VTT world a global catalog for buying and selling dnd5e items. With Tools Premium or Tools Champion access, it also provides GM transaction approvals and Shop Manager for configurable scene vendors.
 
@@ -20,6 +22,7 @@ This manual applies to Morelord Marketplace 0.10.1, Foundry VTT v14, and the dnd
 
 ## Contents
 
+- [Inventory transfers](#inventory-transfers)
 - [Feature access](#feature-access)
 - [Install and activate](#install-and-activate)
 - [Configure the global Marketplace](#configure-the-global-marketplace)
@@ -38,6 +41,8 @@ This manual applies to Morelord Marketplace 0.10.1, Foundry VTT v14, and the dnd
 | --- | :---: | :---: |
 | Browse the global catalog | Yes | Yes |
 | Buy and sell in the global Marketplace | Yes | Yes |
+| Transfer inventory items with a connected GM | Yes | Yes |
+| Save shopper wishlists | Yes | Yes |
 | Configure allowed item compendiums | Yes | Yes |
 | Configure the default buy and sell rates | Yes | Yes |
 | Post transaction cards to chat | Yes | Yes |
@@ -54,7 +59,7 @@ The global Marketplace remains usable if premium access expires. Saved premium s
 - Foundry Virtual Tabletop v14
 - The dnd5e game system
 - Morelord Core 0.4.0 or later
-- Morelord Marketplace v0.10.0 or later
+- Morelord Marketplace v0.10.1
 
 ### Install with the manifest
 
@@ -99,7 +104,7 @@ Marketplace uses the D&D5e system's **Configure Sources** selection. Enable or d
 
 ![The global Morelord Marketplace open for a selected character](assets/global-marketplace-overview.png)
 
-*The global Marketplace shows the active character, available coin, Buy and Sell tabs, and—when available—the GM-only Manage Shops control.*
+*The global Marketplace shows the active character, available coin, Sell, Transfer, Buy, and Wishlist tabs, and—when available—the GM-only Manage Shops control. The screenshot predates the Transfer tab.*
 
 1. Open a scene and select **Token Controls**.
 2. Select the **Morelord Marketplace** store icon.
@@ -144,7 +149,7 @@ Premium access is managed through Morelord Core.
 
 1. Open **Configure Marketplace**.
 2. In the premium-access panel, select **Connect Account** or **Manage Account**.
-3. Complete the Morelord account connection through Morelord Core.
+3. Complete the Morelord Gaming account connection through Morelord Core.
 4. Return to Marketplace settings and select **Refresh Access** if necessary.
 
 The panel reports the current tier and the most recent access check. Marketplace can continue using cached access during a temporary website outage. Disconnecting an account or losing entitlement locks the premium controls without deleting existing shop data.
