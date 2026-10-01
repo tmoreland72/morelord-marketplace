@@ -4,7 +4,7 @@ Send items to another character or Group directly from Marketplace, with automat
 
 ## What Changed
 
-### New Features
+### Added
 
 - Transfer items, selected quantities, or entire stacks from your inventory to another player character or Group using the new Transfer tab and Shopping Cart. A connected GM is required; transfers complete automatically without approval or currency changes.
 
