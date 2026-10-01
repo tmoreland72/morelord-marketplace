@@ -1,0 +1,43 @@
+    <div class="ml-marketplace-table-container ml-horizontal-scroll" data-ml-scroll-key="{{scrollKey}}">
+    <table>
+        <thead>
+            <tr>
+                <th>Item</th>
+                <th>Qty</th>
+                {{#unless transfer}}<th>List Price</th><th>Sell Price</th>{{/unless}}
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {{#each rows}}
+            <tr>
+                <td>
+                    <div class="ml-marketplace-item-cell">
+                        <img src="{{img}}" alt="{{name}}" />
+                        <a class="content-link"
+                            data-link
+                            data-uuid="{{uuid}}">
+                            {{name}}
+                        </a>
+                    </div>
+                </td>
+                <td>{{quantity}}</td>
+                {{#unless ../transfer}}<td>{{listPrice}}</td><td>{{sellPrice}}</td>{{/unless}}
+                <td>
+            <div class="ml-actions ml-marketplace-row-actions ml-marketplace-actions">
+                        <button type="button" data-action="{{#if ../transfer}}addTransfer{{else}}sellOne{{/if}}" data-item-id="{{ownedItemId}}" title="Add one to {{#if ../transfer}}transfer{{else}}sell{{/if}} cart" aria-label="Add one {{name}} to cart" {{#if ../transfer}}{{#unless canAdd}}disabled{{/unless}}{{else}}{{#unless canAddToSellCart}}disabled{{/unless}}{{/if}}>
+                        <i class="fa-solid fa-coin"></i>
+                        </button>
+
+                        <button type="button" data-action="{{#if ../transfer}}addTransfer{{else}}sellAll{{/if}}" {{#if ../transfer}}data-all="true"{{/if}} data-item-id="{{ownedItemId}}" title="Add all to {{#if ../transfer}}transfer{{else}}sell{{/if}} cart" aria-label="Add stack of {{name}} to cart" {{#if ../transfer}}{{#unless canAdd}}disabled{{/unless}}{{else}}{{#unless canAddToSellCart}}disabled{{/unless}}{{/if}}>
+                        <i class="fa-solid fa-sack-dollar"></i>
+                        </button>
+                        {{#if cartQty}}<span class="ml-marketplace-cart-qty">{{cartQty}}</span>{{/if}}
+                    </div>
+                </td>
+            </tr>
+            {{/each}}
+        </tbody>
+    </table>
+    </div>

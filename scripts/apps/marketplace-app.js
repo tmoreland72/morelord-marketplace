@@ -1,5 +1,6 @@
 import { renderPreservingScroll } from "../../../morelord-core/scripts/ui/scroll-preservation.js";
 import { decorateActorSelect } from "../../../morelord-core/scripts/ui/actor-identity.js";
+import { TransferService } from "../services/transfer-service.js";
 import { MODULE_ID } from "../constants.js";
 import { ActorService } from "../services/actor-service.js";
 import { CurrencyService } from "../services/currency-service.js";
@@ -35,6 +36,10 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       openDocumentation: MorelordMarketplaceApp.openDocumentation,
       toggleGlobalRates: MorelordMarketplaceApp.toggleGlobalRates,
       switchTab: MorelordMarketplaceApp.switchTab,
+      addTransfer: MorelordMarketplaceApp.addTransfer,
+      adjustTransferQuantity: MorelordMarketplaceApp.adjustTransferQuantity,
+      clearTransfer: MorelordMarketplaceApp.clearTransfer,
+      checkoutTransfer: MorelordMarketplaceApp.checkoutTransfer,
       sellOne: MorelordMarketplaceApp.sellOne,
       sellAll: MorelordMarketplaceApp.sellAll,
       buyItem: MorelordMarketplaceApp.buyItem,
@@ -73,7 +78,7 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       id: "morelord-marketplace", title: "Morelord Marketplace", icon: "fa-solid fa-store",
       subtitle: "Buy, sell, and manage adventuring gear.",
       sections: [
-        { id: "shopping", title: "Buy and Sell", icon: "fa-solid fa-cart-shopping", introduction: "Choose the character you are shopping as. Browse and filter available items, add purchases to the cart, review the totals, and check out. Use the sell tab to select items from the character's inventory for sale." },
+        { id: "shopping", title: "Buy, Sell, and Transfer", icon: "fa-solid fa-cart-shopping", introduction: "Choose the character you are shopping as. Browse and filter available items, add purchases to the cart, review the totals, and check out. Use the sell tab to select items from the character's inventory for sale. Transfer sends items to another character or Group without currency or approval; a connected GM is required. Empty containers before transferring them." },
         { id: "shops", title: "Shops and Locations", icon: "fa-solid fa-store", introduction: "GMs use Manage Shops to configure vendors and their inventory. Manage Locations opens the shared Morelord location registry. In a vendor window, Refresh reloads inventory and clears the cart." },
         { id: "wishlist", title: "Wishlist", icon: "fa-solid fa-bookmark", introduction: "Keep desired items on the wishlist while browsing, and remove them when they are no longer needed." }
       ]
@@ -134,6 +139,8 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
     this.panelScrollPositions = new Map();
     this.cart = new Map();
     this.sellCart = new Map();
+    this.transferCart = new Map();
+    this.transferTargetId = null;
     this.buyPage = 1;
     this.buyPageSize = 50;
     this.isLoadingBuy = Boolean(this.shopId);
@@ -216,6 +223,7 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       actor = ActorService.getDefaultActor(shopperActors);
       this.actorId = actor?.id ?? null;
     }
+    if (this.actor?.id !== actor?.id) this.transferCart.clear();
     this.actor = actor;
 
     let fundingActor = fundingActors.find(candidate => candidate.id === this.fundingActorId) ?? null;
@@ -267,6 +275,7 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       shopStale,
       shopRevision: this.shopRevision,
       activeTab: this.activeTab,
+      isTransferTab: this.activeTab === "transfer",
       isSellTab: this.activeTab === "sell",
       isBuyTab: this.activeTab === "buy",
       isWishlistTab: this.activeTab === "wishlist",
@@ -316,6 +325,22 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
     }
 
     if (fundingActor) context.currency = CurrencyService.getCurrencyDisplay(fundingActor);
+
+    if (context.isTransferTab) {
+      const targets = TransferService.targets(actor);
+      if (!targets.some(target => target.id === this.transferTargetId)) this.transferTargetId = null;
+      context.transferTargets = targets.map(target => ({ id: target.id, name: target.name, selected: target.id === this.transferTargetId }));
+      const rows = TransferService.items(actor).map(item => ({ ownedItemId: item.id, uuid: item.uuid, name: item.name, img: item.img, quantity: item.system.quantity }));
+      for (const [id, quantity] of this.transferCart) {
+        const row = rows.find(row => row.ownedItemId === id);
+        if (!row) this.transferCart.delete(id);
+        else this.transferCart.set(id, Math.min(quantity, row.quantity));
+      }
+      context.transferItems = rows.map(row => ({ ...row, cartQty: this.transferCart.get(row.ownedItemId) ?? 0, canAdd: !this.isCheckingOut && (this.transferCart.get(row.ownedItemId) ?? 0) < row.quantity }));
+      context.transferCartItems = context.transferItems.filter(row => row.cartQty > 0);
+      context.transferCartCount = [...this.transferCart.values()].reduce((sum, quantity) => sum + quantity, 0);
+      context.canCheckoutTransfer = !this.isCheckingOut && Boolean(actor && this.transferTargetId && context.transferCartCount);
+    }
 
     if (context.isSellTab) {
       const sellItems = actor ? await ActorService.getSellableItems(actor, { shop }) : [];
@@ -449,7 +474,7 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
   _onRender(context, options) {
     super._onRender(context, options);
 
-    for (const select of this.element.querySelectorAll("[data-ml-marketplace-shopper-select], [data-ml-marketplace-funding-select]")) {
+    for (const select of this.element.querySelectorAll("[data-ml-marketplace-shopper-select], [data-ml-marketplace-funding-select], [data-ml-marketplace-transfer-target]")) {
       decorateActorSelect(select, id => game.actors.get(id)?.uuid);
     }
 
@@ -472,7 +497,7 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
     const shopperSelect = this.element.querySelector("[data-ml-marketplace-shopper-select]");
     shopperSelect?.addEventListener("change", async event => {
       const nextId = event.currentTarget.value || null;
-      if (nextId === this.actorId) return;
+      if (nextId === this.actorId || this.isCheckingOut) return;
       this.actorId = nextId;
       this.actor = nextId ? game.actors.get(nextId) ?? null : null;
       if (!this.fundingActorId || !ActorService.getFundingActors().some(candidate => candidate.id === this.fundingActorId)) {
@@ -480,10 +505,16 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       }
       this.cart.clear();
       this.sellCart.clear();
+      this.transferCart.clear();
       await this.syncCartReservation();
       await this.render();
     });
 
+    this.element.querySelector("[data-ml-marketplace-transfer-target]")?.addEventListener("change", async event => {
+      if (this.isCheckingOut) return;
+      this.transferTargetId = event.currentTarget.value || null;
+      await this.render();
+    });
     const fundingSelect = this.element.querySelector("[data-ml-marketplace-funding-select]");
     fundingSelect?.addEventListener("change", async event => {
       this.fundingActorId = event.currentTarget.value || null;
@@ -650,6 +681,56 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       );
     } finally {
       this.isLoadingBuy = false;
+      await this.render();
+    }
+  }
+
+  static async addTransfer(event, target) {
+    event.preventDefault();
+    if (this.isCheckingOut) return;
+    const id = target.dataset.itemId, item = TransferService.items(this.actor).find(item => item.id === id);
+    if (!item) return;
+    const requested = target.dataset.all ? item.system.quantity : 1;
+    if (!Number.isInteger(requested) || requested < 1) return;
+    this.transferCart.set(id, Math.min(item.system.quantity, (this.transferCart.get(id) ?? 0) + requested));
+    await this.render();
+  }
+
+  static async clearTransfer(event) {
+    event.preventDefault();
+    if (this.isCheckingOut) return;
+    this.transferCart.clear();
+    await this.render();
+  }
+
+  static async adjustTransferQuantity(event, target) {
+    event.preventDefault();
+    if (this.isCheckingOut) return;
+    const id = target.dataset.itemId, current = this.transferCart.get(id), item = this.actor?.items.get(id);
+    const delta = Number(target.dataset.delta);
+    if (!item || !current || ![-1, 1].includes(delta)) return;
+    const quantity = Math.max(0, Math.min(item.system.quantity, current + delta));
+    if (quantity) this.transferCart.set(id, quantity);
+    else this.transferCart.delete(id);
+    await this.render();
+  }
+
+  static async checkoutTransfer(event) {
+    event.preventDefault();
+    if (this.isCheckingOut || !this.actor || !this.transferTargetId || !this.transferCart.size) return;
+    const data = { actorId: this.actor.id, targetId: this.transferTargetId, items: [...this.transferCart].map(([itemId, quantity]) => ({ itemId, quantity })) };
+    this.isCheckingOut = true;
+    try {
+      await this.render();
+      const result = await TransferService.checkout(data);
+      if (result?.status !== "completed") throw new Error("The transfer could not be confirmed. Ask the GM to review the inventories before retrying.");
+      this.transferCart.clear();
+      if (result.warning) ui.notifications.warn(result.warning);
+      else ui.notifications.info("Items transferred.");
+    } catch (error) {
+      ui.notifications.error(error.message ?? "The transfer failed.");
+    } finally {
+      this.isCheckingOut = false;
       await this.render();
     }
   }

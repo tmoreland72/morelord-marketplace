@@ -2,7 +2,7 @@
 title: Morelord Marketplace Documentation
 slug: morelord-marketplace
 product: morelord-marketplace
-version: 0.9.9
+version: 0.10.0
 ---
 
 # Morelord Marketplace Documentation
@@ -36,11 +36,13 @@ The global Marketplace provides a broad world catalog, while scene shops create 
 Choose the guide that matches your role:
 
 - [Game Master Manual](gm-manual.md) — installation, world configuration, premium access, approvals, and Shop Manager.
-- [Player Manual](player-manual.md) — selecting a character, browsing, buying, selling, and using scene shops.
+- [Player Manual](player-manual.md) — selecting a character, browsing, buying, selling, transferring inventory, and using scene shops.
 
-These manuals describe Morelord Marketplace 0.9.6 for Foundry Virtual Tabletop v14 and the dnd5e game system.
+These manuals describe Morelord Marketplace 0.10.0 for Foundry Virtual Tabletop v14 and the dnd5e game system.
 
 
-These manuals cover Marketplace 0.9.6 with Morelord Core 0.3.7 or later. Buy and Sell use carts; shops support shared Locations, capability limits, and weighted random stock.
+These manuals cover Marketplace 0.10.0 with Morelord Core 0.4.0 or later. Buy and Sell use carts; shops support shared Locations, capability limits, and weighted random stock.
 
-Version 0.9.9 adds manual-only shop stock, exclusive vendor purchase lists, Magical-property exclusion, and rarity-based prices for unpriced source items. Blank rarity defaults to Common at 100 gp; explicit prices and GM overrides take priority. Requires Morelord Core 0.3.15 or later.
+Version 0.9.9 adds manual-only shop stock, exclusive vendor purchase lists, Magical-property exclusion, and rarity-based prices for unpriced source items. Blank rarity defaults to Common at 100 gp; explicit prices and GM overrides take priority. Requires Morelord Core 0.4.0 or later.
+
+Version 0.10.0 adds inventory transfers to characters and Groups, quantity controls, matching transaction receipts, wider carts, and collapsible Buy filters. A connected GM is required for transfers. Requires Morelord Core 0.4.0 or later.

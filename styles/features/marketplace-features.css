@@ -35,7 +35,7 @@
 .ml-marketplace-module .ml-marketplace-sell-layout {
   display: grid;
   flex: 1 1 auto;
-  grid-template-columns: minmax(0, 1fr) 235px;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 3fr);
   gap: 1rem;
   min-width: 0;
   min-height: 0;
@@ -43,6 +43,25 @@
 }
 
 .ml-marketplace-module .ml-marketplace-sell-layout > .ml-marketplace-cart-panel {
-  width: 235px;
+  width: 100%;
   min-width: 0;
+}
+
+/* Transfer inventory and cart use Core surfaces and item rows. */
+.ml-marketplace-transfer-layout { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 3fr); gap: var(--ml-space-3); align-items: start; }
+.ml-marketplace-transfer-layout > * { min-width: 0; }
+
+@container (max-width: 700px) { .ml-marketplace-transfer-layout { grid-template-columns: minmax(0, 1fr); } }
+
+/* Keep shopping-cart widths consistent across Marketplace tabs. */
+.ml-marketplace-module .ml-marketplace-buy-layout:has(.ml-marketplace-cart-panel) { display: grid; grid-template-columns: 220px minmax(0, 1fr) 30%; gap: var(--ml-space-3); }
+.ml-marketplace-module .ml-marketplace-buy-layout:has(.ml-marketplace-filter-column:not([open])) { grid-template-columns: 40px minmax(0, 1fr) 30%; }
+.ml-marketplace-source-column { width: 10rem; max-width: 10rem; }
+.ml-marketplace-source-column > .ml-truncate { width: 8rem; }
+@container (max-width: 700px) {
+  .ml-marketplace-module .ml-marketplace-sell-layout,
+  .ml-marketplace-module .ml-marketplace-buy-layout:has(.ml-marketplace-cart-panel),
+  .ml-marketplace-module .ml-marketplace-buy-layout:has(.ml-marketplace-filter-column:not([open])) { grid-template-columns: minmax(0, 1fr); }
+  .ml-marketplace-module .ml-marketplace-shop-context-card { flex-direction: column; }
+  .ml-marketplace-module .ml-marketplace-shop-selector-block { flex-basis: auto; width: 100%; }
 }

@@ -4,7 +4,7 @@
 .ml-marketplace-token-shop-control { cursor:pointer; }
 
 .ml-marketplace-module .ml-marketplace-buy-layout { grid-template-columns: 230px minmax(0, 1fr); }
-.ml-marketplace-module .ml-marketplace-buy-layout:has(.ml-marketplace-cart-panel) { grid-template-columns: 220px minmax(0, 1fr) 260px; }
+
 .ml-marketplace-module .ml-marketplace-cart-panel { display:flex; flex-direction:column; min-width:0; border-left:1px solid var(--ml-color-border); background:rgba(0,0,0,.06); }
 .ml-marketplace-module .ml-marketplace-cart-heading { display:flex; align-items:center; justify-content:space-between; padding:12px; border-bottom:1px solid var(--ml-color-border); }
 .ml-marketplace-module .ml-marketplace-cart-heading h3 { margin:0; }
@@ -227,12 +227,10 @@
 }
 
 /* Shops trade three metadata columns for breathing room and a better cart. */
-.ml-marketplace-module .ml-marketplace-buy-layout:has(.ml-marketplace-cart-panel) {
-  grid-template-columns: 220px minmax(430px, 1fr) 285px;
-}
+
 
 .ml-marketplace-module .ml-marketplace-cart-panel {
-  min-width: 285px;
+  min-width: 0;
   border-left: 1px solid var(--ml-color-border);
 }
 
@@ -300,11 +298,9 @@
 }
 
 @media (max-width: 1050px) {
-  .ml-marketplace-module .ml-marketplace-buy-layout:has(.ml-marketplace-cart-panel) {
-    grid-template-columns: 190px minmax(360px, 1fr) 245px;
-  }
+
   .ml-marketplace-module .ml-marketplace-cart-panel {
-    min-width: 245px;
+    min-width: 0;
   }
 }
 
@@ -345,10 +341,8 @@
 .ml-marketplace-module .ml-marketplace-cart-footer > div strong { text-align: right; }
 
 /* Phase 2 shop cart sizing and refresh/state controls */
-.ml-marketplace-module .ml-marketplace-buy-layout:has(.ml-marketplace-cart-panel) {
-  grid-template-columns: 220px minmax(440px, 1fr) 235px;
-}
-.ml-marketplace-module .ml-marketplace-cart-panel { min-width: 235px; }
+
+.ml-marketplace-module .ml-marketplace-cart-panel { min-width: 0; }
 .ml-marketplace-module .ml-marketplace-cart-line {
   grid-template-columns: 34px minmax(0, 1fr);
   gap: 7px;
@@ -435,10 +429,8 @@
 .ml-marketplace-shop-manager .ml-marketplace-shop-manager-heading > button { flex: 0 0 auto; }
 .ml-marketplace-shop-manager .ml-marketplace-shop-editor-footer { display:flex; justify-content:space-between; gap:10px; }
 @media (max-width: 1050px) {
-  .ml-marketplace-module .ml-marketplace-buy-layout:has(.ml-marketplace-cart-panel) {
-    grid-template-columns: 185px minmax(360px, 1fr) 215px;
-  }
-  .ml-marketplace-module .ml-marketplace-cart-panel { min-width: 215px; }
+
+  .ml-marketplace-module .ml-marketplace-cart-panel { min-width: 0; }
 }
 
 /* Shop Manager library cleanup */

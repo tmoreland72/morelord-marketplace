@@ -1,0 +1,128 @@
+[
+  {
+    "offenders": [],
+    "width": 1280,
+    "theme": "dark",
+    "coreLoaded": true,
+    "noOverflow": true,
+    "columns": "833px 357px",
+    "tabs": [
+      "Sell",
+      "Transfer",
+      "Buy",
+      "Wishlist"
+    ],
+    "headers": [
+      "Item",
+      "Qty",
+      "Actions"
+    ]
+  },
+  {
+    "offenders": [],
+    "width": 1280,
+    "theme": "light",
+    "coreLoaded": true,
+    "noOverflow": true,
+    "columns": "833px 357px",
+    "tabs": [
+      "Sell",
+      "Transfer",
+      "Buy",
+      "Wishlist"
+    ],
+    "headers": [
+      "Item",
+      "Qty",
+      "Actions"
+    ]
+  },
+  {
+    "offenders": [],
+    "width": 520,
+    "theme": "dark",
+    "coreLoaded": true,
+    "noOverflow": true,
+    "columns": "442px",
+    "tabs": [
+      "Sell",
+      "Transfer",
+      "Buy",
+      "Wishlist"
+    ],
+    "headers": [
+      "Item",
+      "Qty",
+      "Actions"
+    ]
+  },
+  {
+    "offenders": [],
+    "width": 520,
+    "theme": "light",
+    "coreLoaded": true,
+    "noOverflow": true,
+    "columns": "442px",
+    "tabs": [
+      "Sell",
+      "Transfer",
+      "Buy",
+      "Wishlist"
+    ],
+    "headers": [
+      "Item",
+      "Qty",
+      "Actions"
+    ]
+  },
+  {
+    "offenders": [
+      {
+        "class": "",
+        "width": 437,
+        "scroll": 438
+      }
+    ],
+    "width": 360,
+    "theme": "dark",
+    "coreLoaded": true,
+    "noOverflow": true,
+    "columns": "282px",
+    "tabs": [
+      "Sell",
+      "Transfer",
+      "Buy",
+      "Wishlist"
+    ],
+    "headers": [
+      "Item",
+      "Qty",
+      "Actions"
+    ]
+  },
+  {
+    "offenders": [
+      {
+        "class": "",
+        "width": 437,
+        "scroll": 438
+      }
+    ],
+    "width": 360,
+    "theme": "light",
+    "coreLoaded": true,
+    "noOverflow": true,
+    "columns": "282px",
+    "tabs": [
+      "Sell",
+      "Transfer",
+      "Buy",
+      "Wishlist"
+    ],
+    "headers": [
+      "Item",
+      "Qty",
+      "Actions"
+    ]
+  }
+]

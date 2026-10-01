@@ -13,51 +13,7 @@
     </div>
 
     <div class="ml-marketplace-sell-layout">
-    <div class="ml-marketplace-table-container" data-ml-scroll-key="sell-results">
-    <table>
-        <thead>
-            <tr>
-                <th>Item</th>
-                <th>Qty</th>
-                <th>List Price</th>
-                <th>Sell Price</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-
-        <tbody>
-            {{#each sellItems}}
-            <tr>
-                <td>
-                    <div class="ml-marketplace-item-cell">
-                        <img src="{{img}}" alt="{{name}}" />
-                        <a class="content-link"
-                            data-link
-                            data-uuid="{{uuid}}">
-                            {{name}}
-                        </a>
-                    </div>
-                </td>
-                <td>{{quantity}}</td>
-                <td>{{listPrice}}</td>
-                <td>{{sellPrice}}</td>
-                <td>
-            <div class="ml-actions ml-marketplace-row-actions ml-marketplace-actions">
-                        <button type="button" data-action="sellOne" data-item-id="{{ownedItemId}}" title="Add one to sell cart" {{#unless canAddToSellCart}}disabled{{/unless}}>
-                        <i class="fa-solid fa-coin"></i>
-                        </button>
-
-                        <button type="button" data-action="sellAll" data-item-id="{{ownedItemId}}" title="Add all to sell cart" {{#unless canAddToSellCart}}disabled{{/unless}}>
-                        <i class="fa-solid fa-sack-dollar"></i>
-                        </button>
-                        {{#if cartQty}}<span class="ml-marketplace-cart-qty">{{cartQty}}</span>{{/if}}
-                    </div>
-                </td>
-            </tr>
-            {{/each}}
-        </tbody>
-    </table>
-    </div>
+    {{> "modules/morelord-marketplace/templates/parts/inventory-table.hbs" rows=sellItems scrollKey="sell-results"}}
     <aside class="ml-marketplace-cart-panel">
       <div class="ml-marketplace-cart-heading"><div class="ml-marketplace-cart-title"><i class="fa-solid fa-cart-shopping"></i><strong>Sell Cart</strong></div><span class="ml-marketplace-cart-count">{{sellCartCount}}</span></div>
       <div class="ml-marketplace-cart-items">

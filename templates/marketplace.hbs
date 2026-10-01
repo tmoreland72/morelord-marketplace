@@ -1,4 +1,4 @@
-<section class="ml-app ml-app-shell ml-marketplace-app ml-marketplace-shell">
+<section class="ml-app ml-app-shell ml-marketplace-app ml-marketplace-shell" data-ml-responsive>
   <header class="ml-marketplace-market-header">
     {{#if isShop}}
     <div class="ml-hero ml-marketplace-hero ml-marketplace-brand-row">
@@ -104,49 +104,18 @@
 
   </section>
 
-    <nav class="ml-toolbar" aria-label="Marketplace sections">
-      <button
-        type="button"
-        class="ml-button" data-tone="{{#if isSellTab}}accent{{/if}}" aria-pressed="{{#if isSellTab}}true{{else}}false{{/if}}"
-        data-action="switchTab"
-        data-tab="sell"
-        {{#if isLoadingBuy}}disabled{{/if}}>
-        <i class="fa-solid fa-hand-holding-dollar"></i>
-        <span>Sell</span>
-      </button>
-
-      <button
-        type="button"
-        class="ml-button" data-tone="{{#if isBuyTab}}accent{{/if}}" aria-pressed="{{#if isBuyTab}}true{{else}}false{{/if}}"
-        data-action="switchTab"
-        data-tab="buy"
-        {{#if isLoadingBuy}}disabled{{/if}}>
-        {{#if isLoadingBuy}}
-          <i class="fa-solid fa-spinner fa-spin"></i>
-          <span>Loading…</span>
-        {{else}}
-          <i class="fa-solid fa-cart-shopping"></i>
-          <span>Buy</span>
-        {{/if}}
-      </button>
-
-      {{#unless isShop}}
-        <button
-          type="button"
-          class="ml-button" data-tone="{{#if isWishlistTab}}accent{{/if}}" aria-pressed="{{#if isWishlistTab}}true{{else}}false{{/if}}"
-          data-action="switchTab"
-          data-tab="wishlist"
-          {{#if isLoadingBuy}}disabled{{/if}}>
-          <i class="fa-solid fa-heart"></i>
-          <span>Wishlist</span>
-          {{#if wishlistCount}}<span class="ml-badge">{{wishlistCount}}</span>{{/if}}
-        </button>
-      {{/unless}}
+    <nav class="ml-tabs" role="tablist" aria-label="Marketplace sections">
+      <a id="ml-marketplace-tab-sell" role="tab" tabindex="{{#if isSellTab}}0{{else}}-1{{/if}}" aria-selected="{{#if isSellTab}}true{{else}}false{{/if}}" aria-controls="ml-marketplace-panel" aria-disabled="{{#if isLoadingBuy}}true{{else}}false{{/if}}" data-action="switchTab" data-tab="sell"><i class="fa-solid fa-hand-holding-dollar"></i> Sell</a>
+      <a id="ml-marketplace-tab-transfer" role="tab" tabindex="{{#if isTransferTab}}0{{else}}-1{{/if}}" aria-selected="{{#if isTransferTab}}true{{else}}false{{/if}}" aria-controls="ml-marketplace-panel" aria-disabled="{{#if isLoadingBuy}}true{{else}}false{{/if}}" data-action="switchTab" data-tab="transfer"><i class="fa-solid fa-right-left"></i> Transfer</a>
+      <a id="ml-marketplace-tab-buy" role="tab" tabindex="{{#if isBuyTab}}0{{else}}-1{{/if}}" aria-selected="{{#if isBuyTab}}true{{else}}false{{/if}}" aria-controls="ml-marketplace-panel" aria-disabled="{{#if isLoadingBuy}}true{{else}}false{{/if}}" data-action="switchTab" data-tab="buy"><i class="fa-solid fa-cart-shopping"></i> Buy</a>
+      {{#unless isShop}}<a id="ml-marketplace-tab-wishlist" role="tab" tabindex="{{#if isWishlistTab}}0{{else}}-1{{/if}}" aria-selected="{{#if isWishlistTab}}true{{else}}false{{/if}}" aria-controls="ml-marketplace-panel" aria-disabled="{{#if isLoadingBuy}}true{{else}}false{{/if}}" data-action="switchTab" data-tab="wishlist"><i class="fa-solid fa-heart"></i> Wishlist {{#if wishlistCount}}<span class="ml-badge">{{wishlistCount}}</span>{{/if}}</a>{{/unless}}
     </nav>
 
+  <section id="ml-marketplace-panel" role="tabpanel" aria-labelledby="ml-marketplace-tab-{{activeTab}}">
   {{#if error}}
     <div class="ml-marketplace-error">{{error}}</div>
   {{else}}
+    {{#if isTransferTab}}{{> "modules/morelord-marketplace/templates/parts/transfer-tab.hbs"}}{{/if}}
     {{#if isSellTab}}
       {{> "modules/morelord-marketplace/templates/parts/sell-tab.hbs"}}
     {{/if}}
@@ -182,4 +151,5 @@
       {{/if}}
     {{/if}}
   {{/if}}
+  </section>
 </section>

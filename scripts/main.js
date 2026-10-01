@@ -1,3 +1,4 @@
+import { TransferService } from "./services/transfer-service.js";
 import { MODULE_ID } from "./constants.js";
 import {
   registerSettings,
@@ -24,8 +25,11 @@ Hooks.once("init", async () => {
   registerSettings();
 
   await foundry.applications.handlebars.loadTemplates([
+    "modules/morelord-core/templates/components/quantity-controls.hbs",
     `modules/${MODULE_ID}/templates/parts/buy-tab.hbs`,
     `modules/${MODULE_ID}/templates/parts/sell-tab.hbs`,
+    `modules/${MODULE_ID}/templates/parts/transfer-tab.hbs`,
+    `modules/${MODULE_ID}/templates/parts/inventory-table.hbs`,
     `modules/${MODULE_ID}/templates/parts/wishlist-tab.hbs`,
     `modules/${MODULE_ID}/templates/marketplace-settings.hbs`,
     `modules/${MODULE_ID}/templates/shop-manager.hbs`
@@ -97,6 +101,7 @@ Hooks.once("ready", async () => {
   telemetry?.observe(MODULE_ID, CompendiumService, { buyCart: "catalog.buy-cart", buyCompendiumItem: "catalog.buy-item" });
   telemetry?.observe(MODULE_ID, ActorService, { sellCart: "sell.cart", sellItem: "sell.item" });
   Logger.log("Ready");
+  TransferService.initialize();
 
   await initializeMarketplaceSources();
 

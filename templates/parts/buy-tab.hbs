@@ -15,7 +15,9 @@
   </div>
 
   <div class="ml-marketplace-buy-layout">
-    <aside class="ml-marketplace-filter-sidebar" aria-label="Buy item filters" data-ml-scroll-key="buy-filters">
+    <details class="ml-surface ml-collapsible-section ml-marketplace-filter-column" data-layout="sidebar" data-ml-section-key="morelord-marketplace.buy-filters" open>
+      <summary aria-label="Show or hide Buy filters"><div class="ml-section-heading"><div><h2>Filters</h2></div></div><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></summary>
+      <div class="ml-collapsible-section__body ml-stack" data-ml-scroll-key="buy-filters">
       <div class="ml-marketplace-filter-search">
         <label for="ml-marketplace-buy-search">Search</label>
         <div class="ml-marketplace-search">
@@ -239,10 +241,11 @@
           {{/each}}
         </div>
       </section>
-    </aside>
+      </div>
+    </details>
 
     <main class="ml-marketplace-buy-results">
-      <div class="ml-marketplace-table-container" data-ml-scroll-key="buy-results">
+      <div class="ml-marketplace-table-container ml-horizontal-scroll" data-ml-scroll-key="buy-results">
         <table>
           <thead>
             <tr>
@@ -250,7 +253,7 @@
               <th>Rarity</th>
               <th>List Price</th>
               <th>Selling Price</th>
-              {{#unless isShop}}<th>Source</th>{{/unless}}
+              {{#unless isShop}}<th class="ml-marketplace-source-column">Source</th>{{/unless}}
               {{#if isShop}}<th>Stock</th>{{/if}}
               <th aria-label="Actions"></th>
             </tr>
@@ -267,7 +270,7 @@
                 <td>{{rarityLabel}}</td>
                 <td>{{listPrice}}</td>
                 <td>{{buyPrice}}</td>
-                {{#unless ../isShop}}<td title="{{packId}}">{{source}}</td>{{/unless}}
+                {{#unless ../isShop}}<td class="ml-marketplace-source-column"><span class="ml-truncate" title="{{source}} · {{packId}}">{{source}}</span></td>{{/unless}}
                 {{#if ../isShop}}<td title="{{stockTitle}}">{{stockLabel}}</td>{{/if}}
                 <td>
             <div class="ml-actions ml-marketplace-row-actions ml-marketplace-actions">

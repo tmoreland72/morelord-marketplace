@@ -116,7 +116,7 @@ Install this URL using:
 ## Requirements
 
 - Foundry VTT v14
-- Morelord Core 0.3.15 or later
+- Morelord Core 0.4.0 or later
 - dnd5e System compatible with Foundry v14
 
 ---
@@ -276,7 +276,7 @@ New template and prefab shops copy the buy and sell rates from Marketplace setti
 
 ## Release dependency
 
-This release requires Morelord Core 0.3.15 or newer for the shared UI and service updates. Optional integrations remain optional.
+This release requires Morelord Core 0.4.0 or newer for the shared UI and service updates. Optional integrations remain optional.
 
 ## Manually configured shop items
 
@@ -299,3 +299,11 @@ Items with no positive source price use their known rarity's standard base value
 Regression: in Dev1, import `rarityPricingCheck` and `fragmentationGrenadeCheck` from `modules/morelord-marketplace/scripts/testing/rarity-pricing.mjs` and pass it to Core's `runInGameTests({ checks: [rarityPricingCheck, fragmentationGrenadeCheck] })`. It checks actual configured-source index entries against the catalog and full-document transaction pricing without buying or changing world data.
 
 Catalogs and purchase validation accept only supported physical item types (weapons, equipment, consumables, tools, loot, and containers); price fallback does not turn spells or character features into products.
+
+## Transfer inventory items
+
+Open **Transfer** in Marketplace. **Shopping As** selects the inventory to send from. Use the coin icon to add one item or the sack icon to add its stack to the **Shopping Cart**. Choose another player character or Group as **Recipient**, adjust quantities with minus/plus (zero removes a line), then click **Transfer Items**.
+
+A connected, non-ignored GM is required to apply the transfer automatically, including recipients whose inventories you cannot edit. Transfers need no buy/sell approval, move no currency, and always post a Marketplace transaction chat card. Player-owned characters and primary-party characters use Core's shared eligibility; Group actors are also available, except shop actors and the sender. Physical inventory items can be sent even if unpriced or marked unsellable. Empty containers before sending them; their contents are not moved automatically. Received items are unequipped, unattuned, and outside their former container. Source quantities are checked again when submitting, and failed item changes are rolled back.
+
+Marketplace tabs use Core’s tab strip in Sell → Transfer → Buy → Wishlist order. All three carts use 30% of the desktop layout and stack below inventory in narrow windows. Buy’s Filters column collapses with Core’s saved disclosure state; Source names have fixed-width ellipsis and full-name tooltips. Recipient uses Core’s inline actor portrait selector, and Transfer cart quantities share Shop Manager’s Core minus/quantity/plus controls.

@@ -247,11 +247,7 @@
                     <small>{{source}} · {{rarityLabel}} {{typeLabel}}</small>
                   </div>
                   {{#if finite}}
-                    <div class="ml-actions" aria-label="Quantity for {{name}}">
-                      <button type="button" class="ml-icon-button" data-action="adjustInventoryQuantity" data-delta="-1" data-stock-key="{{packId}}:{{documentId}}" aria-label="Decrease {{name}} quantity" title="Decrease {{name}} quantity"><i class="fa-solid fa-minus"></i></button>
-                      <span class="ml-badge" aria-label="Current quantity">{{quantity}}</span>
-                      <button type="button" class="ml-icon-button" data-action="adjustInventoryQuantity" data-delta="1" data-stock-key="{{packId}}:{{documentId}}" aria-label="Increase {{name}} quantity" title="Increase {{name}} quantity"><i class="fa-solid fa-plus"></i></button>
-                    </div>
+                    {{> "modules/morelord-core/templates/components/quantity-controls.hbs" action="adjustInventoryQuantity" stockKey=stockKey name=name quantity=quantity increaseEnabled=true}}
                   {{else}}
                     <span class="ml-badge" title="This listing is unlimited"><i class="fa-solid fa-infinity"></i> Unlimited</span>
                   {{/if}}

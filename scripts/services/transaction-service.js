@@ -95,6 +95,10 @@ export class TransactionService {
     });
   }
 
+  static async postTransfer({ actor, target, items }) {
+    return this.postCart({ type: "transfer", actor, target, items });
+  }
+
   static async postCartPurchase({ actor, fundingActor = actor, shop, items = [] }) {
     const enabled = game.settings.get(MODULE_ID, "postTransactionCards");
     if (!enabled || !items.length) return null;
@@ -125,12 +129,17 @@ export class TransactionService {
     });
   }
 
-  static async postCart({ type, actor, fundingActor = actor, shop = null, items = [], totalCp = 0 }) {
-    const enabled = game.settings.get(MODULE_ID, "postTransactionCards");
-    if (!enabled || !items.length) return null;
+  static async postCart({ type, actor, target = null, fundingActor = actor, shop = null, items = [], totalCp = 0 }) {
+    const transfer = type === "transfer";
+    if ((!transfer && !game.settings.get(MODULE_ID, "postTransactionCards")) || !items.length) return null;
     const verb = type === "sell" ? "sold" : "bought";
-    const rows = items.map(item => `<div class="ml-marketplace-cart-chat-line">${item.img ? `<img src="${this.escape(item.img)}" alt="${this.escape(item.name)}">` : ""}<span><strong>${Number(item.quantity)} ×</strong> ${this.contentLink(item.uuid, item.name)}</span><span>${this.escape(CurrencyService.formatCp(item.totalPriceCp))}</span></div>`).join("");
-    return ChatMessage.create({ speaker: ChatMessage.getSpeaker({ actor }), content: `<div class="ml-chat-card ml-marketplace-card ml-marketplace-transaction-card ml-marketplace-transaction-complete ml-marketplace-cart-transaction-card"><div class="ml-marketplace-transaction-source">Morelord Marketplace</div><p><strong>${this.escape(actor.name)}</strong> ${verb} a cart${shop?.name ? ` at <strong>${this.escape(shop.name)}</strong>` : ""}.</p><div class="ml-marketplace-cart-chat-items">${rows}</div><p><strong>Total:</strong> ${this.escape(CurrencyService.formatCp(totalCp))}</p>${type === "buy" && fundingActor?.id !== actor.id ? `<p><strong>Paid from:</strong> ${this.escape(fundingActor.name)}</p>` : ""}</div>` });
+    const rows = items.map(item => '<div class="ml-marketplace-cart-chat-line">'+(item.img ? '<img src="'+this.escape(item.img)+'" alt="'+this.escape(item.name)+'">' : '')+'<span><strong>'+Number(item.quantity)+' ×</strong> '+this.contentLink(item.uuid,item.name)+'</span>'+(transfer ? '' : '<span>'+this.escape(CurrencyService.formatCp(item.totalPriceCp))+'</span>')+'</div>').join('');
+    const summary = transfer
+      ? this.contentLink(actor.uuid, actor.name)+' transferred items to '+this.contentLink(target.uuid, target.name)+'.'
+      : '<strong>'+this.escape(actor.name)+'</strong> '+verb+' a cart'+(shop?.name ? ' at <strong>'+this.escape(shop.name)+'</strong>' : '')+'.';
+    const total = transfer ? '<p><strong>Items transferred:</strong> '+items.reduce((sum, item) => sum + Number(item.quantity), 0)+'</p>' : '<p><strong>Total:</strong> '+this.escape(CurrencyService.formatCp(totalCp))+'</p>';
+    const funding = type === 'buy' && fundingActor?.id !== actor.id ? '<p><strong>Paid from:</strong> '+this.escape(fundingActor.name)+'</p>' : '';
+    return ChatMessage.create({ speaker: ChatMessage.getSpeaker({ actor }), content: '<div class="ml-chat-card ml-marketplace-card ml-marketplace-transaction-card ml-marketplace-transaction-complete ml-marketplace-cart-transaction-card"><div class="ml-marketplace-transaction-source">Morelord Marketplace</div><p>'+summary+'</p><div class="ml-marketplace-cart-chat-items">'+rows+'</div>'+total+funding+'</div>' });
   }
 
   static async createPending({

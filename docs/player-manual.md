@@ -4,15 +4,23 @@ description: Browse, buy, and sell items through the global Marketplace and GM-c
 slug: morelord-marketplace/player
 product: morelord-marketplace
 audience: player
-version: 0.9.9
+version: 0.10.0
 foundry: 14
 ---
 
 # Morelord Marketplace Player Manual
 
+## Transfer inventory items
+
+Open **Transfer**. **Shopping As** selects the sending inventory. Use the coin icon to add one item or the sack icon to add its stack to the **Shopping Cart**. Use minus/plus to choose the quantity; zero removes the line. Select another character or Group as **Recipient**, then click **Transfer Items**.
+
+Tabs run **Sell → Transfer → Buy → Wishlist**. Buy, Sell, and Transfer give the cart 30% of the desktop layout and stack it below inventory in narrow windows. Buy's **Filters** heading collapses its column; Core remembers its state. Source names use ellipsis; hover for the full name.
+
+A connected GM applies transfers automatically, including to recipients whose inventories you cannot edit. No currency changes or buy/sell approval is involved. Every completed transfer posts a transaction chat card. Unpriced and unsellable physical inventory items are eligible. Empty containers first; contents are not moved automatically. Received items are unequipped, unattuned, and outside their former container.
+
 Morelord Marketplace lets you browse, buy, and sell dnd5e items from your character in Foundry VTT. Your GM may also place individual vendors with their own products, prices, reputation, and stock.
 
-This manual applies to Morelord Marketplace 0.9.6.
+This manual applies to Morelord Marketplace 0.10.0.
 
 ## Contents
 

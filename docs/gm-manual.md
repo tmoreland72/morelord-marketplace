@@ -4,15 +4,19 @@ description: Install, configure, and operate Morelord Marketplace, including pre
 slug: morelord-marketplace/gm
 product: morelord-marketplace
 audience: game-master
-version: 0.9.9
+version: 0.10.0
 foundry: 14
 ---
 
 # Morelord Marketplace Game Master Manual
 
+## Inventory transfers
+
+The **Transfer** tab lets players move physical inventory quantities or whole stacks to another eligible character or Group, including inventories they cannot edit. An active, non-ignored GM client must be connected to apply transfers automatically through Core. Transfers require no approval or premium access, do not change currency, and post a transaction chat card. Empty containers before moving them. If inventory rollback is incomplete, review both actors before retrying.
+
 Morelord Marketplace gives a Foundry VTT world a global catalog for buying and selling dnd5e items. With Tools Premium or Tools Champion access, it also provides GM transaction approvals and Shop Manager for configurable scene vendors.
 
-This manual applies to Morelord Marketplace 0.9.6, Foundry VTT v14, and the dnd5e system.
+This manual applies to Morelord Marketplace 0.10.0, Foundry VTT v14, and the dnd5e system.
 
 ## Contents
 
@@ -49,8 +53,8 @@ The global Marketplace remains usable if premium access expires. Saved premium s
 
 - Foundry Virtual Tabletop v14
 - The dnd5e game system
-- Morelord Core 0.3.7 or later
-- Morelord Marketplace v0.9.6 or later
+- Morelord Core 0.4.0 or later
+- Morelord Marketplace v0.10.0 or later
 
 ### Install with the manifest
 
