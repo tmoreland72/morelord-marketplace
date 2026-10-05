@@ -38,80 +38,23 @@
       {{#if canManageShops}}<button type="button" class="ml-marketplace-manage-shops-button" data-action="manageShops"><i class="fa-solid fa-shop"></i> Manage Shops</button>{{/if}}
       {{#if canManageLocations}}<button type="button" data-action="manageLocations"><i class="fa-solid fa-map-location-dot"></i> Manage Locations</button>{{/if}}
     </div>
-    {{#if isGM}}<label class="ml-check"><input type="checkbox" data-action="toggleGlobalRates" {{#if ignoreGlobalRates}}checked{{/if}}><span>Temporarily ignore buy and sell rates (both ×1)</span></label>{{/if}}
+    {{#if isGM}}<div class="ml-horizontal-scroll"><label class="ml-check"><input type="checkbox" data-action="toggleGlobalRates" {{#if ignoreGlobalRates}}checked{{/if}}><span>Temporarily ignore buy and sell rates (both ×1)</span></label></div>{{/if}}
     {{#if ignoreGlobalRates}}<p class="notes">Global rate override is active: purchases and sales use full list price. Shop rates are independent.</p>{{/if}}
     {{/if}}
 
   </header>
 
-  <section class="ml-surface ml-stack" data-gap="3" aria-label="Shopper and Payer">
-    <div class="ml-section-heading"><div><h2>Shopper and Payer</h2><p>Choose whose inventory to use and who funds purchases. Sale proceeds go to the shopper.</p></div></div>
-    <div class="ml-marketplace-shopper-card ml-marketplace-shop-context-card">
-        <div class="ml-marketplace-shop-selector-block">
-          <label><span class="ml-marketplace-shopper-label">Shopping As</span>
-          {{#if showShopperSelector}}
-            <select data-ml-marketplace-shopper-select aria-label="Shopping As">
-              {{#each shopperOptions}}
-                <option value="{{id}}" {{#if selected}}selected{{/if}}>{{name}} · {{typeLabel}}</option>
-              {{/each}}
-            </select>
-          {{else if actor}}
-            <strong>{{actor.name}}</strong>
-          {{else}}
-            <strong>No character selected</strong>
-          {{/if}}
-          </label>
-          <small>Purchases go to and sales come from this actor or group.</small>
-        </div>
-
-        <div class="ml-marketplace-shop-selector-block ml-marketplace-funding-selector-block">
-          <label><span class="ml-marketplace-shopper-label">Paying As</span>
-          {{#if showFundingSelector}}
-            <select data-ml-marketplace-funding-select aria-label="Paying As">
-              {{#each fundingOptions}}
-                <option value="{{id}}" {{#if selected}}selected{{/if}}>{{name}}{{#if typeLabel}} · {{typeLabel}}{{/if}}</option>
-              {{/each}}
-            </select>
-          {{else}}
-            <strong>No eligible funds actor</strong>
-          {{/if}}
-          </label>
-          <small>Purchase coin is deducted from this actor or group.</small>
-        </div>
-
-        <div class="ml-marketplace-shopper-wallet">
-          <i class="fa-solid fa-coins"></i>
-          <div>
-            <span>Available Coin</span>
-            <strong>{{#if fundingActor}}{{{currency}}}{{else}}—{{/if}}</strong>
-          </div>
-        </div>
-      </div>
-
-    {{#if shopperNotice}}
-      <div class="ml-marketplace-shopper-notice">
-        <i class="fa-solid fa-user-tag"></i>
-        <span>{{shopperNotice}}</span>
-      </div>
-    {{/if}}
-
-    {{#if shopStale}}
-      <div class="ml-marketplace-shopper-notice ml-marketplace-shop-stale-notice">
-        <i class="fa-solid fa-triangle-exclamation"></i>
-        <span>This shop changed after you opened it. Refresh the shop before purchasing. Refreshing clears the cart.</span>
-      </div>
-    {{/if}}
-
-  </section>
-
     <nav class="ml-tabs" role="tablist" aria-label="Marketplace sections">
       <a id="ml-marketplace-tab-sell" role="tab" tabindex="{{#if isSellTab}}0{{else}}-1{{/if}}" aria-selected="{{#if isSellTab}}true{{else}}false{{/if}}" aria-controls="ml-marketplace-panel" aria-disabled="{{#if isLoadingBuy}}true{{else}}false{{/if}}" data-action="switchTab" data-tab="sell"><i class="fa-solid fa-hand-holding-dollar"></i> Sell</a>
-      <a id="ml-marketplace-tab-transfer" role="tab" tabindex="{{#if isTransferTab}}0{{else}}-1{{/if}}" aria-selected="{{#if isTransferTab}}true{{else}}false{{/if}}" aria-controls="ml-marketplace-panel" aria-disabled="{{#if isLoadingBuy}}true{{else}}false{{/if}}" data-action="switchTab" data-tab="transfer"><i class="fa-solid fa-right-left"></i> Transfer</a>
+      {{#unless isShop}}<a id="ml-marketplace-tab-transfer" role="tab" tabindex="{{#if isTransferTab}}0{{else}}-1{{/if}}" aria-selected="{{#if isTransferTab}}true{{else}}false{{/if}}" aria-controls="ml-marketplace-panel" aria-disabled="{{#if isLoadingBuy}}true{{else}}false{{/if}}" data-action="switchTab" data-tab="transfer"><i class="fa-solid fa-right-left"></i> Transfer</a>{{/unless}}
       <a id="ml-marketplace-tab-buy" role="tab" tabindex="{{#if isBuyTab}}0{{else}}-1{{/if}}" aria-selected="{{#if isBuyTab}}true{{else}}false{{/if}}" aria-controls="ml-marketplace-panel" aria-disabled="{{#if isLoadingBuy}}true{{else}}false{{/if}}" data-action="switchTab" data-tab="buy"><i class="fa-solid fa-cart-shopping"></i> Buy</a>
       {{#unless isShop}}<a id="ml-marketplace-tab-wishlist" role="tab" tabindex="{{#if isWishlistTab}}0{{else}}-1{{/if}}" aria-selected="{{#if isWishlistTab}}true{{else}}false{{/if}}" aria-controls="ml-marketplace-panel" aria-disabled="{{#if isLoadingBuy}}true{{else}}false{{/if}}" data-action="switchTab" data-tab="wishlist"><i class="fa-solid fa-heart"></i> Wishlist {{#if wishlistCount}}<span class="ml-badge">{{wishlistCount}}</span>{{/if}}</a>{{/unless}}
     </nav>
 
-  <section id="ml-marketplace-panel" role="tabpanel" aria-labelledby="ml-marketplace-tab-{{activeTab}}">
+  <section id="ml-marketplace-panel" class="ml-stack" data-gap="3" role="tabpanel" aria-labelledby="ml-marketplace-tab-{{activeTab}}">
+  {{#unless isWishlistTab}}
+    {{#if isTransferTab}}{{> "modules/morelord-marketplace/templates/parts/transfer-context.hbs"}}{{else}}{{> "modules/morelord-marketplace/templates/parts/shopping-context.hbs"}}{{/if}}
+  {{/unless}}
   {{#if error}}
     <div class="ml-marketplace-error">{{error}}</div>
   {{else}}

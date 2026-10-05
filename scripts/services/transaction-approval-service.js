@@ -58,8 +58,8 @@ export class TransactionApprovalService {
     });
   }
 
-  static requiresApproval(type) {
-    if (game.user.isGM) return false;
+  static requiresApproval(type, user = game.user) {
+    if (user?.isGM) return false;
 
     // GM approvals are optional premium behavior. A saved approval setting
     // must never block Standard buying or selling when no entitled account is
@@ -151,12 +151,12 @@ export class TransactionApprovalService {
     return message;
   }
 
-  static async requestBuyCart({ actor, fundingActor = actor, items, totalPriceCp }) {
+  static async requestBuyCart({ actor, fundingActor = actor, items, totalPriceCp, requestedByUserId = game.user.id }) {
     return TransactionService.createPending({
       type: "buy",
       actor,
       fundingActor,
-      requestedByUserId: game.user.id,
+      requestedByUserId,
       itemName: `${items.length} cart item(s)`,
       itemImg: items[0]?.img,
       quantity: items.reduce((sum, item) => sum + item.quantity, 0),
@@ -166,11 +166,11 @@ export class TransactionApprovalService {
     });
   }
 
-  static async requestSellCart({ actor, items, totalPriceCp }) {
+  static async requestSellCart({ actor, items, totalPriceCp, requestedByUserId = game.user.id }) {
     return TransactionService.createPending({
       type: "sell",
       actor,
-      requestedByUserId: game.user.id,
+      requestedByUserId,
       itemName: `${items.length} cart item(s)`,
       itemImg: items[0]?.img,
       quantity: items.reduce((sum, item) => sum + item.quantity, 0),

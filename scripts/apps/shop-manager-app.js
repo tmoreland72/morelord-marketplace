@@ -1,3 +1,4 @@
+import { ItemPickerApp } from "../../../morelord-core/scripts/ui/item-picker-app.js";
 import { renderPreservingScroll } from "../../../morelord-core/scripts/ui/scroll-preservation.js";
 import { MODULE_ID } from "../constants.js";
 import { ShopService } from "../services/shop-service.js";
@@ -20,6 +21,7 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
     position: { width: 1240, height: 820 },
     actions: {
       openDocumentation: async () => (await import("./marketplace-app.js")).MorelordMarketplaceApp.openDocumentation(),
+      newShop: MorelordShopManagerApp.newShop,
       createShop: MorelordShopManagerApp.createShop,
       createPrefabShop: MorelordShopManagerApp.createPrefabShop,
       selectShop: MorelordShopManagerApp.selectShop,
@@ -31,8 +33,6 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
       exportShop: MorelordShopManagerApp.exportShop,
       importShop: MorelordShopManagerApp.importShop,
       openInventoryLookup: MorelordShopManagerApp.openInventoryLookup,
-      closeInventoryLookup: MorelordShopManagerApp.closeInventoryLookup,
-      addInventoryItem: MorelordShopManagerApp.addInventoryItem,
       adjustInventoryQuantity: MorelordShopManagerApp.adjustInventoryQuantity,
       removePurchaseItem: MorelordShopManagerApp.removePurchaseItem,
       removeInventoryItem: MorelordShopManagerApp.removeInventoryItem
@@ -44,16 +44,15 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
   };
 
   constructor(options = {}) {
-    super(options);
+    super(options.newShop ? { ...options, id: "morelord-marketplace-new-shop", window: { title: "New Shop" } } : options);
+    this.isNewShop = options.newShop === true;
+    this.onCreated = options.onCreated;
     this.selectedShopId = options.shopId ?? ShopService.getShops()[0]?.id ?? null;
     this.isWorking = false;
     this.workingMessage = "";
-    this.inventoryLookupOpen = false;
-    this.inventorySearchQuery = "";
-    this.draftShop = null;
+    this.draftShop = this.isNewShop ? ShopProfileModel.create({ type: "general" }) : null;
+    if (this.draftShop) this.selectedShopId = this.draftShop.id;
     this.panelScrollPositions = new Map();
-    this.inventorySearchTimer = null;
-    this.restoreInventorySearchFocus = false;
   }
 
   async _prepareContext() {
@@ -65,7 +64,7 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
 
     let prefabs = [];
     try {
-      prefabs = await ShopService.getPrefabStores();
+      if (this.isNewShop) prefabs = await ShopService.getPrefabStores();
     } catch (error) {
       console.warn(`[${MODULE_ID}] Unable to load prefab shops`, error);
     }
@@ -76,7 +75,6 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
     const locations = locationApi?.list?.() ?? [];
     const checked = (values, key) => values?.includes(key);
     let inventory = [];
-    let inventorySearchResults = [];
     if (selected) {
       const catalog = await CompendiumService.getBuyableCatalog(selected);
       inventory = catalog
@@ -85,12 +83,7 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
           const quantity = ShopService.getStock(selected, row);
           return { ...row, stockKey: ShopService.stockKey(row), quantity, quantityLabel: Number.isFinite(quantity) ? quantity : "∞", finite: Number.isFinite(quantity), isManualStock: selected.inventoryOverrides.limited.includes(row.uuid) };
         });
-      const query = this.inventorySearchQuery.trim().toLowerCase();
-      if (this.inventoryLookupOpen && query.length >= 2) {
-        inventorySearchResults = (await CompendiumService.getInventorySearchCatalog())
-          .filter(row => row.name.toLowerCase().includes(query))
-          .slice(0, 30);
-      }
+
     }
 
     const purchaseCatalog = selected?.purchaseItems.length
@@ -116,6 +109,7 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
     });
 
     return {
+      isNewShop: this.isNewShop,
       premiumAllowed: EntitlementService.hasShopManager(),
       shops: shopCards,
       selected: selected ? {
@@ -137,11 +131,14 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
         itemTypeOptions: itemTypeOptions.map(option => ({ ...option, checked: checked(selected.itemOptions, option.key) })),
         rarityOptions: rarityOptions.map(key => ({ key, checked: checked((selected.rarities ?? []).map(ShopService.normalizeRarity), key), label: key === "veryrare" ? "Very Rare" : key.charAt(0).toUpperCase() + key.slice(1) })),
         reputations: ShopService.getReputationTiers().map(tier => ({ ...tier, selected: tier.key === selected.reputation })),
-        inventoryModes: [
-          { key: "unlimited", label: "Unlimited Catalog" },
-          { key: "limited", label: "Limited Stock" },
-          { key: "hybrid", label: "Hybrid" }
-        ].map(mode => ({ ...mode, selected: mode.key === selected.inventoryMode })),
+        stockPlans: [
+          { key: "manual", label: "Manually added items only" },
+          { key: "unlimited", label: "Unlimited catalog" },
+          { key: "limited", label: "Random stock" },
+          { key: "hybrid", label: "Unlimited common + random rarer stock" },
+          ...(!selected.manualInventoryOnly && selected.inventoryMode !== "unlimited" && !selected.randomInventory?.enabled
+            ? [{ key: "existing", label: "Keep existing stock (previous setup)" }] : [])
+        ].map(plan => ({ ...plan, selected: plan.key === (selected.manualInventoryOnly ? "manual" : selected.inventoryMode === "unlimited" ? "unlimited" : selected.randomInventory?.enabled ? selected.inventoryMode : "existing") })),
         purchaseItems: selected.purchaseItems.map(item => ({ ...item, ...purchaseCatalog.get(item.uuid) })),
         inventory,
         inventoryCount: inventory.length
@@ -158,11 +155,7 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
       })),
       isWorking: this.isWorking,
       workingMessage: this.workingMessage || "Working…",
-      inventoryLookupOpen: this.inventoryLookupOpen,
-      purchaseLookup: this.inventoryLookupTarget === "purchase",
-      inventorySearchQuery: this.inventorySearchQuery,
-      inventorySearchReady: this.inventorySearchQuery.trim().length >= 2,
-      inventorySearchResults
+
     };
   }
 
@@ -172,22 +165,28 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
 
   _onRender(context, options) {
     super._onRender(context, options);
-
-    const search = this.element.querySelector('[name="inventorySearch"]');
-    search?.addEventListener("input", event => {
-      this.inventorySearchQuery = event.currentTarget.value;
-      clearTimeout(this.inventorySearchTimer);
-      this.inventorySearchTimer = setTimeout(async () => {
-        this.restoreInventorySearchFocus = true;
-        await this.render();
-      }, 200);
-    });
-
-    if (this.restoreInventorySearchFocus && search) {
-      search.focus({ preventScroll: true });
-      search.setSelectionRange(search.value.length, search.value.length);
-      this.restoreInventorySearchFocus = false;
+    const plan = this.element.querySelector('[name="stockPlan"]');
+    const update = () => {
+      const key = plan.value;
+      this.element.querySelector('[data-random-stock]').hidden = !["limited", "hybrid"].includes(key);
+      this.element.querySelector('[name="stockCommon"]').closest('label').hidden = key === "hybrid";    };
+    if (plan) { plan.addEventListener("change", update); update(); }
+    for (const name of ["excludeMagical", "exclusivelyMagical"]) {
+      this.element.querySelector(`[name="${name}"]`)?.addEventListener("change", event => {
+        if (event.currentTarget.checked) this.element.querySelector(`[name="${name === "excludeMagical" ? "exclusivelyMagical" : "excludeMagical"}"]`).checked = false;
+      });
     }
+  }
+
+  static async newShop(event) {
+    event.preventDefault();
+    if (!game.user.isGM || !EntitlementService.hasShopManager() || this.isWorking) return;
+    if (this.newShopWindow?.rendered) return this.newShopWindow.bringToFront();
+    this.newShopWindow = new MorelordShopManagerApp({ newShop: true, onCreated: async shop => {
+      this.selectedShopId = shop.id;
+      await this.render();
+    } });
+    await this.newShopWindow.render(true);
   }
 
   static async createShop(event, target) {
@@ -199,8 +198,6 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
     const preset = ShopService.getPresets().find(entry => entry.key === type);
     this.draftShop = ShopProfileModel.create({ name: preset?.label, type });
     this.selectedShopId = this.draftShop.id;
-    this.inventoryLookupOpen = false;
-    this.inventorySearchQuery = "";
     CompendiumService.clearCatalogCache();
     await this.render();
   }
@@ -240,8 +237,6 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
     if (this.isWorking) return;
     this.draftShop = null;
     this.selectedShopId = target.dataset.shopId;
-    this.inventoryLookupOpen = false;
-    this.inventorySearchQuery = "";
     await this.render();
   }
 
@@ -262,20 +257,22 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
     shop.reputation = String(data.get("reputation") ?? "neutral");
     shop.locationId = String(data.get("locationId") ?? "").trim() || null;
     shop.capabilityTier = String(data.get("capabilityTier") ?? "").trim() || null;
-    shop.inventoryMode = String(data.get("inventoryMode") ?? "hybrid");
+    const stockPlan = String(data.get("stockPlan") ?? "existing");
+    shop.manualInventoryOnly = stockPlan === "manual";
+    if (["unlimited", "limited", "hybrid"].includes(stockPlan)) shop.inventoryMode = stockPlan;
     shop.buyModifier = Number(data.get("buyModifier") ?? 1);
     shop.sellModifier = Number(data.get("sellModifier") ?? 0.5);
     shop.allowBuying = data.get("allowBuying") === "on";
     shop.allowSelling = data.get("allowSelling") === "on";
-    shop.manualInventoryOnly = data.get("manualInventoryOnly") === "on";
-    shop.excludeMagical = data.get("excludeMagical") === "on";
+    shop.exclusivelyMagical = data.get("exclusivelyMagical") === "on";
+    shop.excludeMagical = !shop.exclusivelyMagical && data.get("excludeMagical") === "on";
     shop.itemOptions = data.getAll("itemOptions").map(String);
     shop.itemTypes = getItemTypesForOptions(shop.itemOptions);
     shop.rarities = data.getAll("rarities").map(String);
     shop.randomInventory = {
       ...(shop.randomInventory ?? {}),
-      enabled: data.get("randomEnabled") === "on",
-      allowDuplicates: data.get("allowDuplicates") === "on",
+      enabled: ["limited", "hybrid"].includes(stockPlan) || (["manual", "existing"].includes(stockPlan) && shop.randomInventory?.enabled === true),
+      allowDuplicates: false,
       counts: {
         common: Number(data.get("stockCommon") ?? 0),
         uncommon: Number(data.get("stockUncommon") ?? 0),
@@ -296,6 +293,11 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
     }
     ShopTransactionService.broadcastInventoryChanged(saved.id);
     ui.notifications.info(isDraft ? `${shop.name} created.` : `${shop.name} saved.`);
+    if (isDraft && this.isNewShop) {
+      await this.onCreated?.(ShopService.getShop(saved.id));
+      await this.close();
+      return;
+    }
     await this.render();
   }
 
@@ -430,42 +432,39 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
     event.preventDefault();
     if (!game.user.isGM || !EntitlementService.hasShopManager() || this.isWorking) return;
     await MorelordShopManagerApp.saveShop.call(this, event);
-    this.inventoryLookupTarget = target?.dataset.lookupTarget ?? "inventory";
-    this.inventoryLookupOpen = true;
-    await this.render();
-    this.element?.querySelector('[name="inventorySearch"]')?.focus();
-  }
-
-  static async closeInventoryLookup(event) {
-    event.preventDefault();
-    this.inventoryLookupOpen = false;
-    this.inventorySearchQuery = "";
-    await this.render();
-  }
-
-  static async addInventoryItem(event, target) {
-    event.preventDefault();
-    if (!game.user.isGM || !EntitlementService.hasShopManager()) return;
-    const row = (await CompendiumService.getInventorySearchCatalog()).find(entry => entry.uuid === target.dataset.itemUuid);
-    if (!row) return ui.notifications.warn("That item is no longer available in an enabled compendium.");
-    if (this.inventoryLookupTarget === "purchase") {
-      const shop = ShopService.getShop(this.selectedShopId);
-      if (!shop) return;
-      if (!shop.purchaseItems.some(item => item.uuid === row.uuid)) {
-        shop.purchaseItems.push({ uuid: row.uuid, name: row.name, type: row.typeKey, img: row.img });
-        await ShopService.saveShop(shop, { bumpRevision: true });
+    const shopId = this.selectedShopId;
+    const purchase = target?.dataset.lookupTarget === "purchase";
+    await this.itemPicker?.close();
+    this.itemPicker = new ItemPickerApp({
+      window: { title: purchase ? "Add a Purchase Item" : "Add Shop Inventory" },
+      onSelect: async item => {
+        if (!game.user.isGM || !EntitlementService.hasShopManager()) throw new Error("Shop Manager access is required.");
+        const shop = ShopService.getShop(shopId);
+        if (!shop) throw new Error("This shop no longer exists.");
+        const row = (await CompendiumService.getInventorySearchCatalog()).find(entry => entry.uuid === item.uuid);
+        if (!row) throw new Error("That item is not available in the Marketplace catalog.");
+        if (purchase) {
+          if (!shop.purchaseItems.some(entry => entry.uuid === row.uuid)) {
+            shop.purchaseItems.push({ uuid: row.uuid, name: row.name, type: row.typeKey, img: row.img });
+            await ShopService.saveShop(shop, { bumpRevision: true });
+          }
+        } else {
+          if ((shop.excludeMagical && ShopService.hasMagicalProperty(row)) || (shop.exclusivelyMagical && !ShopService.hasMagicalProperty(row))) throw new Error("That item does not match this shop's magical item policy.");
+          await ShopService.addInventoryItem(shopId, row, 1);
+        }
+        CompendiumService.clearCatalogCache();
+        ShopTransactionService.broadcastInventoryChanged(shopId);
+        ui.notifications.info(purchase ? `${row.name} added to the items this shop will buy.` : `${row.name} added to the shop with quantity 1.`);
+        await this.render();
       }
-    } else {
-      await ShopService.addInventoryItem(this.selectedShopId, row, 1);
-    }
-    CompendiumService.clearCatalogCache();
-    ShopTransactionService.broadcastInventoryChanged(this.selectedShopId);
-    this.inventoryLookupOpen = false;
-    this.inventorySearchQuery = "";
-    ui.notifications.info(this.inventoryLookupTarget === "purchase"
-      ? `${row.name} added to the items this shop will buy.`
-      : `${row.name} added to the shop with quantity 1.`);
-    await this.render();
+    });
+    await this.itemPicker.render(true);
+  }
+
+  async close(options = {}) {
+    await this.itemPicker?.close();
+    await this.newShopWindow?.close();
+    return super.close(options);
   }
 
   static async removePurchaseItem(event, target) {

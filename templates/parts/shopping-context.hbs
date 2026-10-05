@@ -1,0 +1,60 @@
+  <section class="ml-surface ml-stack" data-gap="3" aria-label="Shopper and Payer">
+    <div class="ml-section-heading"><div><h2>Shopper and Payer</h2><p>Choose whose inventory to use and who funds purchases. Sale proceeds go to the shopper.</p></div></div>
+    <div class="ml-marketplace-shopper-card ml-marketplace-shop-context-card">
+        <div class="ml-marketplace-shop-selector-block">
+          <label data-ml-actor-select-layout="inline"><span class="ml-marketplace-shopper-label">Shopping As</span>
+          {{#if showShopperSelector}}
+            <select data-ml-marketplace-shopper-select aria-label="Shopping As">
+              {{#each shopperOptions}}
+                <option value="{{id}}" {{#if selected}}selected{{/if}}>{{name}} · {{typeLabel}}</option>
+              {{/each}}
+            </select>
+          {{else if actor}}
+            <strong>{{actor.name}}</strong>
+          {{else}}
+            <strong>No character selected</strong>
+          {{/if}}
+          </label>
+          <small>Purchases go to and sales come from this actor or group.</small>
+        </div>
+
+        <div class="ml-marketplace-shop-selector-block ml-marketplace-funding-selector-block">
+          <label data-ml-actor-select-layout="inline"><span class="ml-marketplace-shopper-label">Paying As</span>
+          {{#if showFundingSelector}}
+            <select data-ml-marketplace-funding-select aria-label="Paying As">
+              {{#each fundingOptions}}
+                <option value="{{id}}" {{#if selected}}selected{{/if}}>{{name}}{{#if typeLabel}} · {{typeLabel}}{{/if}}</option>
+              {{/each}}
+            </select>
+          {{else}}
+            <strong>No eligible funds actor</strong>
+          {{/if}}
+          </label>
+          <small>Purchase coin is deducted from this actor or group.</small>
+        </div>
+
+        <div class="ml-marketplace-shopper-wallet">
+          <i class="fa-solid fa-coins"></i>
+          <div>
+            <span>Available Coin</span>
+            <strong>{{#if fundingActor}}{{{currency}}}{{else}}—{{/if}}</strong>
+          </div>
+        </div>
+      </div>
+
+    {{#if shopperNotice}}
+      <div class="ml-marketplace-shopper-notice">
+        <i class="fa-solid fa-user-tag"></i>
+        <span>{{shopperNotice}}</span>
+      </div>
+    {{/if}}
+
+    {{#if shopStale}}
+      <div class="ml-marketplace-shopper-notice ml-marketplace-shop-stale-notice">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <span>This shop changed after you opened it. Refresh the shop before purchasing. Refreshing clears the cart.</span>
+      </div>
+    {{/if}}
+
+  </section>
+

@@ -141,6 +141,7 @@ export class ShopProfileModel {
       stock: {},
       manualInventoryOnly: false,
       excludeMagical: false,
+      exclusivelyMagical: false,
       manualStockTargets: {},
       purchaseItems: [],
       prefabId: null,

@@ -47,8 +47,8 @@
   min-width: 0;
 }
 
-/* Transfer inventory and cart use Core surfaces and item rows. */
-.ml-marketplace-transfer-layout { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 3fr); gap: var(--ml-space-3); align-items: start; }
+/* Transfer uses the same inventory/cart proportions and flow as Sell. */
+.ml-marketplace-transfer-layout { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 3fr); gap: var(--ml-space-3); }
 .ml-marketplace-transfer-layout > * { min-width: 0; }
 
 @container (max-width: 700px) { .ml-marketplace-transfer-layout { grid-template-columns: minmax(0, 1fr); } }

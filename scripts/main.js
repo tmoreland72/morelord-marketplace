@@ -1,4 +1,5 @@
 import { TransferService } from "./services/transfer-service.js";
+import { PartyInventoryService } from "./services/party-inventory-service.js";
 import { MODULE_ID } from "./constants.js";
 import {
   registerSettings,
@@ -26,6 +27,8 @@ Hooks.once("init", async () => {
 
   await foundry.applications.handlebars.loadTemplates([
     "modules/morelord-core/templates/components/quantity-controls.hbs",
+    `modules/${MODULE_ID}/templates/parts/shopping-context.hbs`,
+    `modules/${MODULE_ID}/templates/parts/transfer-context.hbs`,
     `modules/${MODULE_ID}/templates/parts/buy-tab.hbs`,
     `modules/${MODULE_ID}/templates/parts/sell-tab.hbs`,
     `modules/${MODULE_ID}/templates/parts/transfer-tab.hbs`,
@@ -102,6 +105,7 @@ Hooks.once("ready", async () => {
   telemetry?.observe(MODULE_ID, ActorService, { sellCart: "sell.cart", sellItem: "sell.item" });
   Logger.log("Ready");
   TransferService.initialize();
+  PartyInventoryService.initialize();
 
   await initializeMarketplaceSources();
 

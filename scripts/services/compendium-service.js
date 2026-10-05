@@ -6,6 +6,7 @@ import { ShopService } from "./shop-service.js";
 import { TransactionService } from "./transaction-service.js";
 import { TransactionApprovalService } from "./transaction-approval-service.js";
 import { PurchaseEligibilityService } from "./purchase-eligibility-service.js";
+import { PartyInventoryService } from "./party-inventory-service.js";
 
 import { Dnd5eSourceFilterService } from "../../../morelord-core/scripts/services/dnd5e-source-filter-service.js";
 const sources = new Dnd5eSourceFilterService();
@@ -74,6 +75,7 @@ export class CompendiumService {
         prefabItemUuids: [...(currentShop.prefabItemUuids ?? [])].sort(),
         manualInventoryOnly: currentShop.manualInventoryOnly === true,
         excludeMagical: currentShop.excludeMagical === true,
+        exclusivelyMagical: currentShop.exclusivelyMagical === true,
         inventoryOverrides: {
           included: [...(currentShop.inventoryOverrides?.included ?? [])].sort(),
           excluded: [...(currentShop.inventoryOverrides?.excluded ?? [])].sort(),
@@ -925,6 +927,14 @@ export class CompendiumService {
       return { status: "pending", priceCp };
     }
 
+    if (PartyInventoryService.needsGM(actor, fundingActor)) {
+      const items = [{ packId, documentId, quantity: 1, priceCp }];
+      if (shop?.id) {
+        const { ShopTransactionService } = await import("./shop-transaction-service.js");
+        return ShopTransactionService.checkout({ shopId: shop.id, actorId: actor.id, fundingActorId: fundingActor.id, items, expectedRevision: shop.revision });
+      }
+      return this.buyCart({ actor, fundingActor, items });
+    }
     const originalCurrencyCp = CurrencyService.currencyToCp(
       CurrencyService.getCurrency(fundingActor)
     );
@@ -961,7 +971,7 @@ export class CompendiumService {
     return { status: "completed", priceCp, itemName: item.name, itemImg: item.img };
   }
 
-  static async buyCart({ actor, fundingActor = actor, items = [] }) {
+  static async buyCart({ actor, fundingActor = actor, items = [], requestingUser = game.user }) {
     if (!actor || !fundingActor || !items.length) return { status: "blocked" };
     if (!game.settings.get(MODULE_ID, "enableBuying")) {
       ui.notifications.warn("Buying is disabled.");
@@ -986,12 +996,13 @@ export class CompendiumService {
       return { status: "unaffordable" };
     }
 
-    if (TransactionApprovalService.requiresApproval("buy")) {
-      await TransactionApprovalService.requestBuyCart({ actor, fundingActor, items: resolved, totalPriceCp });
+    if (TransactionApprovalService.requiresApproval("buy", requestingUser)) {
+      await TransactionApprovalService.requestBuyCart({ actor, fundingActor, items: resolved, totalPriceCp, requestedByUserId: requestingUser.id });
       ui.notifications.info(`${resolved.length} buy-cart item(s) are awaiting GM approval.`);
       return { status: "pending", ok: true };
     }
 
+    if (PartyInventoryService.needsGM(actor, fundingActor)) return PartyInventoryService.checkout({ type: "buy", actorId: actor.id, fundingActorId: fundingActor.id, items });
     const originalCurrencyCp = CurrencyService.currencyToCp(CurrencyService.getCurrency(fundingActor));
     const originalItemIds = new Set(actor.items.map(item => item.id));
     await CurrencyService.deductCurrency(fundingActor, totalPriceCp);

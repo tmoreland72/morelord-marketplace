@@ -330,11 +330,7 @@
                 </div>
                 <div class="ml-marketplace-cart-quantity-row">
                   <span>Qty</span>
-                  <div class="ml-marketplace-quantity-stepper ml-marketplace-cart-stepper" aria-label="{{name}} cart quantity">
-                    <button type="button" data-action="removeFromCart" data-cart-key="{{packId}}:{{documentId}}" title="Remove one {{name}} from cart"><i class="fa-solid fa-minus"></i></button>
-                    <span class="ml-marketplace-cart-qty" aria-label="Quantity">{{quantity}}</span>
-                    <button type="button" data-action="addToCart" data-pack-id="{{packId}}" data-document-id="{{documentId}}" title="Add one {{name}} to cart"><i class="fa-solid fa-plus"></i></button>
-                  </div>
+                  {{> "modules/morelord-core/templates/components/quantity-controls.hbs" action="adjustCartQuantity" clearAction="adjustCartQuantity" cartType="buy" stockKey=stockKey name=name quantity=quantity increaseEnabled=canAddToCart disabled=../isCheckingOut classes="ml-marketplace-quantity-stepper ml-marketplace-cart-stepper" quantityClass="ml-marketplace-cart-qty"}}
                 </div>
               </div>
             </div>

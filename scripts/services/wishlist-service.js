@@ -1,4 +1,5 @@
 import { MODULE_ID, FLAGS } from "../constants.js";
+import { PartyInventoryService } from './party-inventory-service.js';
 
 export class WishlistService {
   static getEntries(actor) {
@@ -17,6 +18,7 @@ export class WishlistService {
 
   static async add(row, actor) {
     if (!row?.uuid || !actor) return false;
+    if (PartyInventoryService.needsGM(actor)) return PartyInventoryService.channel.executeAsGM('wishlist', { actorId: actor.id, row });
     const entries = this.getEntries(actor);
     if (entries.some(entry => entry.uuid === row.uuid)) return false;
 
@@ -39,6 +41,7 @@ export class WishlistService {
 
   static async remove(uuid, actor) {
     if (!uuid || !actor) return false;
+    if (PartyInventoryService.needsGM(actor)) return PartyInventoryService.channel.executeAsGM('wishlist', { actorId: actor.id, uuid });
     const entries = this.getEntries(actor);
     const next = entries.filter(entry => entry.uuid !== uuid);
     if (next.length === entries.length) return false;

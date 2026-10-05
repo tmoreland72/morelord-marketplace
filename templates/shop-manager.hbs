@@ -4,14 +4,16 @@
       <div class="ml-marketplace-shop-working-card">
         <i class="fa-solid fa-spinner fa-spin"></i>
         <strong>{{workingMessage}}</strong>
-        <span>Please wait while Marketplace prepares the shop.</span>
+
       </div>
     </div>
   {{/if}}
-  <header class="ml-hero ml-marketplace-shops-heading"><i class="fa-solid fa-store ml-hero__icon"></i><div class="ml-hero__body"><h1>Marketplace Shops</h1><p>Manage existing stores or start from a template or prefab.</p></div><div class="ml-actions"><button type="button" data-action="openDocumentation"><i class="fa-solid fa-book-open"></i> Documentation</button></div></header>
+  <header class="ml-hero ml-marketplace-shops-heading"><i class="fa-solid fa-store ml-hero__icon"></i><div class="ml-hero__body"><h1>{{#if isNewShop}}New Shop{{else}}Marketplace Shops{{/if}}</h1></div><div class="ml-actions"><button type="button" data-action="openDocumentation"><i class="fa-solid fa-book-open"></i> Documentation</button></div></header>
   <aside class="ml-marketplace-shop-list-panel" data-ml-scroll-key="shop-library">
-    <div class="ml-marketplace-shop-manager-heading">
-      <button type="button" class="ml-marketplace-shop-import-button" data-action="importShop" title="Import a portable shop definition">
+    {{#unless isNewShop}}
+    <div class="ml-actions">
+      <button type="button" data-action="newShop"><i class="fa-solid fa-plus"></i> New Shop</button>
+      <button type="button" data-action="importShop" title="Import a portable shop definition">
         <i class="fa-solid fa-file-import"></i><span>Import Shop</span>
       </button>
     </div>
@@ -27,11 +29,11 @@
 
       <div class="ml-marketplace-shop-list">
         {{#each shops}}
-          <button type="button" class="ml-marketplace-shop-list-item ml-marketplace-shop-card {{#if selected}}active{{/if}}" data-action="selectShop" data-shop-id="{{id}}">
+          <button type="button" class="ml-list-button ml-marketplace-shop-list-item ml-marketplace-shop-card {{#if selected}}is-active{{/if}}" data-action="selectShop" data-shop-id="{{id}}" {{#if selected}}aria-current="true"{{/if}}>
             <img class="ml-marketplace-shop-card-image" src="{{img}}" alt="">
             <span class="ml-marketplace-shop-card-body">
-              <span class="ml-marketplace-shop-card-name">{{name}}</span>
-              <span class="ml-marketplace-shop-card-type">{{typeLabel}}</span>
+              <strong class="ml-marketplace-shop-card-name">{{name}}</strong>
+              <small class="ml-marketplace-shop-card-type">{{typeLabel}}</small>
               <span class="ml-marketplace-shop-card-tags">
                 {{#each tags}}
                   <span class="ml-marketplace-shop-card-tag"><i class="fa-solid {{icon}}"></i>{{label}}</span>
@@ -46,6 +48,7 @@
       </div>
     </section>
 
+    {{else}}
     <section class="ml-marketplace-shop-library-section">
       <div class="ml-marketplace-shop-library-heading">
         <div>
@@ -73,10 +76,6 @@
         <span class="ml-marketplace-shop-count">{{prefabs.length}}</span>
       </div>
 
-      <p class="ml-marketplace-prefab-help">
-        Prefabs are shown only when at least 8 inventory items match the enabled Player's Handbook, Dungeon Master's Guide, SRD 5.1, or SRD 5.2 compendiums.
-      </p>
-
       <div class="ml-marketplace-prefab-list">
         {{#each prefabs}}
           <button
@@ -99,6 +98,7 @@
         {{/each}}
       </div>
     </section>
+    {{/unless}}
   </aside>
 
   <main class="ml-marketplace-shop-editor-panel">
@@ -111,7 +111,7 @@
               <button type="button" data-action="placeShop"><i class="fa-solid fa-location-dot"></i> Place on Scene</button>
               <button type="button" data-action="restockShop"><i class="fa-solid fa-rotate"></i> Restock Now</button>
             {{/unless}}
-            <button type="button" data-action="saveShop" class="primary"><i class="fa-solid fa-floppy-disk"></i> {{#if selected.isDraft}}Create Shop{{else}}Save{{/if}}</button>
+            <button type="button" data-action="saveShop" class="primary"><i class="fa-solid fa-floppy-disk"></i> {{#if selected.isDraft}}Save New Shop{{else}}Save{{/if}}</button>
           </div>
         </header>
 
@@ -141,7 +141,6 @@
               <label>Buy Multiplier <input type="number" name="buyModifier" min="0" step="0.05" value="{{selected.buyModifier}}"></label>
               <label>Base Sell Rate <input type="number" name="sellModifier" min="0" step="0.05" value="{{selected.sellModifier}}"></label>
             </div>
-            <p class="hint">New shops start with the Marketplace settings rates; edit these values for this shop. Reputation modifies both values automatically. Hostile parties cannot trade.</p>
           </section>
 
           <section class="ml-surface ml-stack ml-marketplace-shop-config-card">
@@ -152,23 +151,16 @@
             <label>Maximum Normal Rarity
               <select name="capabilityTier">{{#each selected.capabilityTiers}}<option value="{{key}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}</select>
             </label>
-            {{#if selected.effectiveCapability.tier}}
-              <p class="hint">Effective tier: <strong>{{selected.effectiveCapability.tier}}</strong> from {{selected.effectiveCapability.source}}. Manually added inventory can exceed this limit.</p>
-            {{else}}
-              <p class="hint">No capability limit is active. Select a tier or inherit a Marketplace capability from the shared Location.</p>
-            {{/if}}
           </section>
 
           <section class="ml-surface ml-stack ml-marketplace-shop-config-card">
             <h3>Inventory</h3>
-            <label>Mode
-              <select name="inventoryMode">{{#each selected.inventoryModes}}<option value="{{key}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}</select>
+            <label><span>Stock Plan</span>
+              <select name="stockPlan">{{#each selected.stockPlans}}<option value="{{key}}" {{#if selected}}selected{{/if}}>{{label}}</option>{{/each}}</select>
             </label>
-            <label class="ml-check"><input type="checkbox" name="manualInventoryOnly" {{#if selected.manualInventoryOnly}}checked{{/if}} aria-describedby="manual-inventory-help"><span>Only sell manually added items</span></label>
-            <p id="manual-inventory-help" class="hint">Off by default. When enabled, only manually added listings are offered. Restock Now restores their configured quantities without adding random items. Adjust a listing's quantity to set its restock amount.</p>
-            <label><input type="checkbox" name="randomEnabled" {{#if selected.randomInventory.enabled}}checked{{/if}}> Generate limited stock randomly</label>
-            <label><input type="checkbox" name="allowDuplicates" {{#if selected.randomInventory.allowDuplicates}}checked{{/if}}> Allow duplicate random items</label>
-            <p class="notes">The settings below control how many items are randomly selected at each rarity when creating or restocking this shop. Without duplicates, each selection is a different item, up to the number available. With duplicates, repeated selections increase that item's stock. Set a rarity to 0 to select none. Only selected product rarities are eligible.</p>
+
+            <div class="ml-stack" data-gap="2" data-random-stock>
+            <strong>Different products per rarity</strong>
             <div class="ml-marketplace-stock-counts">
               <label>Common <input type="number" name="stockCommon" min="0" value="{{selected.randomInventory.counts.common}}"></label>
               <label>Uncommon <input type="number" name="stockUncommon" min="0" value="{{selected.randomInventory.counts.uncommon}}"></label>
@@ -176,13 +168,14 @@
               <label>Very Rare <input type="number" name="stockVeryrare" min="0" value="{{selected.randomInventory.counts.veryrare}}"></label>
               <label>Legendary <input type="number" name="stockLegendary" min="0" value="{{selected.randomInventory.counts.legendary}}"></label>
             </div>
+            </div>
           </section>
 
 
           <section class="ml-surface ml-stack ml-marketplace-shop-config-card ml-marketplace-shop-config-wide">
             <h3>Products</h3>
-            <label class="ml-check"><input type="checkbox" name="excludeMagical" {{#if selected.excludeMagical}}checked{{/if}} aria-describedby="exclude-magical-help"><span>Exclude magical items</span></label>
-            <p id="exclude-magical-help" class="notes">Hide items with the Magical property, including manually added items, and exclude them from restocking. This does not change which items the shop buys from players.</p>
+            <label class="ml-check"><input type="checkbox" name="excludeMagical" {{#if selected.excludeMagical}}checked{{/if}}><span>Exclude magical items</span></label>
+            <label class="ml-check"><input type="checkbox" name="exclusivelyMagical" {{#if selected.exclusivelyMagical}}checked{{/if}}><span>Exclusively magical items</span></label>
             <div class="ml-marketplace-option-columns">
               <div><strong>Item Options</strong>{{#each selected.itemTypeOptions}}<label><input type="checkbox" name="itemOptions" value="{{key}}" {{#if checked}}checked{{/if}}> {{label}}</label>{{/each}}</div>
               <div><strong>Rarities</strong>{{#each selected.rarityOptions}}<label><input type="checkbox" name="rarities" value="{{key}}" {{#if checked}}checked{{/if}}> {{label}}</label>{{/each}}</div>
@@ -194,8 +187,7 @@
               <div><h3>Items the shop will buy <span class="ml-badge">{{selected.purchaseItems.length}}</span></h3></div>
               {{#unless selected.isDraft}}<div class="ml-actions"><button type="button" data-action="openInventoryLookup" data-lookup-target="purchase"><i class="fa-solid fa-plus"></i> Add Item</button></div>{{/unless}}
             </div>
-            <p class="notes">When this list has any items, players can sell only matching items from their inventory. An empty list uses the shop's Item Options. Player can sell must be enabled.</p>
-            {{#if selected.isDraft}}<p class="notes">Save the shop to add purchase items.</p>{{/if}}
+
             <div class="ml-stack" data-gap="2">
             {{#each selected.purchaseItems}}
               <div class="ml-card ml-item-row">
@@ -207,43 +199,18 @@
             </div>
           </section>
 
-            {{#if inventoryLookupOpen}}
-              <section class="ml-surface ml-stack ml-marketplace-shop-config-card ml-marketplace-shop-config-wide">
-                <div class="ml-toolbar">
-                  <div class="ml-stack"><strong>{{#if purchaseLookup}}Add a Purchase Item{{else}}Add an Item{{/if}}</strong><small>Search enabled Item compendiums.</small></div>
-                  <button type="button" class="ml-icon-button" data-action="closeInventoryLookup" aria-label="Close item search"><i class="fa-solid fa-xmark"></i></button>
-                </div>
-                <label class="ml-stack">
-                  <span>Search items</span>
-                  <input type="search" name="inventorySearch" value="{{inventorySearchQuery}}" placeholder="Type at least 2 characters…" autocomplete="off">
-                </label>
-                {{#if inventorySearchResults.length}}
-                  <div class="ml-stack">
-                    {{#each inventorySearchResults}}
-                      <button type="button" class="ml-card ml-item-row" data-action="addInventoryItem" data-item-uuid="{{uuid}}">
-                        <img src="{{img}}" alt=""><span class="ml-stack"><strong>{{name}}</strong><small>{{source}} · {{typeLabel}}</small></span><i class="fa-solid fa-plus"></i>
-                      </button>
-                    {{/each}}
-                  </div>
-                {{else}}
-                  <p class="hint">{{#if inventorySearchReady}}No matching items found.{{else}}Enter at least 2 characters to search.{{/if}}</p>
-                {{/if}}
-              </section>
-            {{/if}}
-
           <section class="ml-surface ml-stack ml-marketplace-shop-config-card ml-marketplace-shop-config-wide">
             <div class="ml-section-heading" data-actions>
               <div><h3>Current Inventory <span class="ml-badge">{{selected.inventoryCount}}</span></h3></div>
               {{#unless selected.isDraft}}<div class="ml-actions"><button type="button" data-action="openInventoryLookup"><i class="fa-solid fa-plus"></i> Add Item</button></div>{{/unless}}
             </div>
-            <p class="notes">{{#if selected.isDraft}}Preview the catalog produced by these settings. Save the shop before overriding individual listings.{{else}}Override this shop's live listings. Manual-only shops restock the configured quantities. Other shops preserve manual stock while restocking generated items. Removed items stay excluded.{{/if}}</p>
             <div class="ml-stack" data-gap="2">
               {{#each selected.inventory}}
                 <article class="ml-card ml-item-row">
                   <img src="{{img}}" alt="">
                   <div class="ml-stack" data-gap="1">
                     <a class="content-link ml-item-link" data-link data-uuid="{{uuid}}" title="Open {{name}} from its compendium">{{name}}</a>
-                    {{#if isManualStock}}<span class="ml-badge" data-tone="info" title="Manually added stock. Manual-only shops restore its configured quantity; other shops preserve remaining stock."><i class="fa-solid fa-thumbtack" aria-hidden="true"></i> Manual</span>{{/if}}
+                    {{#if isManualStock}}<span class="ml-badge" data-tone="info"><i class="fa-solid fa-thumbtack" aria-hidden="true"></i> Manual</span>{{/if}}
                     <small>{{source}} · {{rarityLabel}} {{typeLabel}}</small>
                   </div>
                   {{#if finite}}
@@ -264,7 +231,7 @@
         </div>
       </form>
     {{else}}
-<div class="ml-empty-state ml-marketplace-shop-editor-empty"><i class="fa-solid fa-shop-lock"></i><h2>No Shop Selected</h2><p>Create a shop from one of the Shop Templates.</p></div>
+<div class="ml-empty-state ml-marketplace-shop-editor-empty"><i class="fa-solid fa-shop-lock"></i><h2>No Shop Selected</h2></div>
     {{/if}}
   </main>
 </section>

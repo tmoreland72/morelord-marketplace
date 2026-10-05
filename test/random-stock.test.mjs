@@ -11,14 +11,14 @@ const shop = {
   randomInventory: { enabled: true, allowDuplicates: true, counts: { common: 6 } }
 };
 
-test("wishlist items can be missed entirely with duplicates enabled", t => {
+test("wishlist items are not guaranteed stock, even with a legacy repeat setting", t => {
   t.mock.method(WishlistService, "getUuids", () => new Set([rows[0].uuid, rows[1].uuid]));
   t.mock.method(Math, "random", () => 0.99);
   t.mock.method(ShopService, "randomStockQuantity", () => 1);
   const stock = ShopService.buildRandomStock(shop, rows);
   assert.equal(stock[ShopService.stockKey(rows[0])], undefined);
   assert.equal(stock[ShopService.stockKey(rows[1])], undefined);
-  assert.equal(stock[ShopService.stockKey(rows[7])], 6);
+  assert.equal(stock[ShopService.stockKey(rows[7])], 1);
   assert.equal(Object.values(stock).reduce((a, b) => a + b, 0), 6);
 });
 
@@ -50,9 +50,9 @@ test("wishlist weighting is a modest 25% boost across the full draw range", t =>
   for (const row of rows.slice(1)) assert.equal(totals[ShopService.stockKey(row)], 1000);
 });
 
-test("duplicates allow requested draws when the eligible catalog is small", t => {
+test("a small catalog limits distinct selections regardless of legacy repeat settings", t => {
   t.mock.method(WishlistService, "getUuids", () => new Set());
   t.mock.method(Math, "random", () => 0.5);
   t.mock.method(ShopService, "randomStockQuantity", () => 1);
-  assert.deepEqual(ShopService.buildRandomStock(shop, rows.slice(0, 1)), { "test.items:0": 6 });
+  assert.deepEqual(ShopService.buildRandomStock(shop, rows.slice(0, 1)), { "test.items:0": 1 });
 });

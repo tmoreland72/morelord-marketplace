@@ -23,6 +23,17 @@ function fixture() {
   return { sender, target, group, player, cards, add: async (id, quantity = 5, type = 'loot', system = {}) => (await sender.createEmbeddedDocuments('Item', [{ _id: id, name: id, img: 'icons/svg/item-bag.svg', type, flags: { custom: { marker: true } }, system: { quantity, equipped: true, attuned: true, ...system } }]))[0] };
 }
 
+test('party member can send Group inventory without owning the Group', async () => {
+  const f = fixture();
+  f.group.system.members = [{ actor: f.sender.id }];
+  await f.group.createEmbeddedDocuments('Item', [{ _id: 'partyLoot', name: 'Party loot', type: 'loot', system: { quantity: 4 } }]);
+  await TransferService.execute({ actorId: f.group.id, targetId: f.target.id, items: [{ itemId: 'partyLoot', quantity: 2 }] }, f.player.id);
+  assert.equal(f.group.items.get('partyLoot').system.quantity, 2);
+  assert.equal(f.target.items[0].system.quantity, 2);
+  f.group.system.members = [];
+  await assert.rejects(TransferService.execute({ actorId: f.group.id, targetId: f.target.id, items: [{ itemId: 'partyLoot', quantity: 1 }] }, f.player.id), /no longer eligible/);
+});
+
 test('partial stack and whole item transfer to unowned character; duplicate request is resolved once', async () => {
   const f = fixture(); await f.add('arrows'); await f.add('sword', 1, 'weapon');
   const request = { requestId: 'once', actorId: 'sender', targetId: 'recipient', items: [{ itemId: 'arrows', quantity: 3 }, { itemId: 'sword', quantity: 1 }] };

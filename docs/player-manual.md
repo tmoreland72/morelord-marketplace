@@ -4,11 +4,15 @@ description: Browse, buy, sell, transfer items, and use wishlists through Market
 slug: morelord-marketplace/player
 product: morelord-marketplace
 audience: player
-version: 0.10.1
+version: 0.10.2
 foundry: 14
 ---
 
 # Morelord Marketplace Player Manual
+
+Item links open read-only previews, including catalog items whose source sheets deny player access. Source permissions and saved items are unchanged.
+
+Updated layout: Buy and Sell begin with **Shopper and Payer**, with portraits inside Core actor/group selectors. Global Transfer uses **Sender and Recipient** above inventory; the cart contains no recipient selector or additional helper paragraph. Wishlist uses the shopper previously selected in Buy or Sell without showing that section. Scene shops offer Buy and Sell only. Transfer matches the existing Buy/Sell cart layout; all carts support increment, decrement, remove item, and Clear Cart. Sell is always alphabetical. Existing screenshots show the previous layout.
 
 Morelord Marketplace lets you browse, buy, sell eligible inventory items at rates set by the GM, transfer equipment, and save wishlists in Foundry VTT. Your GM may also place individual vendors with their own products, prices, reputation, and stock.
 
@@ -16,7 +20,7 @@ This manual applies to Morelord Marketplace 0.10.1 with Morelord Core 0.4.0 or l
 
 ## Transfer inventory items
 
-Open **Transfer**. **Shopping As** selects the sending inventory. Use the coin icon to add one item or the sack icon to add its stack to the **Shopping Cart**. Use minus/plus to choose the quantity; zero removes the line. Select another eligible character or Group as **Recipient**, then click **Transfer Items**. You must own the sending inventory; you do not need permission to edit the recipient.
+Open **Transfer**. **Sender** selects the sending inventory. Use the coin icon to add one item or the sack icon to add its stack to the cart. Use minus/plus to choose the quantity; zero removes the line. Select another eligible character or Group as **Recipient**, then click **Transfer Items**. Character sources require ownership; Group sources require only party membership through your assigned or owned character. Recipient editing permission is unnecessary.
 
 Tabs run **Sell → Transfer → Buy → Wishlist**. Buy, Sell, and Transfer give the cart 30% of the desktop layout and stack it below inventory in narrow windows. Buy's **Filters** heading collapses its column; Core remembers its state. Source names use ellipsis; hover for the full name.
 
@@ -109,6 +113,57 @@ Select an item's linked name to open its source compendium entry and read its fu
 
 ## Buy from the global Marketplace
 
+### Marketplace field and action reference
+
+| Field or displayed value | Explanation |
+| --- | --- |
+| **Shopping As** | Inventory receiving purchases and providing sales. Choose an owned character or a Group containing your assigned/owned character. Sale proceeds go here. |
+| **Paying As** | Inventory supplying purchase coin; may differ from Shopping As. The same ownership/member eligibility applies. |
+| **Available Coin** | Current currency of the selected payer. |
+| **Sender** | Transfer source, using the same character/party eligibility as Shopping As. |
+| **Recipient** | Transfer destination: another eligible character or Group. Recipient editing permission is unnecessary. |
+| **Search** | Filters catalog items by the entered search text. Empty text removes this restriction. |
+| **Only show what I can afford** | Restricts results to items within the selected payer's funds at current purchase prices. Off by default. |
+| **Price (gp): Min / Max** | Optional nonnegative price bounds in gold pieces; blank leaves that bound unrestricted. |
+| **Rarity** | Filters by the item's declared rarity. Each choice cycles Any, Include, Exclude. |
+| **Attunement: Any / Required / Not Required** | Includes all items or restricts them by whether attunement is required. Defaults to Any. |
+| **Item Type** | Filters system item types using Any, Include, Exclude. |
+| **Category** | Filters categories within relevant item types using Any, Include, Exclude. |
+| **Weapon Class** | Martial or Simple weapon filtering using Any, Include, Exclude. |
+| **Weapon Range** | Melee or Ranged weapon filtering using Any, Include, Exclude. |
+| **Weapon Properties** | Filters weapon property values using Any, Include, Exclude. |
+| **Weapon Masteries** | Filters weapon mastery values using Any, Include, Exclude. |
+| **Source** | Filters enabled compendium sources using Any, Include, Exclude. |
+| **Item** | Item name/artwork; linked names open read-only previews. |
+| **Qty** | Available inventory quantity in Sell/Transfer; planned quantity inside a cart. |
+| **List Price** | Item's base price before trading modifiers. |
+| **Selling Price** | Per-unit amount paid to buy the product from Marketplace or a shop. |
+| **Sell Price** | Per-unit proceeds offered when selling your item. |
+| **Stock** | Shop quantity currently available; Unlimited has no finite limit. |
+| **Price** in Wishlist | Current saved/catalog purchase price, subject to availability and checkout validation. |
+| **Status** in Wishlist | Current availability/purchase eligibility. A saved wish does not reserve inventory. |
+| **Cart count / each / line total** | Planned unit count, per-unit price, and quantity multiplied by that price. Transfer totals include nested contents of selected containers. |
+| **Purchase Total / Remaining After Purchase** | Planned cost and payer funds remaining if checkout succeeds. |
+| **Sale Total** | Planned payout to the shopper. |
+| **Item Total** | Number of physical units selected for transfer, including container contents. |
+
+Filters start unrestricted. Facet choices and counts depend on enabled sources and current results; weapon-specific controls appear when relevant. Buy/Sell selectors appear at the top of those tabs; Wishlist uses the last selected shopper. Shops have no Transfer tab.
+
+| Action | Explanation |
+| --- | --- |
+| **Sell / Transfer / Buy / Wishlist tabs** | Switches between inventory sales, global transfers, catalog shopping, and saved wishes. |
+| **Filters / Clear all filters** | Expands or collapses the filter sidebar; Clear all filters resets all catalog restrictions. |
+| **Previous page / Next page** | Navigates catalog pages while retaining the Buy cart. The page indicator shows the current result range and page totals. |
+| **Heart / Add to wishlist** | Saves the product to the selected shopper's wishlist. Already saved entries are disabled. |
+| **Add one / Add all** | Plans one unit or the full available inventory stack in the relevant cart. No inventory or coin changes yet. |
+| **Cart plus / minus / remove item** | Increments, decrements, or removes the whole line. Quantities cannot exceed available inventory/stock; decrementing the last unit removes the line. |
+| **Clear Cart** | Removes all planned lines without changing inventory or coin. Shown when the cart contains items. |
+| **Purchase / Sell Cart** | Submits the purchase or sale; global approval settings may make a player request pending. Disabled when current eligibility, funds, or availability prevents checkout. |
+| **Transfer Items** | Sends the selected quantities using a connected GM, without currency changes or transaction approval. |
+| **Wishlist cart button / remove** | Adds an available wish to the Buy cart or deletes the saved wish. |
+
+GM-only Marketplace controls are documented in the GM guide.
+
 1. Confirm the correct character is shown.
 2. Open **Buy**.
 3. Find the item you want.
@@ -124,7 +179,7 @@ The purchase button may be unavailable when global buying is disabled. Marketpla
 1. Confirm the correct character is shown.
 2. Open **Sell**.
 3. Review each item's quantity, list price, and offered sell price.
-4. Optionally use **Sort by** to order the list by name, type, quantity, list price, or sell price.
+4. Items are always ordered alphabetically.
 5. Use **Add one to sell cart** or **Add all to sell cart** to collect the items you want to sell.
 6. Review the Sell Cart, remove unwanted quantities, then select **Sell Cart** to submit the sale. **Clear Cart** removes the planned sale without changing inventory.
 
@@ -151,7 +206,7 @@ At the top of a shop, review:
 - **Shopping As** — the character that receives purchased items and whose inventory is shown when selling.
 - **Paying From** — the owned character or Group actor whose coins pay for purchases.
 
-These may be different. For example, your character can receive an item while a shared party Group actor pays. You must have Owner permission for any actor you operate.
+These may be different. For example, your character can receive an item while a shared party Group actor pays. Character inventories require Owner permission. For a Group, membership through your assigned or owned character is sufficient; Group Owner permission is not required. A connected GM applies purchases, sales, and transfers when you cannot directly edit the Group.
 
 ### Buy with the shop cart
 
@@ -230,7 +285,7 @@ Completed transaction cards may also be posted to chat when the GM enables that 
 ### No funding actor is available
 
 - Confirm your character has a dnd5e currency section.
-- Ask the GM to grant you Owner permission for the intended character or party Group actor.
+- Ask the GM to grant character Owner permission or add your character to the intended party Group. A connected GM is needed for Group transactions without ownership.
 - Reopen the shop after permissions change.
 
 ### The Buy list is empty

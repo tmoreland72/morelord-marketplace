@@ -539,12 +539,6 @@
   border-radius: 9px;
   overflow: hidden;
 }
-.ml-marketplace-shop-list-item.ml-marketplace-shop-card.active {
-  background: var(--button-text-color, var(--color-text-primary, #f0f0e0));
-  color: var(--button-background-color, var(--color-cool-5, #23212a));
-  outline: 1px solid var(--ml-color-accent);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ml-color-accent) 35%, transparent), 0 0 12px color-mix(in srgb, var(--ml-color-accent) 18%, transparent);
-}
 
 .ml-marketplace-module .ml-marketplace-sell-sort {
   display: inline-flex;
@@ -706,6 +700,6 @@
 @container marketplace-shop (max-width: 760px) {
   .ml-marketplace-shop-manager-shell {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto minmax(120px, 180px) minmax(0, 1fr);
+    grid-template-rows: max-content max-content max-content;
   }
 }

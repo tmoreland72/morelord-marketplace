@@ -1,0 +1,1085 @@
+{
+  "kind": "offline-installed-foundry-core-styles",
+  "reports": [
+    {
+      "page": "manager",
+      "theme": "dark",
+      "width": 1280,
+      "noOverflow": true,
+      "offenders": [],
+      "portraitsInside": true,
+      "coreLoaded": true,
+      "cartCore": true,
+      "cartHasSelector": false,
+      "newShopButton": true,
+      "templates": false,
+      "shopTransfer": false
+    },
+    {
+      "page": "manager",
+      "theme": "light",
+      "width": 1280,
+      "noOverflow": true,
+      "offenders": [],
+      "portraitsInside": true,
+      "coreLoaded": true,
+      "cartCore": true,
+      "cartHasSelector": false,
+      "newShopButton": true,
+      "templates": false,
+      "shopTransfer": false
+    },
+    {
+      "page": "manager",
+      "theme": "dark",
+      "width": 520,
+      "noOverflow": true,
+      "offenders": [],
+      "portraitsInside": true,
+      "coreLoaded": true,
+      "cartCore": true,
+      "cartHasSelector": false,
+      "newShopButton": true,
+      "templates": false,
+      "shopTransfer": false
+    },
+    {
+      "page": "manager",
+      "theme": "light",
+      "width": 520,
+      "noOverflow": true,
+      "offenders": [],
+      "portraitsInside": true,
+      "coreLoaded": true,
+      "cartCore": true,
+      "cartHasSelector": false,
+      "newShopButton": true,
+      "templates": false,
+      "shopTransfer": false
+    },
+    {
+      "page": "manager",
+      "theme": "dark",
+      "width": 360,
+      "noOverflow": true,
+      "offenders": [],
+      "portraitsInside": true,
+      "coreLoaded": true,
+      "cartCore": true,
+      "cartHasSelector": false,
+      "newShopButton": true,
+      "templates": false,
+      "shopTransfer": false
+    },
+    {
+      "page": "manager",
+      "theme": "light",
+      "width": 360,
+      "noOverflow": true,
+      "offenders": [],
+      "portraitsInside": true,
+      "coreLoaded": true,
+      "cartCore": true,
+      "cartHasSelector": false,
+      "newShopButton": true,
+      "templates": false,
+      "shopTransfer": false
+    },
+    {
+      "page": "new-shop",
+      "theme": "dark",
+      "width": 1280,
+      "noOverflow": true,
+      "offenders": [],
+      "portraitsInside": true,
+      "coreLoaded": true,
+      "cartCore": true,
+      "cartHasSelector": false,
+      "newShopButton": false,
+      "templates": true,
+      "shopTransfer": false
+    },
+    {
+      "page": "new-shop",
+      "theme": "light",
+      "width": 1280,
+      "noOverflow": true,
+      "offenders": [],
+      "portraitsInside": true,
+      "coreLoaded": true,
+      "cartCore": true,
+      "cartHasSelector": false,
+      "newShopButton": false,
+      "templates": true,
+      "shopTransfer": false
+    },
+    {
+      "page": "new-shop",
+      "theme": "dark",
+      "width": 520,
+      "noOverflow": true,
+      "offenders": [],
+      "portraitsInside": true,
+      "coreLoaded": true,
+      "cartCore": true,
+      "cartHasSelector": false,
+      "newShopButton": false,
+      "templates": true,
+      "shopTransfer": false
+    },
+    {
+      "page": "new-shop",
+      "theme": "light",
+      "width": 520,
+      "noOverflow": true,
+      "offenders": [],
+      "portraitsInside": true,
+      "coreLoaded": true,
+      "cartCore": true,
+      "cartHasSelector": false,
+      "newShopButton": false,
+      "templates": true,
+      "shopTransfer": false
+    },
+    {
+      "page": "new-shop",
+      "theme": "dark",
+      "width": 360,
+      "noOverflow": true,
+      "offenders": [],
+      "portraitsInside": true,
+      "coreLoaded": true,
+      "cartCore": true,
+      "cartHasSelector": false,
+      "newShopButton": false,
+      "templates": true,
+      "shopTransfer": false
+    },
+    {
+      "page": "new-shop",
+      "theme": "light",
+      "width": 360,
+      "noOverflow": true,
+      "offenders": [],
+      "portraitsInside": true,
+      "coreLoaded": true,
+      "cartCore": true,
+      "cartHasSelector": false,
+      "newShopButton": false,
+      "templates": true,
+      "shopTransfer": false
+    },
+    {
+      "page": "sell",
+      "theme": "dark",
+      "width": 1280,
+      "noOverflow": true,
+      "offenders": [],
+      "portraitsInside": true,
+      "coreLoaded": true,
+      "cartCore": true,
+      "cartHasSelector": false,
+      "newShopButton": false,
+      "templates": false,
+      "shopTransfer": true
+    },
+    {
+      "page": "sell",
+      "theme": "light",
+      "width": 1280,
+      "noOverflow": true,
+      "offenders": [],
+      "portraitsInside": true,
+      "coreLoaded": true,
+      "cartCore": true,
+      "cartHasSelector": false,
+      "newShopButton": false,
+      "templates": false,
+      "shopTransfer": true
+    },
+    {
+      "page": "sell",
+      "theme": "dark",
+      "width": 520,
+      "noOverflow": true,
+      "offenders": [
+        {
+          "tag": "TABLE",
+          "class": "",
+          "text": "\n                  \n                      \n                          Item\n      "
+        },
+        {
+          "tag": "THEAD",
+          "class": "",
+          "text": "\n                      \n                          Item\n                         "
+        },
+        {
+          "tag": "TR",
+          "class": "",
+          "text": "\n                          Item\n                          Qty\n                  "
+        },
+        {
+          "tag": "TH",
+          "class": "",
+          "text": "Sell Price"
+        },
+        {
+          "tag": "TH",
+          "class": "",
+          "text": "Actions"
+        },
+        {
+          "tag": "TBODY",
+          "class": "",
+          "text": "\n                      \n                          \n                             "
+        },
+        {
+          "tag": "TR",
+          "class": "",
+          "text": "\n                          \n                              \n                     "
+        },
+        {
+          "tag": "TD",
+          "class": "",
+          "text": "10 gp"
+        }
+      ],
+      "portraitsInside": true,
+      "coreLoaded": true,
+      "cartCore": true,
+      "cartHasSelector": false,
+      "newShopButton": false,
+      "templates": false,
+      "shopTransfer": true
+    },
+    {
+      "page": "sell",
+      "theme": "light",
+      "width": 520,
+      "noOverflow": true,
+      "offenders": [
+        {
+          "tag": "TABLE",
+          "class": "",
+          "text": "\n                  \n                      \n                          Item\n      "
+        },
+        {
+          "tag": "THEAD",
+          "class": "",
+          "text": "\n                      \n                          Item\n                         "
+        },
+        {
+          "tag": "TR",
+          "class": "",
+          "text": "\n                          Item\n                          Qty\n                  "
+        },
+        {
+          "tag": "TH",
+          "class": "",
+          "text": "Sell Price"
+        },
+        {
+          "tag": "TH",
+          "class": "",
+          "text": "Actions"
+        },
+        {
+          "tag": "TBODY",
+          "class": "",
+          "text": "\n                      \n                          \n                             "
+        },
+        {
+          "tag": "TR",
+          "class": "",
+          "text": "\n                          \n                              \n                     "
+        },
+        {
+          "tag": "TD",
+          "class": "",
+          "text": "10 gp"
+        }
+      ],
+      "portraitsInside": true,
+      "coreLoaded": true,
+      "cartCore": true,
+      "cartHasSelector": false,
+      "newShopButton": false,
+      "templates": false,
+      "shopTransfer": true
+    },
+    {
+      "page": "sell",
+      "theme": "dark",
+      "width": 360,
+      "noOverflow": true,
+      "offenders": [
+        {
+          "tag": "TABLE",
+          "class": "",
+          "text": "\n                  \n                      \n                          Item\n      "
+        },
+        {
+          "tag": "THEAD",
+          "class": "",
+          "text": "\n                      \n                          Item\n                         "
+        },
+        {
+          "tag": "TR",
+          "class": "",
+          "text": "\n                          Item\n                          Qty\n                  "
+        },
+        {
+          "tag": "TH",
+          "class": "",
+          "text": "Item"
+        },
+        {
+          "tag": "TH",
+          "class": "",
+          "text": "Qty"
+        },
+        {
+          "tag": "TH",
+          "class": "",
+          "text": "List Price"
+        },
+        {
+          "tag": "TH",
+          "class": "",
+          "text": "Sell Price"
+        },
+        {
+          "tag": "TH",
+          "class": "",
+          "text": "Actions"
+        }
+      ],
+      "portraitsInside": true,
+      "coreLoaded": true,
+      "cartCore": true,
+      "cartHasSelector": false,
+      "newShopButton": false,
+      "templates": false,
+      "shopTransfer": true
+    },
+    {
+      "page": "sell",
+      "theme": "light",
+      "width": 360,
+      "noOverflow": true,
+      "offenders": [
+        {
+          "tag": "TABLE",
+          "class": "",
+          "text": "\n                  \n                      \n                          Item\n      "
+        },
+        {
+          "tag": "THEAD",
+          "class": "",
+          "text": "\n                      \n                          Item\n                         "
+        },
+        {
+          "tag": "TR",
+          "class": "",
+          "text": "\n                          Item\n                          Qty\n                  "
+        },
+        {
+          "tag": "TH",
+          "class": "",
+          "text": "Item"
+        },
+        {
+          "tag": "TH",
+          "class": "",
+          "text": "Qty"
+        },
+        {
+          "tag": "TH",
+          "class": "",
+          "text": "List Price"
+        },
+        {
+          "tag": "TH",
+          "class": "",
+          "text": "Sell Price"
+        },
+        {
+          "tag": "TH",
+          "class": "",
+          "text": "Actions"
+        }
+      ],
+      "portraitsInside": true,
+      "coreLoaded": true,
+      "cartCore": true,
+      "cartHasSelector": false,
+      "newShopButton": false,
+      "templates": false,
+      "shopTransfer": true
+    },
+    {
+      "page": "buy",
+      "theme": "dark",
+      "width": 1280,
+      "noOverflow": true,
+      "offenders": [],
+      "portraitsInside": true,
+      "coreLoaded": true,
+      "cartCore": true,
+      "cartHasSelector": false,
+      "newShopButton": false,
+      "templates": false,
+      "shopTransfer": true
+    },
+    {
+      "page": "buy",
+      "theme": "light",
+      "width": 1280,
+      "noOverflow": true,
+      "offenders": [],
+      "portraitsInside": true,
+      "coreLoaded": true,
+      "cartCore": true,
+      "cartHasSelector": false,
+      "newShopButton": false,
+      "templates": false,
+      "shopTransfer": true
+    },
+    {
+      "page": "buy",
+      "theme": "dark",
+      "width": 520,
+      "noOverflow": true,
+      "offenders": [
+        {
+          "tag": "TABLE",
+          "class": "",
+          "text": "\n                  \n                    \n                      Item\n            "
+        },
+        {
+          "tag": "THEAD",
+          "class": "",
+          "text": "\n                    \n                      Item\n                      Rarity\n  "
+        },
+        {
+          "tag": "TR",
+          "class": "",
+          "text": "\n                      Item\n                      Rarity\n                      L"
+        },
+        {
+          "tag": "TH",
+          "class": "",
+          "text": "Selling Price"
+        },
+        {
+          "tag": "TH",
+          "class": "ml-marketplace-source-column",
+          "text": "Source"
+        },
+        {
+          "tag": "TH",
+          "class": "",
+          "text": ""
+        },
+        {
+          "tag": "TBODY",
+          "class": "",
+          "text": "\n                      \n                        \n                          \n    "
+        },
+        {
+          "tag": "TR",
+          "class": "",
+          "text": "\n                        \n                          \n                           "
+        }
+      ],
+      "portraitsInside": true,
+      "coreLoaded": true,
+      "cartCore": true,
+      "cartHasSelector": false,
+      "newShopButton": false,
+      "templates": false,
+      "shopTransfer": true
+    },
+    {
+      "page": "buy",
+      "theme": "light",
+      "width": 520,
+      "noOverflow": true,
+      "offenders": [
+        {
+          "tag": "TABLE",
+          "class": "",
+          "text": "\n                  \n                    \n                      Item\n            "
+        },
+        {
+          "tag": "THEAD",
+          "class": "",
+          "text": "\n                    \n                      Item\n                      Rarity\n  "
+        },
+        {
+          "tag": "TR",
+          "class": "",
+          "text": "\n                      Item\n                      Rarity\n                      L"
+        },
+        {
+          "tag": "TH",
+          "class": "",
+          "text": "Selling Price"
+        },
+        {
+          "tag": "TH",
+          "class": "ml-marketplace-source-column",
+          "text": "Source"
+        },
+        {
+          "tag": "TH",
+          "class": "",
+          "text": ""
+        },
+        {
+          "tag": "TBODY",
+          "class": "",
+          "text": "\n                      \n                        \n                          \n    "
+        },
+        {
+          "tag": "TR",
+          "class": "",
+          "text": "\n                        \n                          \n                           "
+        }
+      ],
+      "portraitsInside": true,
+      "coreLoaded": true,
+      "cartCore": true,
+      "cartHasSelector": false,
+      "newShopButton": false,
+      "templates": false,
+      "shopTransfer": true
+    },
+    {
+      "page": "buy",
+      "theme": "dark",
+      "width": 360,
+      "noOverflow": true,
+      "offenders": [
+        {
+          "tag": "TABLE",
+          "class": "",
+          "text": "\n                  \n                    \n                      Item\n            "
+        },
+        {
+          "tag": "THEAD",
+          "class": "",
+          "text": "\n                    \n                      Item\n                      Rarity\n  "
+        },
+        {
+          "tag": "TR",
+          "class": "",
+          "text": "\n                      Item\n                      Rarity\n                      L"
+        },
+        {
+          "tag": "TH",
+          "class": "",
+          "text": "Item"
+        },
+        {
+          "tag": "TH",
+          "class": "",
+          "text": "Rarity"
+        },
+        {
+          "tag": "TH",
+          "class": "",
+          "text": "List Price"
+        },
+        {
+          "tag": "TH",
+          "class": "",
+          "text": "Selling Price"
+        },
+        {
+          "tag": "TH",
+          "class": "ml-marketplace-source-column",
+          "text": "Source"
+        }
+      ],
+      "portraitsInside": true,
+      "coreLoaded": true,
+      "cartCore": true,
+      "cartHasSelector": false,
+      "newShopButton": false,
+      "templates": false,
+      "shopTransfer": true
+    },
+    {
+      "page": "buy",
+      "theme": "light",
+      "width": 360,
+      "noOverflow": true,
+      "offenders": [
+        {
+          "tag": "TABLE",
+          "class": "",
+          "text": "\n                  \n                    \n                      Item\n            "
+        },
+        {
+          "tag": "THEAD",
+          "class": "",
+          "text": "\n                    \n                      Item\n                      Rarity\n  "
+        },
+        {
+          "tag": "TR",
+          "class": "",
+          "text": "\n                      Item\n                      Rarity\n                      L"
+        },
+        {
+          "tag": "TH",
+          "class": "",
+          "text": "Item"
+        },
+        {
+          "tag": "TH",
+          "class": "",
+          "text": "Rarity"
+        },
+        {
+          "tag": "TH",
+          "class": "",
+          "text": "List Price"
+        },
+        {
+          "tag": "TH",
+          "class": "",
+          "text": "Selling Price"
+        },
+        {
+          "tag": "TH",
+          "class": "ml-marketplace-source-column",
+          "text": "Source"
+        }
+      ],
+      "portraitsInside": true,
+      "coreLoaded": true,
+      "cartCore": true,
+      "cartHasSelector": false,
+      "newShopButton": false,
+      "templates": false,
+      "shopTransfer": true
+    },
+    {
+      "page": "transfer",
+      "theme": "dark",
+      "width": 1280,
+      "noOverflow": true,
+      "offenders": [],
+      "portraitsInside": true,
+      "coreLoaded": true,
+      "cartCore": true,
+      "cartHasSelector": false,
+      "newShopButton": false,
+      "templates": false,
+      "shopTransfer": true
+    },
+    {
+      "page": "transfer",
+      "theme": "light",
+      "width": 1280,
+      "noOverflow": true,
+      "offenders": [],
+      "portraitsInside": true,
+      "coreLoaded": true,
+      "cartCore": true,
+      "cartHasSelector": false,
+      "newShopButton": false,
+      "templates": false,
+      "shopTransfer": true
+    },
+    {
+      "page": "transfer",
+      "theme": "dark",
+      "width": 520,
+      "noOverflow": true,
+      "offenders": [],
+      "portraitsInside": true,
+      "coreLoaded": true,
+      "cartCore": true,
+      "cartHasSelector": false,
+      "newShopButton": false,
+      "templates": false,
+      "shopTransfer": true
+    },
+    {
+      "page": "transfer",
+      "theme": "light",
+      "width": 520,
+      "noOverflow": true,
+      "offenders": [],
+      "portraitsInside": true,
+      "coreLoaded": true,
+      "cartCore": true,
+      "cartHasSelector": false,
+      "newShopButton": false,
+      "templates": false,
+      "shopTransfer": true
+    },
+    {
+      "page": "transfer",
+      "theme": "dark",
+      "width": 360,
+      "noOverflow": true,
+      "offenders": [],
+      "portraitsInside": true,
+      "coreLoaded": true,
+      "cartCore": true,
+      "cartHasSelector": false,
+      "newShopButton": false,
+      "templates": false,
+      "shopTransfer": true
+    },
+    {
+      "page": "transfer",
+      "theme": "light",
+      "width": 360,
+      "noOverflow": true,
+      "offenders": [],
+      "portraitsInside": true,
+      "coreLoaded": true,
+      "cartCore": true,
+      "cartHasSelector": false,
+      "newShopButton": false,
+      "templates": false,
+      "shopTransfer": true
+    },
+    {
+      "page": "wishlist",
+      "theme": "dark",
+      "width": 1280,
+      "noOverflow": true,
+      "offenders": [],
+      "portraitsInside": true,
+      "coreLoaded": true,
+      "cartCore": true,
+      "cartHasSelector": false,
+      "newShopButton": false,
+      "templates": false,
+      "shopTransfer": true
+    },
+    {
+      "page": "wishlist",
+      "theme": "light",
+      "width": 1280,
+      "noOverflow": true,
+      "offenders": [],
+      "portraitsInside": true,
+      "coreLoaded": true,
+      "cartCore": true,
+      "cartHasSelector": false,
+      "newShopButton": false,
+      "templates": false,
+      "shopTransfer": true
+    },
+    {
+      "page": "wishlist",
+      "theme": "dark",
+      "width": 520,
+      "noOverflow": true,
+      "offenders": [],
+      "portraitsInside": true,
+      "coreLoaded": true,
+      "cartCore": true,
+      "cartHasSelector": false,
+      "newShopButton": false,
+      "templates": false,
+      "shopTransfer": true
+    },
+    {
+      "page": "wishlist",
+      "theme": "light",
+      "width": 520,
+      "noOverflow": true,
+      "offenders": [],
+      "portraitsInside": true,
+      "coreLoaded": true,
+      "cartCore": true,
+      "cartHasSelector": false,
+      "newShopButton": false,
+      "templates": false,
+      "shopTransfer": true
+    },
+    {
+      "page": "wishlist",
+      "theme": "dark",
+      "width": 360,
+      "noOverflow": true,
+      "offenders": [],
+      "portraitsInside": true,
+      "coreLoaded": true,
+      "cartCore": true,
+      "cartHasSelector": false,
+      "newShopButton": false,
+      "templates": false,
+      "shopTransfer": true
+    },
+    {
+      "page": "wishlist",
+      "theme": "light",
+      "width": 360,
+      "noOverflow": true,
+      "offenders": [],
+      "portraitsInside": true,
+      "coreLoaded": true,
+      "cartCore": true,
+      "cartHasSelector": false,
+      "newShopButton": false,
+      "templates": false,
+      "shopTransfer": true
+    },
+    {
+      "page": "shop-buy",
+      "theme": "dark",
+      "width": 1280,
+      "noOverflow": true,
+      "offenders": [],
+      "portraitsInside": true,
+      "coreLoaded": true,
+      "cartCore": true,
+      "cartHasSelector": false,
+      "newShopButton": false,
+      "templates": false,
+      "shopTransfer": false
+    },
+    {
+      "page": "shop-buy",
+      "theme": "light",
+      "width": 1280,
+      "noOverflow": true,
+      "offenders": [],
+      "portraitsInside": true,
+      "coreLoaded": true,
+      "cartCore": true,
+      "cartHasSelector": false,
+      "newShopButton": false,
+      "templates": false,
+      "shopTransfer": false
+    },
+    {
+      "page": "shop-buy",
+      "theme": "dark",
+      "width": 520,
+      "noOverflow": true,
+      "offenders": [
+        {
+          "tag": "TABLE",
+          "class": "",
+          "text": "\n                  \n                    \n                      Item\n            "
+        },
+        {
+          "tag": "THEAD",
+          "class": "",
+          "text": "\n                    \n                      Item\n                      Rarity\n  "
+        },
+        {
+          "tag": "TR",
+          "class": "",
+          "text": "\n                      Item\n                      Rarity\n                      L"
+        },
+        {
+          "tag": "TH",
+          "class": "",
+          "text": "Selling Price"
+        },
+        {
+          "tag": "TH",
+          "class": "",
+          "text": "Stock"
+        },
+        {
+          "tag": "TH",
+          "class": "",
+          "text": ""
+        },
+        {
+          "tag": "TBODY",
+          "class": "",
+          "text": "\n                      \n                        \n                          \n    "
+        },
+        {
+          "tag": "TR",
+          "class": "",
+          "text": "\n                        \n                          \n                           "
+        }
+      ],
+      "portraitsInside": true,
+      "coreLoaded": true,
+      "cartCore": true,
+      "cartHasSelector": false,
+      "newShopButton": false,
+      "templates": false,
+      "shopTransfer": false
+    },
+    {
+      "page": "shop-buy",
+      "theme": "light",
+      "width": 520,
+      "noOverflow": true,
+      "offenders": [
+        {
+          "tag": "TABLE",
+          "class": "",
+          "text": "\n                  \n                    \n                      Item\n            "
+        },
+        {
+          "tag": "THEAD",
+          "class": "",
+          "text": "\n                    \n                      Item\n                      Rarity\n  "
+        },
+        {
+          "tag": "TR",
+          "class": "",
+          "text": "\n                      Item\n                      Rarity\n                      L"
+        },
+        {
+          "tag": "TH",
+          "class": "",
+          "text": "Selling Price"
+        },
+        {
+          "tag": "TH",
+          "class": "",
+          "text": "Stock"
+        },
+        {
+          "tag": "TH",
+          "class": "",
+          "text": ""
+        },
+        {
+          "tag": "TBODY",
+          "class": "",
+          "text": "\n                      \n                        \n                          \n    "
+        },
+        {
+          "tag": "TR",
+          "class": "",
+          "text": "\n                        \n                          \n                           "
+        }
+      ],
+      "portraitsInside": true,
+      "coreLoaded": true,
+      "cartCore": true,
+      "cartHasSelector": false,
+      "newShopButton": false,
+      "templates": false,
+      "shopTransfer": false
+    },
+    {
+      "page": "shop-buy",
+      "theme": "dark",
+      "width": 360,
+      "noOverflow": true,
+      "offenders": [
+        {
+          "tag": "TABLE",
+          "class": "",
+          "text": "\n                  \n                    \n                      Item\n            "
+        },
+        {
+          "tag": "THEAD",
+          "class": "",
+          "text": "\n                    \n                      Item\n                      Rarity\n  "
+        },
+        {
+          "tag": "TR",
+          "class": "",
+          "text": "\n                      Item\n                      Rarity\n                      L"
+        },
+        {
+          "tag": "TH",
+          "class": "",
+          "text": "Item"
+        },
+        {
+          "tag": "TH",
+          "class": "",
+          "text": "Rarity"
+        },
+        {
+          "tag": "TH",
+          "class": "",
+          "text": "List Price"
+        },
+        {
+          "tag": "TH",
+          "class": "",
+          "text": "Selling Price"
+        },
+        {
+          "tag": "TH",
+          "class": "",
+          "text": "Stock"
+        }
+      ],
+      "portraitsInside": true,
+      "coreLoaded": true,
+      "cartCore": true,
+      "cartHasSelector": false,
+      "newShopButton": false,
+      "templates": false,
+      "shopTransfer": false
+    },
+    {
+      "page": "shop-buy",
+      "theme": "light",
+      "width": 360,
+      "noOverflow": true,
+      "offenders": [
+        {
+          "tag": "TABLE",
+          "class": "",
+          "text": "\n                  \n                    \n                      Item\n            "
+        },
+        {
+          "tag": "THEAD",
+          "class": "",
+          "text": "\n                    \n                      Item\n                      Rarity\n  "
+        },
+        {
+          "tag": "TR",
+          "class": "",
+          "text": "\n                      Item\n                      Rarity\n                      L"
+        },
+        {
+          "tag": "TH",
+          "class": "",
+          "text": "Item"
+        },
+        {
+          "tag": "TH",
+          "class": "",
+          "text": "Rarity"
+        },
+        {
+          "tag": "TH",
+          "class": "",
+          "text": "List Price"
+        },
+        {
+          "tag": "TH",
+          "class": "",
+          "text": "Selling Price"
+        },
+        {
+          "tag": "TH",
+          "class": "",
+          "text": "Stock"
+        }
+      ],
+      "portraitsInside": true,
+      "coreLoaded": true,
+      "cartCore": true,
+      "cartHasSelector": false,
+      "newShopButton": false,
+      "templates": false,
+      "shopTransfer": false
+    }
+  ]
+}

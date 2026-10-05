@@ -1,0 +1,64 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { ShopService } from '../scripts/services/shop-service.js';
+import { CompendiumService } from '../scripts/services/compendium-service.js';
+import { WishlistService } from '../scripts/services/wishlist-service.js';
+
+globalThis.foundry = { utils: { deepClone: structuredClone, randomID: () => 'draft' }, applications: { api: { ApplicationV2: class { constructor(options) { this.options = options; } }, HandlebarsApplicationMixin: Base => Base } } };
+globalThis.game = { user: { isGM: true }, settings: { get: () => 1 }, modules: new Map() };
+const { MorelordShopManagerApp } = await import('../scripts/apps/shop-manager-app.js');
+const { EntitlementService } = await import('../scripts/services/entitlement-service.js');
+const { ShopTransactionService } = await import('../scripts/services/shop-transaction-service.js');
+const mundane = { uuid: 'Compendium.test.items.Item.a', packId: 'test.items', documentId: 'a', rarityKey: 'rare', type: 'weapon', properties: [] };
+const magical = { ...mundane, uuid: 'Compendium.test.items.Item.b', documentId: 'b', rarityKey: 'common', properties: ['mgc'] };
+
+test('magic-only policy filters manual, prefab, random and restored stock by property, not rarity', async t => {
+  t.mock.method(WishlistService, 'getUuids', () => new Set());
+  const shop = ShopService.normalizeShop({ id: 'test', exclusivelyMagical: true, excludeMagical: true, manualInventoryOnly: true, inventoryMode: 'limited', inventoryOverrides: { included: [mundane.uuid, magical.uuid], limited: [mundane.uuid, magical.uuid] }, manualStockTargets: { 'test.items:a': 4, 'test.items:b': 3 } });
+  assert.equal(shop.excludeMagical, false);
+  assert.equal(ShopService.normalizeShop({}).exclusivelyMagical, false);
+  assert.equal(ShopService.entryPassesShop(mundane, shop, mundane.packId), false);
+  assert.equal(ShopService.entryPassesShop(magical, shop, magical.packId), true);
+  assert.equal(ShopService.entryPassesShop(mundane, { exclusivelyMagical: true, prefabItemUuids: [mundane.uuid] }, mundane.packId), false);
+  t.mock.method(ShopService, 'getShop', () => shop);
+  t.mock.method(ShopService, 'saveShop', async value => value);
+  assert.deepEqual((await ShopService.restock(shop.id, [mundane, magical])).stock, { 'test.items:b': 3 });
+  const stock = ShopService.buildRandomStock({ exclusivelyMagical: true, inventoryMode: 'limited', randomInventory: { counts: { common: 1, rare: 1 } } }, [mundane, magical]);
+  assert.deepEqual(Object.keys(stock), ['test.items:b']);
+  assert.equal(ShopService.getPortableDefinition(shop).shop.exclusivelyMagical, true);
+});
+
+test('new-shop templates remain drafts and legacy stock controls round-trip without changes', async t => {
+  const saved = ShopService.normalizeShop({ id: 'saved', inventoryMode: 'hybrid', randomInventory: { enabled: false, allowDuplicates: true, counts: { common: 6, rare: 2 } }, restock: { behavior: 'topup' }, itemOptions: [], rarities: [] });
+  t.mock.method(ShopService, 'getShops', () => [saved]);
+  t.mock.method(ShopService, 'getShop', id => id === saved.id ? saved : null);
+  t.mock.method(ShopService, 'getPrefabStores', async () => []);
+  t.mock.method(CompendiumService, 'getBuyableCatalog', async () => []);
+  t.mock.method(EntitlementService, 'hasShopManager', () => true);
+  const popup = new MorelordShopManagerApp({ newShop: true });
+  popup.render = async () => {};
+  await MorelordShopManagerApp.createShop.call(popup, { preventDefault() {} }, { dataset: { shopType: 'magic' } });
+  assert.equal(popup.draftShop.type, 'magic');
+  assert.equal(ShopService.getShops().length, 1);
+  assert.equal((await popup._prepareContext()).selected.isDraft, true);
+  const app = new MorelordShopManagerApp({ shopId: saved.id });
+  const context = await app._prepareContext();
+  assert.equal(context.selected.stockPlans.find(plan => plan.selected).key, 'existing');
+  const values = new Map(Object.entries({ stockPlan: 'existing', allowBuying: 'on', allowSelling: 'on', allowDuplicates: 'on', stockCommon: '6', stockRare: '2', name: 'Existing shop' }));
+  const originalFormData = globalThis.FormData;
+  t.after(() => { globalThis.FormData = originalFormData; });
+  globalThis.FormData = class { get(key) { return values.get(key) ?? null; } getAll() { return []; } };
+  app._form = () => ({}); app.render = async () => {};
+  let result;
+  t.mock.method(ShopService, 'saveShop', async value => (result = value));
+  t.mock.method(ShopService, 'syncShopIdentity', async () => {});
+  t.mock.method(ShopTransactionService, 'broadcastInventoryChanged', () => {});
+  globalThis.ui = { notifications: { info() {} } };
+  await MorelordShopManagerApp.saveShop.call(app, { preventDefault() {} });
+  assert.equal(result.inventoryMode, 'hybrid');
+  assert.equal(result.randomInventory.enabled, false);
+  assert.equal(result.randomInventory.allowDuplicates, false);
+  assert.equal(result.randomInventory.counts.common, 6);
+  assert.equal(result.randomInventory.counts.rare, 2);
+  assert.equal(result.restock.behavior, 'topup');
+});

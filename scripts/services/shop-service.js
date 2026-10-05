@@ -20,7 +20,8 @@ export class ShopService {
       revision: Math.max(1, Number(shop.revision ?? 1)),
       stock: { ...(shop.stock ?? {}) },
       manualInventoryOnly: shop.manualInventoryOnly === true,
-      excludeMagical: shop.excludeMagical === true,
+      exclusivelyMagical: shop.exclusivelyMagical === true,
+      excludeMagical: shop.exclusivelyMagical !== true && shop.excludeMagical === true,
       manualStockTargets: { ...(shop.manualStockTargets ?? {}) },
       purchaseItems: (shop.purchaseItems ?? []).map(item => ({ ...item })),
       inventoryOverrides: {
@@ -326,6 +327,7 @@ export class ShopService {
   static entryPassesShop(entry, shop, packId) {
     if (!shop) return true;
     if (shop.excludeMagical && this.hasMagicalProperty(entry)) return false;
+    if (shop.exclusivelyMagical && !this.hasMagicalProperty(entry)) return false;
 
     const documentId = entry?.documentId ?? entry?._id;
     const uuid = entry?.uuid ?? (
@@ -470,8 +472,7 @@ export class ShopService {
   }
 
   static randomStockQuantity(rarity) {
-    // Rarity counts are draws; duplicate draws merge into one listing.
-    // Each draw can also supply multiple units of that product.
+    // Rarity counts select distinct products; each receives a random quantity.
     const maxByRarity = { common: 6, uncommon: 4, rare: 2, veryrare: 1, legendary: 1 };
     const max = Math.max(1, Number(maxByRarity[this.normalizeRarity(rarity)] ?? 1));
     return 1 + Math.floor(Math.random() * max);
@@ -486,6 +487,7 @@ export class ShopService {
 
     for (const row of catalog) {
       if (shop.excludeMagical && this.hasMagicalProperty(row)) continue;
+      if (shop.exclusivelyMagical && !this.hasMagicalProperty(row)) continue;
       if (!this.isLimited(shop, row)) continue;
       if (shop.inventoryOverrides?.limited?.includes(row.uuid)) continue;
       const rarity = this.normalizeRarity(row.rarityKey);
@@ -509,8 +511,8 @@ export class ShopService {
         }
         const { row } = pool[pickIndex];
         const key = this.stockKey(row);
-        nextStock[key] = (nextStock[key] ?? 0) + this.randomStockQuantity(rarity);
-        if (!config.allowDuplicates) pool.splice(pickIndex, 1);
+        nextStock[key] = this.randomStockQuantity(rarity);
+        pool.splice(pickIndex, 1);
       }
     }
     return nextStock;
@@ -521,6 +523,7 @@ export class ShopService {
     if (!shop) return null;
 
     if (shop.excludeMagical) catalog = catalog.filter(row => !this.hasMagicalProperty(row));
+    if (shop.exclusivelyMagical) catalog = catalog.filter(row => this.hasMagicalProperty(row));
     const manualStock = Object.fromEntries(
       catalog
         .filter(row => shop.inventoryOverrides?.limited?.includes(row.uuid))

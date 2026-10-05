@@ -1,5 +1,6 @@
 import { renderPreservingScroll } from "../../../morelord-core/scripts/ui/scroll-preservation.js";
 import { decorateActorSelect } from "../../../morelord-core/scripts/ui/actor-identity.js";
+import { openItemPreview } from "../../../morelord-core/scripts/ui/item-preview.js";
 import { TransferService } from "../services/transfer-service.js";
 import { MODULE_ID } from "../constants.js";
 import { ActorService } from "../services/actor-service.js";
@@ -36,6 +37,7 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       openDocumentation: MorelordMarketplaceApp.openDocumentation,
       toggleGlobalRates: MorelordMarketplaceApp.toggleGlobalRates,
       switchTab: MorelordMarketplaceApp.switchTab,
+      adjustCartQuantity: MorelordMarketplaceApp.adjustCartQuantity,
       addTransfer: MorelordMarketplaceApp.addTransfer,
       adjustTransferQuantity: MorelordMarketplaceApp.adjustTransferQuantity,
       clearTransfer: MorelordMarketplaceApp.clearTransfer,
@@ -77,11 +79,7 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
     documentation.register({
       id: "morelord-marketplace", title: "Morelord Marketplace", icon: "fa-solid fa-store",
       subtitle: "Buy, sell, and manage adventuring gear.",
-      sections: [
-        { id: "shopping", title: "Buy, Sell, and Transfer", icon: "fa-solid fa-cart-shopping", introduction: "Choose the character you are shopping as. Browse and filter available items, add purchases to the cart, review the totals, and check out. Use the sell tab to select items from the character's inventory for sale. Transfer sends items to another character or Group without currency or approval; a connected GM is required. Empty containers before transferring them." },
-        { id: "shops", title: "Shops and Locations", icon: "fa-solid fa-store", introduction: "GMs use Manage Shops to configure vendors and their inventory. Manage Locations opens the shared Morelord location registry. In a vendor window, Refresh reloads inventory and clears the cart." },
-        { id: "wishlist", title: "Wishlist", icon: "fa-solid fa-bookmark", introduction: "Keep desired items on the wishlist while browsing, and remove them when they are no longer needed." }
-      ]
+      source: { home: 'modules/morelord-marketplace/docs/README.md', gm: 'modules/morelord-marketplace/docs/gm-manual.md', player: 'modules/morelord-marketplace/docs/player-manual.md' }
     });
     return documentation.open("morelord-marketplace");
   }
@@ -134,7 +132,6 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
     this.shopSnapshot = this.shopId ? foundry.utils.deepClone(ShopService.getShop(this.shopId)) : null;
     this.shopRevision = Number(this.shopSnapshot?.revision ?? 1);
     this.activeTab = this.shopId ? "buy" : "sell";
-    this.sellSort = "name";
     this.filters = this.getEmptyFilters();
     this.panelScrollPositions = new Map();
     this.cart = new Map();
@@ -212,6 +209,7 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
   }
 
   async _prepareContext(options) {
+    if (this.shopId && this.activeTab === "transfer") this.activeTab = "buy";
     const liveShop = this.shopId ? ShopService.getShop(this.shopId) : null;
     const shop = this.shopId ? (this.shopSnapshot ?? foundry.utils.deepClone(liveShop)) : null;
     const shopStale = Boolean(shop && liveShop && Number(liveShop.revision ?? 1) !== Number(this.shopRevision ?? 1));
@@ -284,7 +282,6 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       filters: this.filters,
       canSell: shop ? (shop.allowSelling ?? true) : game.settings.get(MODULE_ID, "enableSelling"),
       canBuy: shop ? (shop.allowBuying ?? true) : game.settings.get(MODULE_ID, "enableBuying"),
-      sellSortOptions: this.getSellSortOptions(),
       sellItems: [],
       buyItems: [],
       wishlistItems: [],
@@ -360,6 +357,7 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       context.sellCartItems = [...this.sellCart.values()].map(entry => ({
         ...entry.row,
         quantity: entry.quantity,
+        canAddToSellCart: !this.isCheckingOut && context.canSell && entry.quantity < (sellItems.find(row => row.ownedItemId === entry.row.ownedItemId)?.quantity ?? 0),
         lineTotalCp: entry.row.sellPriceCp * entry.quantity,
         lineTotal: CurrencyService.formatCp(entry.row.sellPriceCp * entry.quantity)
       }));
@@ -422,6 +420,8 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       context.cartItems = [...this.cart.values()].map(entry => ({
         ...entry.row,
         quantity: entry.quantity,
+        stockKey: ShopService.stockKey(entry.row),
+        canAddToCart: !this.isCheckingOut && context.canBuy && cartTotalBefore + entry.row.buyPriceCp <= availableCurrencyCp && (!shop || ShopService.getStock(shop, entry.row) > Math.max(ShopTransactionService.getReserved(shop.id, ShopService.stockKey(entry.row)), entry.quantity)),
         lineTotalCp: entry.row.buyPriceCp * entry.quantity,
         lineTotal: CurrencyService.formatCp(entry.row.buyPriceCp * entry.quantity)
       }));
@@ -477,6 +477,15 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
 
   _onRender(context, options) {
     super._onRender(context, options);
+    this._itemLinkController?.abort();
+    this._itemLinkController = new AbortController();
+    this.element.addEventListener("click", event => {
+      const link = event.target.closest("[data-link][data-uuid]");
+      if (!link) return;
+      event.preventDefault();
+      event.stopPropagation();
+      void fromUuid(link.dataset.uuid).then(openItemPreview).catch(error => ui.notifications.error(error.message));
+    }, { capture: true, signal: this._itemLinkController.signal });
 
     for (const select of this.element.querySelectorAll("[data-ml-marketplace-shopper-select], [data-ml-marketplace-funding-select], [data-ml-marketplace-transfer-target]")) {
       decorateActorSelect(select, id => game.actors.get(id)?.uuid);
@@ -525,12 +534,6 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       await this.render();
     });
 
-    const sellSortSelect = this.element.querySelector("[data-ml-marketplace-sell-sort]");
-    sellSortSelect?.addEventListener("change", async event => {
-      this.sellSort = event.currentTarget.value || "name";
-      await this.render();
-    });
-
     if (this.isLoadingBuy) return;
 
     const buyLayout = this.element.querySelector(".ml-marketplace-buy-layout");
@@ -561,38 +564,8 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
     return ActorService.getFundingActors().find(actor => actor.id === this.fundingActorId) ?? null;
   }
 
-  getSellSortOptions() {
-    return [
-      { value: "name", label: "Name" },
-      { value: "type", label: "Type" },
-      { value: "quantity", label: "Quantity" },
-      { value: "listPriceCp", label: "List Price" },
-      { value: "sellPriceCp", label: "Sell Price" }
-    ].map(option => ({
-      ...option,
-      selected: option.value === this.sellSort
-    }));
-  }
-
   sortSellItems(items) {
-    const numericFields = new Set(["quantity", "listPriceCp", "sellPriceCp"]);
-    const field = this.getSellSortOptions().some(option => option.value === this.sellSort)
-      ? this.sellSort
-      : "name";
-
-    return [...items].sort((left, right) => {
-      const comparison = numericFields.has(field)
-        ? Number(left[field] ?? 0) - Number(right[field] ?? 0)
-        : String(left[field] ?? "").localeCompare(String(right[field] ?? ""), undefined, {
-            numeric: true,
-            sensitivity: "base"
-          });
-
-      return comparison || String(left.name ?? "").localeCompare(String(right.name ?? ""), undefined, {
-        numeric: true,
-        sensitivity: "base"
-      });
-    });
+    return [...items].sort((left, right) => String(left.name ?? "").localeCompare(String(right.name ?? ""), undefined, { numeric: true, sensitivity: "base" }));
   }
 
   hasActiveBuyFilters() {
@@ -663,6 +636,7 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
     if (this.isLoadingBuy) return;
 
     const nextTab = target.dataset.tab;
+    if (this.shopId && nextTab === "transfer") return;
 
     if (nextTab !== "buy" && nextTab !== "wishlist") {
       this.activeTab = nextTab;
@@ -698,6 +672,29 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
     if (!Number.isInteger(requested) || requested < 1) return;
     this.transferCart.set(id, Math.min(item.system.quantity, (this.transferCart.get(id) ?? 0) + requested));
     await this.render();
+  }
+
+  static async adjustCartQuantity(event, target) {
+    event.preventDefault();
+    if (this.isCheckingOut) return;
+    const { cartType, stockKey, itemId } = target.dataset;
+    const delta = Number(target.dataset.delta);
+    if (![-1, 0, 1].includes(delta) || !["buy", "sell", "transfer"].includes(cartType)) return;
+    const cart = cartType === "buy" ? this.cart : cartType === "sell" ? this.sellCart : this.transferCart;
+    const key = cartType === "buy" ? stockKey : itemId;
+    const entry = cart.get(key);
+    if (!entry) return;
+    if (delta === 0) {
+      cart.delete(key);
+      if (cartType === "buy") await this.syncCartReservation();
+      await this.render();
+    } else if (cartType === "transfer") {
+      await MorelordMarketplaceApp.adjustTransferQuantity.call(this, event, target);
+    } else if (cartType === "sell") {
+      await MorelordMarketplaceApp[delta > 0 ? "addSellToCart" : "removeSellFromCart"].call(this, event, target);
+    } else {
+      await MorelordMarketplaceApp[delta > 0 ? "addToCart" : "removeFromCart"].call(this, event, { dataset: { cartKey: key, packId: entry.row.packId, documentId: entry.row.documentId } });
+    }
   }
 
   static async clearTransfer(event) {

@@ -1,4 +1,4 @@
-import { listCharacterActors } from "../../../morelord-core/scripts/ui/actor-participation.js";
+import { canUseActorInventory, listCharacterActors } from "../../../morelord-core/scripts/ui/actor-participation.js";
 import { ITEM_TYPES, MODULE_ID } from "../constants.js";
 import { TransactionService } from "./transaction-service.js";
 
@@ -51,7 +51,7 @@ export class TransferService {
   static async execute({ actorId, targetId, items }, userId) {
     if (!game.user.isGM) throw new Error("A connected Game Master is required to transfer items.");
     const actor = game.actors.get(actorId), target = game.actors.get(targetId), user = game.users.get(userId);
-    if (!user?.active || !actor || (!user.isGM && !actor.testUserPermission(user, "OWNER"))
+    if (!user?.active || !actor || !canUseActorInventory(actor, user)
       || actor.getFlag?.(MODULE_ID, "isShop") || !["character", "group"].includes(actor.type)
       || !this.targets(actor).some(candidate => candidate.id === targetId)) throw new Error("The source or recipient is no longer eligible for this transfer.");
     if (!Array.isArray(items) || !items.length || items.some(line => !line || typeof line.itemId !== "string") || new Set(items.map(line => line.itemId)).size !== items.length) throw new Error("Invalid transfer cart.");

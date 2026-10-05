@@ -1,29 +1,30 @@
 <section class="ml-surface ml-stack" data-gap="3">
   <div class="ml-section-heading"><div><h2>Transfer</h2><p>Send inventory items to another character or Group.</p></div></div>
-  <p class="notes">Add one item, a quantity, or a full stack. Containers include all their contents, including nested containers. A connected GM is required; transfers complete automatically without approval.</p>
   <div class="ml-marketplace-transfer-layout">
     {{> "modules/morelord-marketplace/templates/parts/inventory-table.hbs" rows=transferItems transfer=true scrollKey="transfer-results"}}
-    <aside class="ml-surface ml-stack" data-gap="3" aria-label="Transfer Shopping Cart">
-      <div class="ml-section-heading"><div><h3><i class="fa-solid fa-cart-shopping"></i> Shopping Cart</h3><p>{{transferCartCount}} item(s) to transfer.</p></div></div>
-      <label data-ml-actor-select-layout="inline"><span>Recipient</span>
-        <select data-ml-marketplace-transfer-target {{#if isCheckingOut}}disabled{{/if}}>
-          <option value="">Select a character or Group</option>
-          {{#each transferTargets}}<option value="{{id}}" {{#if selected}}selected{{/if}}>{{name}}</option>{{/each}}
-        </select>
-      </label>
-      {{#each transferCartItems}}
-      <div class="ml-card ml-item-row">
-        <img src="{{img}}" alt="{{name}}">
-        <div class="ml-stack" data-gap="1"><a class="content-link ml-item-link" data-link data-uuid="{{uuid}}">{{name}}</a>
-          {{#if contentsCount}}<small class="notes">Includes {{contentsCount}} contained item(s), including nested contents. Minus removes the container from the cart.</small>{{/if}}
-        </div>
-        {{> "modules/morelord-core/templates/components/quantity-controls.hbs" action="adjustTransferQuantity" itemId=ownedItemId name=name quantity=cartQty disabled=../isCheckingOut increaseEnabled=canAdd}}
+    <aside class="ml-marketplace-cart-panel" aria-label="Transfer Shopping Cart">
+      <div class="ml-marketplace-cart-heading">
+        <div class="ml-marketplace-cart-title"><i class="fa-solid fa-cart-shopping"></i><strong>Shopping Cart</strong></div>
+        <span class="ml-marketplace-cart-count">{{transferCartCount}}</span>
       </div>
-      {{else}}<div class="ml-empty-state"><span>Your transfer cart is empty.</span></div>{{/each}}
-      <p class="notes">Use minus and plus to adjust quantities. Reducing to zero removes the item.</p>
-      <div class="ml-actions">
-        <button type="button" class="ml-button" data-tone="accent" data-action="checkoutTransfer" {{#unless canCheckoutTransfer}}disabled{{/unless}}>{{#if isCheckingOut}}Transferring…{{else}}Transfer Items{{/if}}</button>
-        <button type="button" data-action="clearTransfer" {{#if isCheckingOut}}disabled{{/if}}>Clear Cart</button>
+      <div class="ml-marketplace-cart-items" data-ml-scroll-key="transfer-cart">
+        {{#each transferCartItems}}
+        <div class="ml-marketplace-cart-line" data-contents-count="{{contentsCount}}">
+          <img src="{{img}}" alt="{{name}}" data-link data-uuid="{{uuid}}" title="Open {{name}}">
+          <div class="ml-marketplace-cart-line-details">
+            <a class="content-link ml-marketplace-cart-item-name" data-link data-uuid="{{uuid}}">{{name}}</a>
+            <div class="ml-marketplace-cart-quantity-row">
+              <span>Qty</span>
+              {{> "modules/morelord-core/templates/components/quantity-controls.hbs" action="adjustTransferQuantity" clearAction="adjustCartQuantity" cartType="transfer" itemId=ownedItemId name=name quantity=cartQty increaseEnabled=canAdd disabled=../isCheckingOut classes="ml-marketplace-quantity-stepper ml-marketplace-cart-stepper" quantityClass="ml-marketplace-cart-qty"}}
+            </div>
+          </div>
+        </div>
+        {{else}}<div class="ml-empty-state ml-marketplace-cart-empty"><i class="fa-solid fa-basket-shopping"></i><span>Your transfer cart is empty.</span></div>{{/each}}
+      </div>
+      <div class="ml-marketplace-cart-footer">
+        <div><span>Item Total</span><strong>{{transferCartCount}}</strong></div>
+        <button type="button" class="primary" data-action="checkoutTransfer" {{#unless canCheckoutTransfer}}disabled{{/unless}}>{{#if isCheckingOut}}<i class="fa-solid fa-spinner fa-spin"></i> Transferring...{{else}}<i class="fa-solid fa-right-left"></i> Transfer Items{{/if}}</button>
+        {{#if transferCartCount}}<button type="button" data-action="clearTransfer"><i class="fa-solid fa-trash"></i> Clear Cart</button>{{/if}}
       </div>
     </aside>
   </div>

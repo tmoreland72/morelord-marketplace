@@ -47,12 +47,14 @@ A modern, immersive marketplace for **Foundry Virtual Tabletop** that allows cha
 
 ### 👤 Actor and Funding Aware
 
-The global Marketplace uses the active player character or selected token as appropriate. Shops provide explicit selectors when more control is needed:
+Buy and Sell provide explicit Core portrait selectors in both the global Marketplace and shops:
 
 - **Shopping As** determines which player character receives purchased items.
 - **Paying From** determines which player character or Group actor supplies the currency.
 
 This allows a character to receive an item while a shared party Group actor pays for it.
+
+Shop Manager's **New Shop** button beside **Import Shop** opens templates, prefabs, and the full settings in a popup. Only **Save New Shop** adds the draft to Existing Stores. **Add Item** opens Core's item-picker popup. The GM guide explains every field, Stock Plan, and Restock Now; the editor has no helper paragraphs. Random selection always chooses distinct products. Products supports mutually exclusive **Exclude magical items** and **Exclusively magical items** policies based on the Magical property.
 
 ---
 
@@ -116,7 +118,7 @@ Install this URL using:
 ## Requirements
 
 - Foundry VTT v14
-- Morelord Core 0.4.0 or later
+- Morelord Core 0.4.2 or later
 - dnd5e System compatible with Foundry v14
 
 ---
@@ -217,7 +219,7 @@ Created by **Morelord Gaming**
 
 Production Morelord Foundry modules use the same `release.ps1`. Character Export and Downtime follow these release steps. Project-specific values are stored in `release.config.json`, so improvements to the workflow can be copied between repositories without editing module logic.
 
-Before a normal release, create `RELEASE-NOTES-x.y.z.md`. The same Markdown file is used for the GitHub Release and parsed into the public Morelord Gaming `/releases` feed. Recognized headings are `Added`, `Features`, `Improvements`, `Changed`, `Fixed`, `Breaking Changes`, and `Security`. Prefix a bullet with `[Premium]` or `[Champion]` when the change is tier-specific; otherwise it is treated as Standard.
+Before a normal release, create `release-notes/RELEASE-NOTES-x.y.z.md`. The same Markdown file is used for the GitHub Release and parsed into the public Morelord Gaming `/releases` feed. Recognized headings are `Added`, `Features`, `Improvements`, `Changed`, `Fixed`, `Breaking Changes`, and `Security`. Prefix a bullet with `[Premium]` or `[Champion]` when the change is tier-specific; otherwise it is treated as Standard.
 
 Set the website publishing token once in your PowerShell environment:
 
@@ -250,7 +252,7 @@ Use `-SkipWebsitePublish` only when intentionally creating a normal GitHub/Found
 
 ### Limited-stock quantities
 
-Random inventory rarity settings control how many items are selected during creation or restocking. Without duplicates, the configured count is the maximum number of distinct listings; a smaller eligible pool yields fewer. With duplicates enabled, repeated selections increase the same listing's stock. Set a rarity to zero to select none. Stock quantity is randomized separately from these selection counts.
+Random inventory rarity settings control how many distinct products are selected during creation or restocking; a smaller eligible pool yields fewer. Set a rarity to zero to select none. Stock quantity is randomized separately from these selection counts. Legacy repeat-selection settings are ignored without changing existing inventory.
 
 ### Release documentation check
 
@@ -276,7 +278,7 @@ New template and prefab shops copy the buy and sell rates from Marketplace setti
 
 ## Release dependency
 
-This release requires Morelord Core 0.4.0 or newer for the shared UI and service updates. Optional integrations remain optional.
+This release requires Morelord Core 0.4.2 or newer for the shared UI and service updates. Optional integrations remain optional.
 
 ## Manually configured shop items
 
@@ -307,3 +309,5 @@ Open **Transfer** in Marketplace. **Shopping As** selects the inventory to send 
 A connected, non-ignored GM is required to apply the transfer automatically, including recipients whose inventories you cannot edit. Transfers need no buy/sell approval, move no currency, and always post a Marketplace transaction chat card. Player-owned characters and primary-party characters use Core's shared eligibility; Group actors are also available, except shop actors and the sender. Physical inventory items can be sent even if unpriced or marked unsellable. Containers travel with all their contents, including nested containers, and preserve their organization. Items transferred individually arrive outside their former container. Received items are unequipped and unattuned. Source quantities are checked again when submitting, and failed item changes are rolled back.
 
 Marketplace tabs use Core’s tab strip in Sell → Transfer → Buy → Wishlist order. All three carts use 30% of the desktop layout and stack below inventory in narrow windows. Buy’s Filters column collapses with Core’s saved disclosure state; Source names have fixed-width ellipsis and full-name tooltips. Recipient uses Core’s inline actor portrait selector, and Transfer cart quantities share Shop Manager’s Core minus/quantity/plus controls.
+
+Release history lives in `release-notes/`; Foundry links to the GitHub Releases page through the manifest `changelog` URL. Use the module-local `/tmp/` directory for working files; it is ignored by Git and excluded from release packages.

@@ -1,4 +1,5 @@
 import { itemRarity } from "../../../morelord-core/scripts/services/item-rarity.js";
+import { canUseActorInventory } from "../../../morelord-core/scripts/ui/actor-participation.js";
 import { MODULE_ID } from "../constants.js";
 import { CurrencyService } from "./currency-service.js";
 import { PricingService } from "./pricing-service.js";
@@ -189,8 +190,8 @@ export class ShopTransactionService {
       throw new Error(`${shop.name} has changed since you opened it. Refresh the shop before purchasing.`);
     }
 
-    const canUseActor = requester.isGM || actor.testUserPermission(requester, "OWNER");
-    const canUseFunds = requester.isGM || fundingActor.testUserPermission(requester, "OWNER");
+    const canUseActor = canUseActorInventory(actor, requester);
+    const canUseFunds = canUseActorInventory(fundingActor, requester);
     if (!canUseActor || !canUseFunds) throw new Error("You do not have permission to use the selected actor or funds.");
 
     if (shop.allowBuying === false) throw new Error(`${shop.name} is not currently selling items.`);

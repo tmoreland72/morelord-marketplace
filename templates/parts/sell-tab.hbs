@@ -1,17 +1,5 @@
 <section class="ml-surface ml-stack ml-marketplace-tab ml-marketplace-sell-tab" data-gap="3">
   <div class="ml-section-heading"><div><h2>Sell</h2><p>Choose items from the shopper's inventory to sell.</p></div></div>
-    <div class="ml-toolbar">
-
-        <label class="ml-marketplace-sell-sort">
-            <span>Sort by</span>
-            <select data-ml-marketplace-sell-sort aria-label="Sort sell inventory">
-                {{#each sellSortOptions}}
-                    <option value="{{value}}" {{#if selected}}selected{{/if}}>{{label}}</option>
-                {{/each}}
-            </select>
-        </label>
-    </div>
-
     <div class="ml-marketplace-sell-layout">
     {{> "modules/morelord-marketplace/templates/parts/inventory-table.hbs" rows=sellItems scrollKey="sell-results"}}
     <aside class="ml-marketplace-cart-panel">
@@ -20,8 +8,13 @@
         {{#each sellCartItems}}
           <div class="ml-marketplace-cart-line">
             <img src="{{img}}" alt="{{name}}" data-link data-uuid="{{uuid}}">
-            <div><a class="content-link ml-marketplace-cart-item-name" data-link data-uuid="{{uuid}}">{{name}}</a><span>{{quantity}} × {{sellPrice}}</span><small>{{lineTotal}}</small></div>
-            <button type="button" data-action="removeSellFromCart" data-item-id="{{ownedItemId}}" title="Remove one"><i class="fa-solid fa-minus"></i></button>
+            <div class="ml-marketplace-cart-line-details">
+              <a class="content-link ml-marketplace-cart-item-name" data-link data-uuid="{{uuid}}">{{name}}</a>
+              <div class="ml-marketplace-cart-line-pricing"><span>{{sellPrice}} each</span><strong>{{lineTotal}}</strong></div>
+              <div class="ml-marketplace-cart-quantity-row"><span>Qty</span>
+                {{> "modules/morelord-core/templates/components/quantity-controls.hbs" action="adjustCartQuantity" clearAction="adjustCartQuantity" cartType="sell" itemId=ownedItemId name=name quantity=quantity increaseEnabled=canAddToSellCart disabled=../isCheckingOut classes="ml-marketplace-quantity-stepper ml-marketplace-cart-stepper" quantityClass="ml-marketplace-cart-qty"}}
+              </div>
+            </div>
           </div>
         {{else}}
           <div class="ml-empty-state ml-marketplace-cart-empty"><i class="fa-solid fa-basket-shopping"></i><span>Your sell cart is empty.</span></div>

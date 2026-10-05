@@ -20,18 +20,21 @@ export const containerTransferCheck = {
       const player = game.users.find(user => !user.isGM);
       for (const [name, type] of [['Sender', 'character'], ['Recipient', 'group']]) actors.push(await Actor.create({ name: `Container transfer test ${name}`, type, ownership: { [player.id]: 3 } }));
       const [sender, target] = actors;
-      const [bag, pouch, arrows] = await sender.createEmbeddedDocuments('Item', [
+      const created = await sender.createEmbeddedDocuments('Item', [
         { name: 'Container transfer test backpack', type: 'container', system: { quantity: 1 } },
         { name: 'Container transfer test pouch', type: 'container', system: { quantity: 1 } },
         { name: 'Container transfer test arrows', type: 'loot', system: { quantity: 5 } }
       ]);
+      const bag = created.find(item => item.name === 'Container transfer test backpack');
+      const pouch = created.find(item => item.name === 'Container transfer test pouch');
+      const arrows = created.find(item => item.name === 'Container transfer test arrows');
       await sender.updateEmbeddedDocuments('Item', [{ _id: pouch.id, 'system.container': bag.id }, { _id: arrows.id, 'system.container': pouch.id }]);
       app = new MorelordMarketplaceApp(); app.actorId = sender.id; app.activeTab = 'transfer'; await app.render(true);
       const button = app.element.querySelector(`[data-action=addTransfer][data-item-id="${bag.id}"]`);
       assert(button, 'A filled container appears in the inventory list.');
       await MorelordMarketplaceApp.addTransfer.call(app, new Event('click'), button);
-      assert(app.element.textContent.includes('Includes 6 contained item(s)'), 'The cart describes nested contents.');
-      assert(app.element.textContent.includes('7 item(s) to transfer'), 'The cart total includes all contents.');
+      assert(app.element.querySelector('.ml-marketplace-cart-line')?.dataset.contentsCount === '6', 'The container selection includes its nested contents.');
+      assert(app.element.querySelector('.ml-marketplace-cart-count')?.textContent === '7', 'The cart total includes all contents.');
       const remove = sender.deleteEmbeddedDocuments;
       try {
         sender.deleteEmbeddedDocuments = async (type) => { await remove.call(sender, type, [bag.id]); throw new Error('Container regression simulated partial deletion'); };
@@ -75,10 +78,12 @@ export const transferCheck = {
         actors.push(await Actor.create({ name: `Transfer test ${name}`, type, ownership: { [player.id]: 3 } }));
       }
       const [sender, recipient, group] = actors;
-      const [arrows, sword] = await sender.createEmbeddedDocuments('Item', [
+      const created = await sender.createEmbeddedDocuments('Item', [
         { name: 'Transfer test arrows', type: 'loot', img: 'icons/svg/item-bag.svg', system: { quantity: 5, price: { value: 0, denomination: 'gp' } }, flags: { 'morelord-marketplace': { unsellable: true } } },
         { name: 'Transfer test sword', type: 'weapon', img: 'icons/svg/sword.svg', system: { quantity: 1, equipped: true } }
       ]);
+      const arrows = created.find(item => item.name === 'Transfer test arrows');
+      const sword = created.find(item => item.name === 'Transfer test sword');
       app = new MorelordMarketplaceApp(); app.actorId = sender.id; app.activeTab = 'transfer';
       await app.render(true);
       assert([...app.element.querySelectorAll('[role="tab"]')].map(tab => tab.dataset.tab).join(',') === 'sell,transfer,buy,wishlist', 'Marketplace uses the requested Core tab order.');

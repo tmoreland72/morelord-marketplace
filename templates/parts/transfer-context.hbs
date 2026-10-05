@@ -1,0 +1,22 @@
+<section class="ml-surface ml-stack" data-gap="3" aria-label="Sender and Recipient">
+  <div class="ml-section-heading"><div><h2>Sender and Recipient</h2><p>Choose whose inventory to send from and who receives the items.</p></div></div>
+  <div class="ml-marketplace-shopper-card ml-marketplace-shop-context-card">
+    <div class="ml-marketplace-shop-selector-block">
+      <label data-ml-actor-select-layout="inline"><span>Sender</span>
+        <select data-ml-marketplace-shopper-select aria-label="Sender" {{#if isCheckingOut}}disabled{{/if}}>
+          {{#each shopperOptions}}<option value="{{id}}" {{#if selected}}selected{{/if}}>{{name}} - {{typeLabel}}</option>{{/each}}
+        </select>
+      </label>
+      <small>Items come from this actor or group.</small>
+    </div>
+    <div class="ml-marketplace-shop-selector-block">
+      <label data-ml-actor-select-layout="inline"><span>Recipient</span>
+        <select data-ml-marketplace-transfer-target aria-label="Recipient" {{#if isCheckingOut}}disabled{{/if}}>
+          <option value="">Select a character or Group</option>
+          {{#each transferTargets}}<option value="{{id}}" {{#if selected}}selected{{/if}}>{{name}}</option>{{/each}}
+        </select>
+      </label>
+      <small>Items go to this actor or group.</small>
+    </div>
+  </div>
+</section>

@@ -2,7 +2,7 @@
 title: Morelord Marketplace Documentation
 slug: morelord-marketplace
 product: morelord-marketplace
-version: 0.10.1
+version: 0.10.2
 ---
 
 # Morelord Marketplace Documentation
@@ -15,7 +15,7 @@ Game Masters control which Item compendiums supply the catalog, whether global b
 
 The global Marketplace provides a broad world catalog, while scene shops create individual vendors with their own inventory and trading rules. Purchased items are added directly to the chosen character, payment can come from an owned character or shared Group actor, and completed sales deposit currency automatically.
 
-The global tabs run **Sell → Transfer → Buy → Wishlist**. Players choose a sending character or Group in **Shopping As**, add eligible physical items and quantities to the cart, select another character or Group as **Recipient**, and choose **Transfer Items**. A connected GM processes transfers automatically without approval or currency changes. Containers bring all contents and nested containers with their organization preserved; individual contents can also be sent separately. Sell eligible inventory items at rates set by the GM.
+The global tabs run **Sell → Transfer → Buy → Wishlist**. Players choose a character or party Group as **Sender**, add eligible physical items and quantities to the cart, select another character or Group as **Recipient**, and choose **Transfer Items**. Group membership is sufficient without Owner permission. A connected GM processes transfers automatically without approval or currency changes. Containers bring all contents and nested containers with their organization preserved; individual contents can also be sent separately. Sell eligible inventory items at rates set by the GM.
 
 ## See Marketplace in action
 
@@ -35,6 +35,8 @@ The global tabs run **Sell → Transfer → Buy → Wishlist**. Players choose a
 
 ## Choose a manual
 
+The in-game Documentation button opens this home page on the Morelord Gaming website in a new browser tab through Core. The GM manual includes the complete Shop Manager and Game Settings field references; the player manual explains all shared Marketplace controls.
+
 Choose the guide that matches your role:
 
 - [Game Master Manual](gm-manual.md) — installation, world configuration, premium access, approvals, and Shop Manager.
@@ -43,7 +45,7 @@ Choose the guide that matches your role:
 These manuals describe Morelord Marketplace 0.10.1 for Foundry Virtual Tabletop v14 and the dnd5e game system.
 
 
-These manuals cover Marketplace 0.10.1 with Morelord Core 0.4.0 or later. Buy and Sell use carts; shops support shared Locations, capability limits, and weighted random stock.
+These manuals cover Marketplace 0.10.2 with Morelord Core 0.4.2 or later. Buy and Sell use carts; shops support shared Locations, capability limits, and weighted random stock.
 
 Version 0.9.9 adds manual-only shop stock, exclusive vendor purchase lists, Magical-property exclusion, and rarity-based prices for unpriced source items. Blank rarity defaults to Common at 100 gp; explicit prices and GM overrides take priority. Requires Morelord Core 0.4.0 or later.
 

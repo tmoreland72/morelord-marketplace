@@ -1,10 +1,11 @@
-import { listCharacterActors } from "../../../morelord-core/scripts/ui/actor-participation.js";
+import { canUseActorInventory, listCharacterActors } from "../../../morelord-core/scripts/ui/actor-participation.js";
 import { MODULE_ID, ITEM_TYPES } from "../constants.js";
 import { PricingService } from "./pricing-service.js";
 import { CurrencyService } from "./currency-service.js";
 import { TransactionService } from "./transaction-service.js";
 import { TransactionApprovalService } from "./transaction-approval-service.js";
 import { ShopService } from "./shop-service.js";
+import { PartyInventoryService } from "./party-inventory-service.js";
 
 export class ActorService {
   /**
@@ -50,7 +51,7 @@ export class ActorService {
 
   static canUserOperateActor(actor) {
     if (!actor || actor.getFlag?.(MODULE_ID, "isShop")) return false;
-    return game.user.isGM || actor.testUserPermission?.(game.user, "OWNER");
+    return canUseActorInventory(actor);
   }
 
   static hasCurrency(actor) {
@@ -113,6 +114,7 @@ export class ActorService {
   }
 
   static async sellItem(actor, itemId, quantity = 1, { shop = null } = {}) {
+    if (PartyInventoryService.needsGM(actor)) return this.sellCart(actor, [{ itemId, quantity }], { shop });
     if (shop?.id) {
       shop = ShopService.getShop(shop.id);
       if (!shop) throw new Error("This shop no longer exists.");
@@ -184,7 +186,7 @@ export class ActorService {
     });
   }
 
-  static async sellCart(actor, lines = [], { shop = null } = {}) {
+  static async sellCart(actor, lines = [], { shop = null, requestingUser = game.user } = {}) {
     if (shop?.id) {
       shop = ShopService.getShop(shop.id);
       if (!shop) throw new Error("This shop no longer exists.");
@@ -209,12 +211,13 @@ export class ActorService {
     });
     const totalPriceCp = items.reduce((sum, entry) => sum + entry.totalPriceCp, 0);
 
-    if (!shop && TransactionApprovalService.requiresApproval("sell")) {
-      await TransactionApprovalService.requestSellCart({ actor, items, totalPriceCp });
+    if (!shop && TransactionApprovalService.requiresApproval("sell", requestingUser)) {
+      await TransactionApprovalService.requestSellCart({ actor, items, totalPriceCp, requestedByUserId: requestingUser.id });
       ui.notifications.info(`${items.length} sell-cart item(s) are awaiting GM approval.`);
       return { status: "pending" };
     }
 
+    if (PartyInventoryService.needsGM(actor)) return PartyInventoryService.checkout({ type: "sell", actorId: actor.id, items: lines, shopId: shop?.id });
     const originalCurrencyCp = CurrencyService.currencyToCp(CurrencyService.getCurrency(actor));
     const originalItems = new Map(items.map(entry => [entry.itemId, entry.item.toObject()]));
     await CurrencyService.addCurrency(actor, totalPriceCp);

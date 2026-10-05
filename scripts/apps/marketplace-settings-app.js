@@ -20,6 +20,7 @@ export class MorelordMarketplaceSettingsApp extends HandlebarsApplicationMixin(A
       height: 700
     },
     actions: {
+      openDocumentation: MorelordMarketplaceApp.openDocumentation,
       save: MorelordMarketplaceSettingsApp.save,
       manageAccount: MorelordMarketplaceSettingsApp.manageAccount,
       refreshAccess: MorelordMarketplaceSettingsApp.refreshAccess

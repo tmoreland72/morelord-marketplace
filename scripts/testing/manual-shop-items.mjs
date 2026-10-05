@@ -37,7 +37,7 @@ export const manualShopItemsCheck = {
       app = new MorelordShopManagerApp({ shopId: shop.id });
       await app.render(true);
       await new Promise(resolve => requestAnimationFrame(resolve));
-      assert(app.element.querySelector('[name="manualInventoryOnly"]')?.checked, 'Manual-only setting renders checked.');
+      assert(app.element.querySelector('[name="stockPlan"]')?.value === "manual", 'Manual-only setting renders checked.');
       assert(app.element.textContent.includes('Player can sell'), 'Updated selling label renders.');
       assert(app.element.querySelector('[data-action="removePurchaseItem"]'), 'Configured purchase item renders with removal control.');
     } finally {
