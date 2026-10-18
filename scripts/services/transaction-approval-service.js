@@ -1,3 +1,4 @@
+import { preparePurchaseItems } from "./purchase-items.js";
 import {
   MODULE_ID,
   FLAGS,
@@ -304,7 +305,7 @@ export class TransactionApprovalService {
     await CurrencyService.deductCurrency(fundingActor, transaction.totalPriceCp);
 
     try {
-      await actor.createEmbeddedDocuments("Item", [item.toObject()]);
+      await actor.createEmbeddedDocuments("Item", await preparePurchaseItems([item]), { keepId: true });
     } catch (error) {
       await CurrencyService.setCurrency(fundingActor, originalCurrencyCp);
       throw error;
@@ -377,14 +378,14 @@ export class TransactionApprovalService {
       const priceCp = PricingService.getBuyPriceCp(PricingService.getItemPriceCp(item));
       if (priceCp !== Number(line.unitPriceCp)) throw new Error(`${item.name}'s price changed.`);
       liveTotal += priceCp * quantity;
-      documents.push(...Array.from({ length: quantity }, () => item.toObject()));
+      documents.push(...await preparePurchaseItems(Array(quantity).fill(item)));
     }
     if (liveTotal !== Number(transaction.totalPriceCp)) throw new Error("The cart total changed.");
     if (!CurrencyService.canAfford(fundingActor, liveTotal)) throw new Error("The selected purchase funds are no longer sufficient.");
     const originalCurrencyCp = CurrencyService.currencyToCp(CurrencyService.getCurrency(fundingActor));
     const originalItemIds = new Set(actor.items.map(item => item.id));
     await CurrencyService.deductCurrency(fundingActor, liveTotal);
-    try { await actor.createEmbeddedDocuments("Item", documents); }
+    try { await actor.createEmbeddedDocuments("Item", documents, { keepId: true }); }
     catch (error) {
       const rollbackErrors = [];
       const createdIds = actor.items.filter(item => !originalItemIds.has(item.id)).map(item => item.id);

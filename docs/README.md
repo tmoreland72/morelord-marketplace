@@ -2,7 +2,7 @@
 title: Morelord Marketplace Documentation
 slug: morelord-marketplace
 product: morelord-marketplace
-version: 0.10.2
+version: 0.10.3
 ---
 
 # Morelord Marketplace Documentation

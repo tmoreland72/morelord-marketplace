@@ -50,6 +50,8 @@ A modern, immersive marketplace for **Foundry Virtual Tabletop** that allows cha
 Buy and Sell provide explicit Core portrait selectors in both the global Marketplace and shops:
 
 - **Shopping As** determines which player character receives purchased items.
+
+Filled-container purchases (for example, Explorer's Pack) include their source compendium contents at the listed pack price. Each copy retains its own nested contents; description-only lists do not create items.
 - **Paying From** determines which player character or Group actor supplies the currency.
 
 This allows a character to receive an item while a shared party Group actor pays for it.

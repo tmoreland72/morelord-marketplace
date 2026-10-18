@@ -1,3 +1,4 @@
+import { preparePurchaseItems } from "./purchase-items.js";
 import { itemRarity } from "../../../morelord-core/scripts/services/item-rarity.js";
 import { canUseActorInventory } from "../../../morelord-core/scripts/ui/actor-participation.js";
 import { MODULE_ID } from "../constants.js";
@@ -263,9 +264,8 @@ export class ShopTransactionService {
     const ownedUuidsByKey = new Map();
     try {
       for (const line of prepared) {
-        const sources = [];
-        for (let i = 0; i < line.quantity; i += 1) sources.push(line.item.toObject());
-        const created = await actor.createEmbeddedDocuments("Item", sources);
+        const sources = await preparePurchaseItems(Array(line.quantity).fill(line.item));
+        const created = await actor.createEmbeddedDocuments("Item", sources, { keepId: true });
         createdIds.push(...created.map(document => document.id));
         if (created[0]?.uuid) ownedUuidsByKey.set(line.key, created[0].uuid);
       }

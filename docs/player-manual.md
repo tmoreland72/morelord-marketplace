@@ -4,7 +4,7 @@ description: Browse, buy, sell, transfer items, and use wishlists through Market
 slug: morelord-marketplace/player
 product: morelord-marketplace
 audience: player
-version: 0.10.2
+version: 0.10.3
 foundry: 14
 ---
 
@@ -49,6 +49,8 @@ You need a character actor that you own. The Marketplace chooses your actor in t
 Select your character token before opening the global Marketplace when you want to be certain which character is used.
 
 Your character needs enough dnd5e currency to purchase an item. The Marketplace automatically converts denominations when checking funds and applying a transaction.
+
+Buying a filled container such as **Explorer's Pack** includes the items stored in its source compendium document, at the listed pack price. Each purchased copy keeps its own contents and nested container organization. Items mentioned only in a description are not added automatically. This applies to global purchases, shops, and GM-approved purchases.
 
 ## Open the global Marketplace
 

@@ -1,3 +1,4 @@
+import { preparePurchaseItems } from "./purchase-items.js";
 import { itemRarity } from "../../../morelord-core/scripts/services/item-rarity.js";
 import { MODULE_ID, FLAGS } from "../constants.js";
 import { PricingService } from "./pricing-service.js";
@@ -948,7 +949,8 @@ export class CompendiumService {
     try {
       createdItems = await actor.createEmbeddedDocuments(
         "Item",
-        [item.toObject()]
+        await preparePurchaseItems([item]),
+        { keepId: true }
       );
     } catch (error) {
       await CurrencyService.setCurrency(fundingActor, originalCurrencyCp);
@@ -1007,8 +1009,8 @@ export class CompendiumService {
     const originalItemIds = new Set(actor.items.map(item => item.id));
     await CurrencyService.deductCurrency(fundingActor, totalPriceCp);
     try {
-      const documents = resolved.flatMap(entry => Array.from({ length: entry.quantity }, () => entry.item.toObject()));
-      await actor.createEmbeddedDocuments("Item", documents);
+      const documents = await preparePurchaseItems(resolved.flatMap(entry => Array(entry.quantity).fill(entry.item)));
+      await actor.createEmbeddedDocuments("Item", documents, { keepId: true });
     } catch (error) {
       await this.rollbackBoughtItems(actor, fundingActor, originalCurrencyCp, originalItemIds);
       throw error;
