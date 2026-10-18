@@ -1,6 +1,8 @@
 # Morelord Marketplace 0.10.3
 
-## Fixed
+## What Changed
+
+### Fixed
 
 - Buying filled containers such as Explorer's Pack now includes their source compendium contents. Direct purchases, carts, shop checkout, and GM approvals preserve nested container links, with separate contents for each purchased copy.
 
