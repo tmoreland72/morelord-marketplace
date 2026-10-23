@@ -223,13 +223,21 @@ Production Morelord Foundry modules use the same `release.ps1`. Character Export
 
 Before a normal release, create `release-notes/RELEASE-NOTES-x.y.z.md`. The same Markdown file is used for the GitHub Release and parsed into the public Morelord Gaming `/releases` feed. Recognized headings are `Added`, `Features`, `Improvements`, `Changed`, `Fixed`, `Breaking Changes`, and `Security`. Prefix a bullet with `[Premium]` or `[Champion]` when the change is tier-specific; otherwise it is treated as Standard.
 
+`release.ps1` rebuilds the root `CHANGELOG.md` from `release-notes/RELEASE-NOTES-*.md` before it stages the archive, then commits `CHANGELOG.md` with `module.json`. Versions are newest first. The file uses `#` / `##` / `###` headings with a space after each hash and `- ` bullets, and it omits verification sections and `---` rules so in-Foundry viewers such as Big Bad Module Manager can read it. `CHANGELOG.md` is a required release path and ships at the root of the module `.zip`. The per-version notes stay out of the archive.
+
 Set the website publishing token once in your PowerShell environment:
 
 ```powershell
 $env:RELEASE_PUBLISH_TOKEN = "<release publish token>"
 ```
 
-Validate without changing Git, GitHub, or the website:
+Validate packaging and refresh `CHANGELOG.md` without committing, tagging, or publishing:
+
+```powershell
+.\release.ps1 -Version x.y.z -ValidateOnly
+```
+
+`-ValidateOnly` leaves Git clean when `CHANGELOG.md` is already current. `-DryRun` still runs the full release checks and does not write project files:
 
 ```powershell
 .\release.ps1 -Version x.y.z -DryRun
@@ -241,7 +249,7 @@ Publish the normal release:
 .\release.ps1 -Version x.y.z
 ```
 
-The normal workflow validates the repository, updates `module.json`, builds and verifies the Foundry ZIP, commits and tags the release, pushes it, creates the GitHub Release from the same release-notes file, and publishes the release to `https://morelordgaming.com/releases`. Draft and prerelease builds intentionally skip the public website feed.
+The normal workflow validates the repository, updates `module.json`, rebuilds `CHANGELOG.md`, builds and verifies the Foundry ZIP, commits and tags the release, pushes it, creates the GitHub Release from the same release-notes file, and publishes the release to `https://morelordgaming.com/releases`. Draft and prerelease builds intentionally skip the public website feed.
 
 If GitHub release creation succeeds but website publication fails, retry only the idempotent website step:
 
@@ -312,4 +320,4 @@ A connected, non-ignored GM is required to apply the transfer automatically, inc
 
 Marketplace tabs use Core’s tab strip in Sell → Transfer → Buy → Wishlist order. All three carts use 30% of the desktop layout and stack below inventory in narrow windows. Buy’s Filters column collapses with Core’s saved disclosure state; Source names have fixed-width ellipsis and full-name tooltips. Recipient uses Core’s inline actor portrait selector, and Transfer cart quantities share Shop Manager’s Core minus/quantity/plus controls.
 
-Release history lives in `release-notes/`; Foundry links to the GitHub Releases page through the manifest `changelog` URL. Use the module-local `/tmp/` directory for working files; it is ignored by Git and excluded from release packages.
+Per-version release notes live in `release-notes/` and are excluded from the module package. The packaged `CHANGELOG.md` is the cumulative history that Foundry changelog viewers and GitHub users read from the module root. Foundry also links to the GitHub Releases page through the manifest `changelog` URL. Use the module-local `/tmp/` directory for working files; it is ignored by Git and excluded from release packages.
