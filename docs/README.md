@@ -25,8 +25,22 @@ The global tabs run **Sell → Transfer → Buy → Wishlist**. Players choose a
 
 <div class="docs-video">
 	<iframe
-		src="https://www.youtube-nocookie.com/embed/UeHIy5t6FGs"
+		src="https://www.youtube-nocookie.com/embed/jLHKF39rGjM"
 		title="Morelord Marketplace demo"
+		loading="lazy"
+		allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+		allowfullscreen
+	></iframe>
+</div>
+
+<p class="docs-video-intro">
+	Additional Game Master demo.
+</p>
+
+<div class="docs-video">
+	<iframe
+		src="https://www.youtube-nocookie.com/embed/UeHIy5t6FGs"
+		title="Morelord Marketplace additional demo"
 		loading="lazy"
 		allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
 		allowfullscreen
