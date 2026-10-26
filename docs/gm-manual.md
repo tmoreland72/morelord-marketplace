@@ -4,13 +4,13 @@ description: Install, configure, and operate Morelord Marketplace, including pre
 slug: morelord-marketplace/gm
 product: morelord-marketplace
 audience: game-master
-version: 0.10.3
+version: 0.11.0
 foundry: 14
 ---
 
 # Morelord Marketplace Game Master Manual
 
-This guide covers Morelord Marketplace 0.10.2, Foundry VTT v14, dnd5e, and Morelord Core 0.4.2 or later. The global tabs run **Sell → Transfer → Buy → Wishlist**. Sell eligible inventory items at rates set by the GM; wishlists save desired items without reserving stock.
+This guide covers Morelord Marketplace 0.11.0, Foundry VTT v14, dnd5e, and Morelord Core 0.6.0 or later. Open Marketplace and Shop Manager from **Morelord Tools**. The global tabs run **Sell → Transfer → Buy → Wishlist**. Sell eligible inventory items at rates set by the GM; wishlists save desired items without reserving stock.
 
 ## Inventory transfers
 
@@ -18,7 +18,7 @@ The **Transfer** tab lets players move physical inventory quantities or whole st
 
 Morelord Marketplace gives a Foundry VTT world a global catalog for buying and selling dnd5e items. With Tools Premium or Tools Champion access, it also provides GM transaction approvals and Shop Manager for configurable scene vendors.
 
-This manual applies to Morelord Marketplace 0.10.1, Foundry VTT v14, and the dnd5e system.
+This manual applies to Morelord Marketplace 0.11.0, Foundry VTT v14, and the dnd5e system.
 
 ## Contents
 
@@ -58,8 +58,8 @@ The global Marketplace remains usable if premium access expires. Saved premium s
 
 - Foundry Virtual Tabletop v14
 - The dnd5e game system
-- Morelord Core 0.4.0 or later
-- Morelord Marketplace v0.10.1
+- Morelord Core 0.6.0 or later
+- Morelord Marketplace v0.11.0
 
 ### Install with the manifest
 
@@ -125,7 +125,7 @@ The player guide's **Marketplace field and action reference** covers all shared 
 
 *The global Marketplace shows the active character, available coin, Sell, Transfer, Buy, and Wishlist tabs, and—when available—the GM-only Manage Shops control. The screenshot predates the Transfer tab.*
 
-1. Open a scene and select **Token Controls**.
+1. Open a scene and select **Morelord Tools**.
 2. Select the **Morelord Marketplace** store icon.
 3. Select a character token or assign a user character before testing a transaction.
 4. Open **Buy** and confirm that items from the enabled compendiums load.
@@ -185,7 +185,7 @@ Shop Manager requires Tools Premium or Tools Champion access.
 
 As a GM, use either method:
 
-- Select **Manage Marketplace Shops** in Token Controls.
+- Select **Manage Marketplace Shops** in **Morelord Tools**.
 - Open Marketplace and select **Manage Shops**.
 
 ### Create from a store template

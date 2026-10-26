@@ -1,5 +1,12 @@
 # Morelord Marketplace Changelog
 
+## 0.11.0
+
+### Improvements
+
+- Morelord Marketplace and Manage Marketplace Shops open from Morelord Tools. Marketplace stays available to every user. Manage Marketplace Shops stays GM-only: it refreshes entitlements, warns unless the account has Marketplace Premium or Champion access, and then opens Shop Manager.
+- Requires Morelord Core 0.6.0 or newer. An older Core keeps both buttons on the Token controls. The shop-token HUD button is unchanged.
+
 ## 0.10.3
 
 ### Fixed

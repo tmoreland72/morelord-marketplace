@@ -4,7 +4,7 @@ description: Browse, buy, sell, transfer items, and use wishlists through Market
 slug: morelord-marketplace/player
 product: morelord-marketplace
 audience: player
-version: 0.10.3
+version: 0.11.0
 foundry: 14
 ---
 
@@ -16,7 +16,7 @@ Updated layout: Buy and Sell begin with **Shopper and Payer**, with portraits in
 
 Morelord Marketplace lets you browse, buy, sell eligible inventory items at rates set by the GM, transfer equipment, and save wishlists in Foundry VTT. Your GM may also place individual vendors with their own products, prices, reputation, and stock.
 
-This manual applies to Morelord Marketplace 0.10.1 with Morelord Core 0.4.0 or later.
+This manual applies to Morelord Marketplace 0.11.0 with Morelord Core 0.6.0 or later.
 
 ## Transfer inventory items
 
@@ -58,7 +58,7 @@ Buying a filled container such as **Explorer's Pack** includes the items stored 
 
 *The player Marketplace identifies the active character, shows available coin, and provides Sell, Transfer, Buy, and Wishlist tabs without GM-only controls. The screenshot predates the Transfer tab.*
 
-1. Open **Token Controls** on the left side of the scene.
+1. Open **Morelord Tools** on the left side of the scene.
 2. Select the **Morelord Marketplace** store icon.
 3. Confirm that the character shown near the top of the window is the character you intend to use.
 
