@@ -50,7 +50,8 @@ test("changelog versions are every release note, newest first, without internal 
   assert.equal(changelog.includes("All 44 automated Marketplace tests passed"), false);
   assert.equal(changelog.includes("Install Marketplace using its manifest URL"), false);
   assert.equal(changelog.includes("Marketplace tests cover wishlist weighting"), false);
-  assert.match(changelog, /^## 0\.10\.3\n\n### Fixed\n\n- Buying filled containers/m);
+  assert.match(changelog, /^## 0\.11\.0\n\n### Improvements\n\n- Morelord Marketplace and Manage Marketplace Shops open from Morelord Tools/m);
+  assert.match(changelog, /## 0\.10\.3\n\n### Fixed\n\n- Buying filled containers/m);
   assert.match(changelog, /## 0\.9\.0\n\nThis release improves Marketplace browsing/);
   assert.match(changelog, /### Changes\n\n- Added a paginated Buy catalog/);
 });

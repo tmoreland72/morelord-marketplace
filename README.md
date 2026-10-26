@@ -120,7 +120,7 @@ Install this URL using:
 ## Requirements
 
 - Foundry VTT v14
-- Morelord Core 0.4.2 or later
+- Morelord Core 0.6.0 or later
 - dnd5e System compatible with Foundry v14
 
 ---
@@ -129,7 +129,7 @@ Install this URL using:
 
 ### Players
 
-Open the global Marketplace using the Marketplace button on the Token controls, or interact with a placed shop token to browse that vendor.
+Open the global Marketplace from **Morelord Tools** with the Marketplace store button, or interact with a placed shop token to browse that vendor.
 
 The global Marketplace can be used for buying, selling, or lookup depending on the GM's world settings. Shops use their own inventory, stock, pricing, reputation, and buy/sell rules.
 
@@ -137,7 +137,7 @@ The global Marketplace can be used for buying, selling, or lookup depending on t
 
 ### Game Masters
 
-Use the global Marketplace for unrestricted catalog access, or open **Shop Manager** from the scene controls to create and manage premium scene vendors.
+Use the global Marketplace for unrestricted catalog access, or open **Manage Marketplace Shops** from **Morelord Tools** to create and manage premium scene vendors.
 
 Configure global buy/sell behavior under:
 
@@ -288,7 +288,7 @@ New template and prefab shops copy the buy and sell rates from Marketplace setti
 
 ## Release dependency
 
-This release requires Morelord Core 0.4.2 or newer for the shared UI and service updates. Optional integrations remain optional.
+This release requires Morelord Core 0.6.0 or newer. Marketplace and Shop Manager open from Morelord Tools. Optional integrations remain optional.
 
 ## Manually configured shop items
 

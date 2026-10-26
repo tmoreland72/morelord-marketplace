@@ -17,6 +17,7 @@ import { EntitlementService } from "./services/entitlement-service.js";
 import { ShopTransactionService } from "./services/shop-transaction-service.js";
 import { WishlistService } from "./services/wishlist-service.js";
 import { CurrencyService } from "./services/currency-service.js";
+import { addMorelordTool } from "./scene-tools.js";
 
 Logger.log("main.js loaded");
 
@@ -204,40 +205,31 @@ Hooks.on("canvasReady", () => {
   installAllShopActorSheetRedirects();
 });
 
-Hooks.on("getSceneControlButtons", controls => {
-  const tokenControls = controls.tokens;
-  if (!tokenControls) return;
+addMorelordTool({
+  id: "morelord-marketplace",
+  title: "Morelord Marketplace",
+  icon: "fa-solid fa-store",
+  order: 50,
+  visible: () => true,
+  onClick: () => new MorelordMarketplaceApp().render(true)
+});
 
-  tokenControls.tools.morelordMarketplace = {
-    name: "morelordMarketplace",
-    title: "Morelord Marketplace",
-    icon: "fa-solid fa-store",
-    order: Object.keys(tokenControls.tools).length,
-    button: true,
-    visible: true,
-    onChange: () => new MorelordMarketplaceApp().render(true)
-  };
-
-  if (game.user.isGM) {
-    tokenControls.tools.morelordMarketplaceShops = {
-      name: "morelordMarketplaceShops",
-      title: "Manage Marketplace Shops",
-      icon: "fa-solid fa-shop",
-      order: Object.keys(tokenControls.tools).length,
-      button: true,
-      visible: true,
-      onChange: async () => {
-        if (!EntitlementService.hasShopManager()) {
-          // Give Morelord Core one opportunity to refresh before denying access.
-          await EntitlementService.refresh({ quiet: true });
-        }
-        if (!EntitlementService.hasShopManager()) {
-          ui.notifications.warn("Shop Manager requires Marketplace Premium or Champion access.");
-          return;
-        }
-        new MorelordShopManagerApp().render(true);
-      }
-    };
+addMorelordTool({
+  id: "morelord-marketplace-shops",
+  title: "Manage Marketplace Shops",
+  icon: "fa-solid fa-shop",
+  order: 51,
+  visible: () => game.user.isGM,
+  onClick: async () => {
+    if (!EntitlementService.hasShopManager()) {
+      // Give Morelord Core one opportunity to refresh before denying access.
+      await EntitlementService.refresh({ quiet: true });
+    }
+    if (!EntitlementService.hasShopManager()) {
+      ui.notifications.warn("Shop Manager requires Marketplace Premium or Champion access.");
+      return;
+    }
+    new MorelordShopManagerApp().render(true);
   }
 });
 
