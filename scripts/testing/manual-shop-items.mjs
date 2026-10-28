@@ -1,6 +1,7 @@
 import { assert } from '../../../morelord-core/scripts/testing/in-game.js';
 import { ShopService } from '../services/shop-service.js';
 import { CompendiumService } from '../services/compendium-service.js';
+import { loadAllowedItem } from '../services/configured-sources.js';
 import { ActorService } from '../services/actor-service.js';
 import { MorelordShopManagerApp } from '../apps/shop-manager-app.js';
 
@@ -27,7 +28,9 @@ export const manualShopItemsCheck = {
       const magical = rows.find(entry => ShopService.hasMagicalProperty(entry));
       assert(magical, 'Enable an item with the Magical property to test exclusion.');
       assert(!ShopService.entryPassesShop(magical, { ...shop, excludeMagical: true, inventoryOverrides: { included: [magical.uuid] } }, magical.packId), 'Magical property exclusion overrides manual inclusion.');
-      const source = await fromUuid(row.uuid);
+      const loaded = await loadAllowedItem(row.packId, row.documentId);
+      assert(loaded.status === "ok", "The shop item must come from an enabled compendium.");
+      const source = loaded.item;
       const data = source.toObject();
       data._stats = { ...data._stats, compendiumSource: row.uuid };
       const owned = new CONFIG.Item.documentClass(data);

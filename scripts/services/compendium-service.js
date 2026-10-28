@@ -8,9 +8,14 @@ import { TransactionService } from "./transaction-service.js";
 import { TransactionApprovalService } from "./transaction-approval-service.js";
 import { PurchaseEligibilityService } from "./purchase-eligibility-service.js";
 import { PartyInventoryService } from "./party-inventory-service.js";
-
-import { Dnd5eSourceFilterService } from "../../../morelord-core/scripts/services/dnd5e-source-filter-service.js";
-const sources = new Dnd5eSourceFilterService();
+import {
+  getAllowedPacks,
+  indexAllowedPack,
+  isPackAllowed,
+  isSourceAllowed,
+  loadAllowedItem,
+  sourceConfiguration
+} from "./configured-sources.js";
 
 export class CompendiumService {
   static indexCache = new Map();
@@ -26,16 +31,11 @@ export class CompendiumService {
   ];
 
   static getAllowedPackIds() {
-    return game.packs
-      .filter(pack => pack.documentName === "Item")
-      .filter(pack => sources.isPackEnabled(pack))
-      .map(pack => pack.collection);
+    return this.getAllowedPacks().map(pack => pack.collection);
   }
 
   static getAllowedPacks() {
-    return this.getAllowedPackIds()
-      .map(packId => game.packs.get(packId))
-      .filter(Boolean);
+    return getAllowedPacks();
   }
 
   static clearCache() {
@@ -60,7 +60,7 @@ export class CompendiumService {
       packs: packs
         .map(pack => pack.collection)
         .sort(),
-      sourceConfiguration: sources.configuration,
+      sourceConfiguration: sourceConfiguration(),
       globalBuyRate: game.settings.get(MODULE_ID, "buyRate"),
       ignoreGlobalRates: game.settings.get(MODULE_ID, "ignoreGlobalRates") === true,
       shopId: currentShop?.id ?? null,
@@ -309,6 +309,7 @@ export class CompendiumService {
   }
 
   static async getPackIndex(pack) {
+    if (!isPackAllowed(pack)) return [];
     if (this.indexCache.has(pack.collection)) {
       return this.indexCache.get(pack.collection);
     }
@@ -322,8 +323,7 @@ export class CompendiumService {
      *
      * "Cannot create property 'book' on number '1'"
      */
-    const indexRequest = pack.getIndex({
-      fields: [
+    const indexRequest = indexAllowedPack(pack, [
         "name",
         "type",
         "img",
@@ -339,8 +339,7 @@ export class CompendiumService {
         `flags.${MODULE_ID}.${FLAGS.PURCHASABLE}`,
         `flags.${MODULE_ID}.customPrice`,
         "flags.morelord-craftworks.purchasable"
-      ]
-    });
+      ]);
 
     // Cache the request immediately so opening Buy while background prewarming
     // is still running reuses the same index load instead of starting another.
@@ -406,7 +405,7 @@ export class CompendiumService {
       pack
     );
 
-    if (!sources.isSourceEnabled(source, { itemType: typeKey })) return null;
+    if (!isSourceAllowed(source, { itemType: typeKey })) return null;
 
     const sourceKey =
       this.normalizeSourceKey(source);
@@ -850,37 +849,16 @@ export class CompendiumService {
       return;
     }
 
-    const allowedPackIds =
-      this.getAllowedPackIds();
-
-    if (!allowedPackIds.includes(packId)) {
-      ui.notifications.error(
-        "That compendium is not allowed."
-      );
-
+    const loaded = await loadAllowedItem(packId, documentId);
+    if (loaded.status === "denied") {
+      ui.notifications.error("That compendium is not allowed.");
       return;
     }
-
-    const pack = game.packs.get(packId);
-
-    if (!pack) {
-      ui.notifications.error(
-        "Compendium not found."
-      );
-
+    if (loaded.status !== "ok") {
+      ui.notifications.error("Item not found.");
       return;
     }
-
-    const item =
-      await pack.getDocument(documentId);
-
-    if (!item) {
-      ui.notifications.error(
-        "Item not found."
-      );
-
-      return;
-    }
+    const item = loaded.item;
 
     if (!PurchaseEligibilityService.isPurchasable(item)) {
       ui.notifications.warn(
@@ -980,14 +958,12 @@ export class CompendiumService {
       return { status: "blocked" };
     }
 
-    const allowed = new Set(this.getAllowedPackIds());
     const resolved = [];
     for (const line of items) {
       const quantity = Number(line.quantity);
-      if (!allowed.has(line.packId) || !Number.isInteger(quantity) || quantity < 1) throw new Error("An item in the buy cart is invalid or no longer allowed.");
-      const pack = game.packs.get(line.packId);
-      const item = await pack?.getDocument(line.documentId);
-      if (!item || !PurchaseEligibilityService.isPurchasable(item)) throw new Error("An item in the buy cart is no longer available.");
+      const loaded = await loadAllowedItem(line.packId, line.documentId);
+      const item = loaded.status === "ok" ? loaded.item : null;
+      if (!item || !Number.isInteger(quantity) || quantity < 1 || !PurchaseEligibilityService.isPurchasable(item)) throw new Error("An item in the buy cart is invalid or no longer allowed.");
       const unitPriceCp = PricingService.getBuyPriceCp(PricingService.getItemPriceCp(item));
       if (unitPriceCp !== Number(line.priceCp)) throw new Error(`${item.name}'s price changed. Review your cart and try again.`);
       resolved.push({ packId: line.packId, documentId: line.documentId, item, name: item.name, img: item.img, uuid: item.uuid, quantity, unitPriceCp, totalPriceCp: unitPriceCp * quantity });

@@ -1,8 +1,6 @@
 import { MODULE_ID } from "../constants.js";
 import { CompendiumService } from "./compendium-service.js";
-
-import { Dnd5eSourceFilterService } from "../../../morelord-core/scripts/services/dnd5e-source-filter-service.js";
-const sources = new Dnd5eSourceFilterService();
+import { getAllowedPacks, isSourceAllowed, sourceConfiguration } from "./configured-sources.js";
 
 export class PrefabShopService {
   static definitions = null;
@@ -84,16 +82,14 @@ export class PrefabShopService {
       haystack.includes("srd-5-2") ||
       haystack.includes("srd51") ||
       haystack.includes("srd52") ||
+      // Legacy SRD identity. This only classifies packs already returned by
+      // getAllowedPacks(); a disabled dnd5e.items compendium is never included.
       pack.collection === "dnd5e.items"
     );
   }
 
   static getSourcePacks() {
-    const allowedPackIds = CompendiumService.getAllowedPackIds();
-
-    return allowedPackIds
-      .map(packId => game.packs.get(packId))
-      .filter(pack => this.isSupportedOfficialPack(pack));
+    return getAllowedPacks().filter(pack => this.isSupportedOfficialPack(pack));
   }
 
   static packPriority(pack) {
@@ -132,7 +128,7 @@ export class PrefabShopService {
       .sort()
       .join("|");
 
-    const cacheKey = `lookup:${packSignature}:${JSON.stringify(sources.configuration)}`;
+    const cacheKey = `lookup:${packSignature}:${JSON.stringify(sourceConfiguration())}`;
     if (this.resolvedCache.has(cacheKey)) {
       return this.resolvedCache.get(cacheKey);
     }
@@ -145,12 +141,11 @@ export class PrefabShopService {
     );
 
     for (const pack of sortedPacks) {
-      const index = await pack.getIndex({
-        fields: ["name", "img", "type", "system.source"]
-      });
+      const index = await CompendiumService.getPackIndex(pack);
 
       for (const entry of index) {
-        if (!sources.isSourceEnabled(sources.sourceLabelForItem(entry, { pack }), { itemType: entry.type })) continue;
+        const source = CompendiumService.getSourceBook(entry.system?.source, pack);
+        if (!isSourceAllowed(source, { itemType: entry.type })) continue;
         const item = {
           packId: pack.collection,
           documentId: entry._id,

@@ -120,7 +120,7 @@ Install this URL using:
 ## Requirements
 
 - Foundry VTT v14
-- Morelord Core 0.6.0 or later
+- Morelord Core 0.7.0 or later
 - dnd5e System compatible with Foundry v14
 
 ---
@@ -148,7 +148,7 @@ Game Settings
 → Morelord Marketplace
 ```
 
-Configure catalog compendiums under **D&D5e → Configure Sources**.
+Configure catalog compendiums under **D&D5e → Configure Sources**. That selection is the only source list: a compendium turned off there is not browsed, searched, purchased, approved, or opened from an item link, and shop filters only narrow it.
 
 ---
 
@@ -288,7 +288,7 @@ New template and prefab shops copy the buy and sell rates from Marketplace setti
 
 ## Release dependency
 
-This release requires Morelord Core 0.6.0 or newer. Marketplace and Shop Manager open from Morelord Tools. Optional integrations remain optional.
+This release requires Morelord Core 0.7.0 or newer. Marketplace and Shop Manager open from Morelord Tools. Optional integrations remain optional.
 
 ## Manually configured shop items
 

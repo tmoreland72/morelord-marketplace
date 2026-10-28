@@ -4,6 +4,7 @@ import { WishlistService } from "./wishlist-service.js";
 import { SHOP_ITEM_OPTIONS, SHOP_TYPES, REPUTATION_TIERS, ShopProfileModel, getItemTypesForOptions } from "../models/shop-profile.js";
 import { PrefabShopService } from "./prefab-shop-service.js";
 import { inventoryEntryAllowedByCapability, normalizeCapabilityTier } from "./shop-capability.js";
+import { isUuidAllowed } from "./configured-sources.js";
 
 export class ShopService {
   static normalizeShop(shop) {
@@ -358,10 +359,12 @@ export class ShopService {
     if (shop.allowSelling === false) return false;
     if (!shop.purchaseItems?.length) return this.entryMatchesItemOptions(item, shop);
     const source = item._stats?.compendiumSource || item.getFlag?.("core", "sourceId");
-    return shop.purchaseItems.some(entry => source
-      ? entry.uuid === source
-      : entry.uuid === item.uuid || (entry.type === item.type
-        && entry.name?.trim().toLowerCase() === item.name?.trim().toLowerCase()));
+    return shop.purchaseItems.some(entry => {
+      if (!isUuidAllowed(entry.uuid)) return false;
+      if (source) return isUuidAllowed(source) && entry.uuid === source;
+      return entry.uuid === item.uuid || (entry.type === item.type
+        && entry.name?.trim().toLowerCase() === item.name?.trim().toLowerCase());
+    });
   }
 
   static entryMatchesItemOptions(entry, shop) {
