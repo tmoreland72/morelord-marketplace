@@ -11,7 +11,7 @@ import { PurchaseEligibilityService } from "./purchase-eligibility-service.js";
 import { ShopService } from "./shop-service.js";
 import { EntitlementService } from "./entitlement-service.js";
 import { PricingService } from "./pricing-service.js";
-import { CompendiumService } from "./compendium-service.js";
+import { loadAllowedItem } from "./configured-sources.js";
 
 export class TransactionApprovalService {
   static initialized = false;
@@ -278,17 +278,10 @@ export class TransactionApprovalService {
     const cartLines = transaction.payload?.items;
     if (Array.isArray(cartLines)) return this.executeApprovedBuyCart(transaction, actor, fundingActor, cartLines);
     const { packId, documentId } = transaction.payload ?? {};
-    const allowed = CompendiumService.getAllowedPackIds();
-
-    if (!allowed.includes(packId)) {
-      throw new Error("The source compendium is no longer allowed.");
-    }
-
-    const pack = game.packs.get(packId);
-    if (!pack) throw new Error("The source compendium could not be found.");
-
-    const item = await pack.getDocument(documentId);
-    if (!item) throw new Error("The requested item could not be found.");
+    const loaded = await loadAllowedItem(packId, documentId);
+    if (loaded.status === "denied") throw new Error("The source compendium is no longer allowed.");
+    if (loaded.status !== "ok") throw new Error("The requested item could not be found.");
+    const item = loaded.item;
 
     if (!PurchaseEligibilityService.isPurchasable(item)) {
       throw new Error("The requested item is no longer available for purchase.");
@@ -367,12 +360,12 @@ export class TransactionApprovalService {
   }
 
   static async executeApprovedBuyCart(transaction, actor, fundingActor, lines) {
-    const allowed = new Set(CompendiumService.getAllowedPackIds());
     const documents = [];
     let liveTotal = 0;
     for (const line of lines) {
-      if (!allowed.has(line.packId)) throw new Error("A source compendium is no longer allowed.");
-      const item = await game.packs.get(line.packId)?.getDocument(line.documentId);
+      const loaded = await loadAllowedItem(line.packId, line.documentId);
+      if (loaded.status === "denied") throw new Error("A source compendium is no longer allowed.");
+      const item = loaded.status === "ok" ? loaded.item : null;
       const quantity = Number(line.quantity);
       if (!item || !PurchaseEligibilityService.isPurchasable(item) || !Number.isInteger(quantity) || quantity < 1) throw new Error("An item in the cart is no longer available.");
       const priceCp = PricingService.getBuyPriceCp(PricingService.getItemPriceCp(item));

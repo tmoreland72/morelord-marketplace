@@ -1,5 +1,6 @@
 import { assert } from '../../../morelord-core/scripts/testing/in-game.js';
 import { CompendiumService } from '../services/compendium-service.js';
+import { loadAllowedItem } from '../services/configured-sources.js';
 import { CurrencyService } from '../services/currency-service.js';
 import { PricingService } from '../services/pricing-service.js';
 import { TransactionApprovalService } from '../services/transaction-approval-service.js';
@@ -11,7 +12,9 @@ export const containerPurchaseCheck = {
     const rows = await CompendiumService.getInventorySearchCatalog();
     const row = rows.find(row => /explorer.?s pack/i.test(row.name));
     assert(row, 'Enable a compendium containing Explorer’s Pack.');
-    const source = await game.packs.get(row.packId).getDocument(row.documentId);
+    const loaded = await loadAllowedItem(row.packId, row.documentId);
+    assert(loaded.status === "ok", "Explorer's Pack must come from an enabled compendium.");
+    const source = loaded.item;
     const expected = await CONFIG.Item.documentClass.createWithContents([source]);
     assert(expected.length > 1, 'The source pack must contain actual items.');
     let actor;

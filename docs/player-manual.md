@@ -294,7 +294,7 @@ Completed transaction cards may also be posted to chat when the GM enables that 
 
 - Select **Clear all filters**.
 - Clear the Search field and price range.
-- Ask the GM whether the intended compendium is enabled.
+- Ask the GM whether the intended compendium is enabled under **Configure Sources**. A link or saved shop entry from a compendium that is turned off does not open or offer that compendium.
 - In a scene shop, the current products may be out of stock or excluded by that vendor.
 
 ### The purchase button is disabled

@@ -38,7 +38,10 @@ test('direct, cart, and approved purchases create contents with preserved genera
   const previous = { game: globalThis.game, CONFIG: globalThis.CONFIG, fromUuid: globalThis.fromUuid };
   t.after(() => Object.assign(globalThis, previous));
   const source = { name: "Explorer's Pack", type: 'container', system: {}, toObject: () => ({ type: 'container' }) };
-  globalThis.game = { user: { isGM: true }, modules: new Map(), settings: { get: () => true }, packs: new Map([['pack', { getDocument: async () => source }]]) };
+  const packDoc = { collection: "pack", documentName: "Item", getDocument: async () => source };
+  const packs = [packDoc];
+  packs.get = id => packs.find(entry => entry.collection === id);
+  globalThis.game = { user: { isGM: true }, modules: new Map(), system: { id: "other" }, settings: { get: () => true }, packs };
   let serial = 0, balance = 1000;
   globalThis.CONFIG = { Item: { documentClass: { createWithContents: async items => items.flatMap(() => {
     const root = String(++serial);
@@ -52,7 +55,6 @@ test('direct, cart, and approved purchases create contents with preserved genera
     return data.map(item => ({ id: item._id, uuid: 'Actor.fixture.Item.' + item._id }));
   } };
   globalThis.fromUuid = async () => actor;
-  t.mock.method(CompendiumService, 'getAllowedPackIds', () => ['pack']);
   t.mock.method(PricingService, 'getItemPriceCp', () => 100);
   t.mock.method(PricingService, 'getBuyPriceCp', value => value);
   t.mock.method(CurrencyService, 'getCurrency', () => ({ cp: balance }));

@@ -108,7 +108,7 @@ The settings page is GM-only. Number inputs accept steps of `0.05`; buying requi
 
 ### Choose catalog sources
 
-Marketplace uses the D&D5e system's **Configure Sources** selection. Enable or disable Item compendiums there; Marketplace does not maintain a separate source list.
+Marketplace uses the D&D5e system's **Configure Sources** selection. Enable or disable compendiums there; Marketplace does not maintain a separate source list. Catalog browsing, shop search, prefab matching, checkout, GM approval, and compendium item links all use that selection. A compendium that is turned off is not listed, purchased, previewed, or used as a fallback. Shop product filters only narrow this set.
 
 ## Open and test the Marketplace
 
@@ -399,8 +399,8 @@ Deleting a shop removes its shop definition, generated shop actor, and associate
 
 ### No items appear in Buy
 
-- Open **Configure Marketplace** and enable at least one Item compendium.
-- Confirm the source compendium is available and not disabled.
+- Open **D&D5e → Configure Sources** and enable at least one Item compendium.
+- Confirm the source compendium is available and not turned off there.
 - Clear active filters in the Buy sidebar.
 - For a shop, confirm its product options and rarities match the intended items.
 - For limited or hybrid inventory, select **Restock Now**.

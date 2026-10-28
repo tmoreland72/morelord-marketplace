@@ -7,6 +7,7 @@ import { PricingService } from "./pricing-service.js";
 import { PurchaseEligibilityService } from "./purchase-eligibility-service.js";
 import { ShopService } from "./shop-service.js";
 import { CompendiumService } from "./compendium-service.js";
+import { loadAllowedItem } from "./configured-sources.js";
 
 const SOCKET_NAME = `module.${MODULE_ID}`;
 const REQUEST_TIMEOUT_MS = 30000;
@@ -209,17 +210,16 @@ export class ShopTransactionService {
       .filter(line => line.packId && line.documentId && line.quantity > 0);
     if (!requestedLines.length) throw new Error("The shopping cart is empty.");
 
-    const allowedPackIds = CompendiumService.getAllowedPackIds();
     const prepared = [];
     let totalCp = 0;
     const stockNeeded = new Map();
 
     for (const line of requestedLines) {
-      if (!allowedPackIds.includes(line.packId)) throw new Error("A shop item source is no longer allowed by Marketplace.");
-      const pack = game.packs.get(line.packId);
-      if (!pack) throw new Error("A shop item source is no longer available.");
-      const item = await pack.getDocument(line.documentId);
-      if (!item || !PurchaseEligibilityService.isPurchasable(item)) throw new Error("An item in the cart is no longer available for purchase.");
+      const loaded = await loadAllowedItem(line.packId, line.documentId);
+      if (loaded.status === "denied") throw new Error("A shop item source is no longer allowed by Marketplace.");
+      const item = loaded.status === "ok" ? loaded.item : null;
+      if (!item) throw new Error("A shop item source is no longer available.");
+      if (!PurchaseEligibilityService.isPurchasable(item)) throw new Error("An item in the cart is no longer available for purchase.");
 
       const basePriceCp = PricingService.getItemPriceCp(item);
       const livePriceCp = PricingService.getBuyPriceCp(basePriceCp, shop);

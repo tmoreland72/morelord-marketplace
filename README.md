@@ -148,7 +148,7 @@ Game Settings
 → Morelord Marketplace
 ```
 
-Configure catalog compendiums under **D&D5e → Configure Sources**.
+Configure catalog compendiums under **D&D5e → Configure Sources**. That selection is the only source list: a compendium turned off there is not browsed, searched, purchased, approved, or opened from an item link, and shop filters only narrow it.
 
 ---
 

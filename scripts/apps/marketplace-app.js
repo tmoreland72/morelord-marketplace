@@ -7,6 +7,7 @@ import { ActorService } from "../services/actor-service.js";
 import { CurrencyService } from "../services/currency-service.js";
 import { TransactionService } from "../services/transaction-service.js";
 import { CompendiumService } from "../services/compendium-service.js";
+import { isPackAllowed, loadAllowedItem, parseCompendiumItemUuid } from "../services/configured-sources.js";
 import { ShopService } from "../services/shop-service.js";
 import { MorelordShopManagerApp } from "./shop-manager-app.js";
 import { ShopTransactionService } from "../services/shop-transaction-service.js";
@@ -484,7 +485,24 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       if (!link) return;
       event.preventDefault();
       event.stopPropagation();
-      void fromUuid(link.dataset.uuid).then(openItemPreview).catch(error => ui.notifications.error(error.message));
+      void (async () => {
+        const uuid = link.dataset.uuid;
+        const parsed = parseCompendiumItemUuid(uuid);
+        if (parsed?.documentName === "Item") {
+          const loaded = await loadAllowedItem(parsed.collection, parsed.documentId);
+          if (loaded.status !== "ok") {
+            ui.notifications.error("That compendium is not allowed.");
+            return;
+          }
+          openItemPreview(loaded.item);
+          return;
+        }
+        if (parsed && !isPackAllowed(parsed.collection)) {
+          ui.notifications.error("That compendium is not allowed.");
+          return;
+        }
+        openItemPreview(await fromUuid(uuid));
+      })().catch(error => ui.notifications.error(error.message));
     }, { capture: true, signal: this._itemLinkController.signal });
 
     for (const select of this.element.querySelectorAll("[data-ml-marketplace-shopper-select], [data-ml-marketplace-funding-select], [data-ml-marketplace-transfer-target]")) {

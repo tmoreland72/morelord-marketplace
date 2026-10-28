@@ -3,6 +3,7 @@ import { renderPreservingScroll } from "../../../morelord-core/scripts/ui/scroll
 import { MODULE_ID } from "../constants.js";
 import { ShopService } from "../services/shop-service.js";
 import { CompendiumService } from "../services/compendium-service.js";
+import { isUuidAllowed } from "../services/configured-sources.js";
 import { EntitlementService } from "../services/entitlement-service.js";
 import { ShopTransactionService } from "../services/shop-transaction-service.js";
 import { SHOP_ITEM_OPTIONS, ShopProfileModel, getItemTypesForOptions } from "../models/shop-profile.js";
@@ -139,7 +140,9 @@ export class MorelordShopManagerApp extends HandlebarsApplicationMixin(Applicati
           ...(!selected.manualInventoryOnly && selected.inventoryMode !== "unlimited" && !selected.randomInventory?.enabled
             ? [{ key: "existing", label: "Keep existing stock (previous setup)" }] : [])
         ].map(plan => ({ ...plan, selected: plan.key === (selected.manualInventoryOnly ? "manual" : selected.inventoryMode === "unlimited" ? "unlimited" : selected.randomInventory?.enabled ? selected.inventoryMode : "existing") })),
-        purchaseItems: selected.purchaseItems.map(item => ({ ...item, ...purchaseCatalog.get(item.uuid) })),
+        purchaseItems: selected.purchaseItems
+          .filter(item => isUuidAllowed(item.uuid) && purchaseCatalog.has(item.uuid))
+          .map(item => ({ ...item, ...purchaseCatalog.get(item.uuid) })),
         inventory,
         inventoryCount: inventory.length
       } : null,
