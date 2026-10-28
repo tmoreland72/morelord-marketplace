@@ -4,13 +4,13 @@ description: Install, configure, and operate Morelord Marketplace, including pre
 slug: morelord-marketplace/gm
 product: morelord-marketplace
 audience: game-master
-version: 0.11.0
+version: 0.11.1
 foundry: 14
 ---
 
 # Morelord Marketplace Game Master Manual
 
-This guide covers Morelord Marketplace 0.11.0, Foundry VTT v14, dnd5e, and Morelord Core 0.6.0 or later. Open Marketplace and Shop Manager from **Morelord Tools**. The global tabs run **Sell → Transfer → Buy → Wishlist**. Sell eligible inventory items at rates set by the GM; wishlists save desired items without reserving stock.
+This guide covers Morelord Marketplace 0.11.1, Foundry VTT v14, dnd5e, and Morelord Core 0.7.0 or later. Open Marketplace and Shop Manager from **Morelord Tools**. The global tabs run **Sell → Transfer → Buy → Wishlist**. Sell eligible inventory items at rates set by the GM; wishlists save desired items without reserving stock.
 
 ## Inventory transfers
 
@@ -18,7 +18,7 @@ The **Transfer** tab lets players move physical inventory quantities or whole st
 
 Morelord Marketplace gives a Foundry VTT world a global catalog for buying and selling dnd5e items. With Tools Premium or Tools Champion access, it also provides GM transaction approvals and Shop Manager for configurable scene vendors.
 
-This manual applies to Morelord Marketplace 0.11.0, Foundry VTT v14, and the dnd5e system.
+This manual applies to Morelord Marketplace 0.11.1, Foundry VTT v14, and the dnd5e system.
 
 ## Contents
 
@@ -58,8 +58,8 @@ The global Marketplace remains usable if premium access expires. Saved premium s
 
 - Foundry Virtual Tabletop v14
 - The dnd5e game system
-- Morelord Core 0.6.0 or later
-- Morelord Marketplace v0.11.0
+- Morelord Core 0.7.0 or later
+- Morelord Marketplace v0.11.1
 
 ### Install with the manifest
 

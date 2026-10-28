@@ -2,7 +2,7 @@
     "id":  "morelord-marketplace",
     "title":  "Morelord Marketplace",
     "description":  "A standalone shopping, selling, and marketplace system for Foundry VTT.",
-    "version":  "0.11.0",
+    "version":  "0.11.1",
     "compatibility":  {
                           "minimum":  "14",
                           "verified":  "14.369"
@@ -35,7 +35,7 @@
                                                "id":  "morelord-core",
                                                "type":  "module",
                                                "compatibility":  {
-                                                                     "minimum":  "0.6.0"
+                                                                     "minimum":  "0.7.0"
                                                                  },
                                                "manifest":  "https://raw.githubusercontent.com/tmoreland72/morelord-core/main/module.json"
                                            }

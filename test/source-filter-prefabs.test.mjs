@@ -7,7 +7,7 @@ import { getAllowedPacks, isUuidAllowed, loadAllowedItem } from "../scripts/serv
 import { resolveBookLabel } from "../../morelord-core/scripts/services/source-book-service.js";
 
 test("excluded SRD packs and copied SRD items stay out of catalog and cache rebuilds on source changes", async () => {
-  let configuration = {};
+  let configuration = { "dnd5e.items": true, "dnd5e.tradegoods": true };
   const pack = { collection: "world.items", documentName: "Item", metadata: { packageType: "world" }, getIndex: async () => [{ _id: "srd", name: "Copied Sword", type: "weapon", system: { price: { value: 10, denomination: "gp" }, source: { book: "SRD 5.1" } } }] };
   const packs = [pack]; packs.get = id => packs.find(entry => entry.collection === id);
   globalThis.game = { system: { id: "dnd5e" }, packs, i18n: { has: () => false, localize: value => value }, modules: new Map([["morelord-core", { api: { sources: { resolveBookLabel } } }]]), settings: { get: (_module, key) => key === "packSourceConfiguration" ? configuration : undefined } };

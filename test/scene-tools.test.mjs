@@ -153,7 +153,7 @@ test("Marketplace registers both tools and keeps the shop-token HUD button", () 
   assert.match(source, /Shop Manager requires Marketplace Premium or Champion access\./);
   assert.match(source, /new MorelordShopManagerApp\(\)\.render\(true\)/);
   assert.match(source, /Hooks\.on\("renderTokenHUD"/);
-  assert.equal(manifest.version, "0.11.0");
+  assert.equal(manifest.version, "0.11.1");
   const core = manifest.relationships.requires.find(requirement => requirement.id === "morelord-core");
-  assert.equal(core.compatibility.minimum, "0.6.0");
+  assert.equal(core.compatibility.minimum, "0.7.0");
 });
