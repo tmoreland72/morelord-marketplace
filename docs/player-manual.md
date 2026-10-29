@@ -4,7 +4,7 @@ description: Browse, buy, sell, transfer items, and use wishlists through Market
 slug: morelord-marketplace/player
 product: morelord-marketplace
 audience: player
-version: 0.11.1
+version: 0.12.0
 foundry: 14
 ---
 
@@ -16,7 +16,7 @@ Updated layout: Buy and Sell begin with **Shopper and Payer**, with portraits in
 
 Morelord Marketplace lets you browse, buy, sell eligible inventory items at rates set by the GM, transfer equipment, and save wishlists in Foundry VTT. Your GM may also place individual vendors with their own products, prices, reputation, and stock.
 
-This manual applies to Morelord Marketplace 0.11.1 with Morelord Core 0.7.0 or later.
+This manual applies to Morelord Marketplace 0.12.0 with Morelord Core 0.7.0 or later.
 
 ## Transfer inventory items
 
@@ -70,6 +70,8 @@ The global Marketplace contains four tabs, in this order:
 - **Wishlist** saves desired items for the selected shopper without reserving stock.
 
 Your GM can disable global buying or selling independently. If buying is disabled, you may still browse the Buy catalog as a reference.
+
+If your GM turns on **Enable Locations**, buying and selling require a Marketplace at the current place. That place is the location for the scene you are viewing, unless a Downtime session is active. An active session uses its location, including **On the Road** when it has none. The Marketplace's tier limits the global catalog to that rarity or lower. A scene shop still trades the items in its own stock, even when those items are rarer than the location, but it cannot trade where there is no Marketplace. Marketplace shows a warning when a purchase or sale is blocked. Transfer is unchanged.
 
 ## Browse and filter items
 
@@ -300,6 +302,7 @@ Completed transaction cards may also be posted to chat when the GM enables that 
 ### The purchase button is disabled
 
 - Global or shop buying may be disabled.
+- **Enable Locations** may be on, and this place may have no Marketplace or a Marketplace below the item's rarity. The warning names the limit. A shop's own stock can still include rarer items.
 - The item may be out of unreserved stock.
 - Select valid Shopping As and Paying From actors.
 - Confirm the funding actor has enough coin.

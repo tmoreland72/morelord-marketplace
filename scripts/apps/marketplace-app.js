@@ -13,6 +13,7 @@ import { MorelordShopManagerApp } from "./shop-manager-app.js";
 import { ShopTransactionService } from "../services/shop-transaction-service.js";
 import { EntitlementService } from "../services/entitlement-service.js";
 import { WishlistService } from "../services/wishlist-service.js";
+import { LocationTradeService } from "../services/location-trade.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -243,6 +244,12 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       actor?.prototypeToken?.texture?.src ??
       actor?.img ??
       "icons/svg/mystery-man.svg";
+    const locationTrade = LocationTradeService.presentation({ shop });
+    const locationItemBlock = rarity => LocationTradeService.block({
+      shop,
+      rarity,
+      shopAllowsItem: true
+    });
 
     const context = {
       actor,
@@ -281,8 +288,9 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       isSearchTab: this.activeTab === "search",
       isLoadingBuy: this.isLoadingBuy,
       filters: this.filters,
-      canSell: shop ? (shop.allowSelling ?? true) : game.settings.get(MODULE_ID, "enableSelling"),
-      canBuy: shop ? (shop.allowBuying ?? true) : game.settings.get(MODULE_ID, "enableBuying"),
+      locationTrade,
+      canSell: locationTrade.canTrade && (shop ? (shop.allowSelling ?? true) : game.settings.get(MODULE_ID, "enableSelling")),
+      canBuy: locationTrade.canTrade && (shop ? (shop.allowBuying ?? true) : game.settings.get(MODULE_ID, "enableBuying")),
       sellItems: [],
       buyItems: [],
       wishlistItems: [],
@@ -350,22 +358,30 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       for (const itemId of this.sellCart.keys()) {
         if (!sellableIds.has(itemId)) this.sellCart.delete(itemId);
       }
-      context.sellItems = this.sortSellItems(sellItems).map(row => ({
-        ...row,
-        cartQty: this.sellCart.get(row.ownedItemId)?.quantity ?? 0,
-        canAddToSellCart: context.canSell && (this.sellCart.get(row.ownedItemId)?.quantity ?? 0) < row.quantity
-      }));
-      context.sellCartItems = [...this.sellCart.values()].map(entry => ({
-        ...entry.row,
-        quantity: entry.quantity,
-        canAddToSellCart: !this.isCheckingOut && context.canSell && entry.quantity < (sellItems.find(row => row.ownedItemId === entry.row.ownedItemId)?.quantity ?? 0),
-        lineTotalCp: entry.row.sellPriceCp * entry.quantity,
-        lineTotal: CurrencyService.formatCp(entry.row.sellPriceCp * entry.quantity)
-      }));
+      context.sellItems = this.sortSellItems(sellItems).map(row => {
+        const locationBlock = locationItemBlock(row.rarity);
+        return {
+          ...row,
+          cartQty: this.sellCart.get(row.ownedItemId)?.quantity ?? 0,
+          locationBlockReason: locationBlock?.message ?? null,
+          canAddToSellCart: context.canSell && !locationBlock && (this.sellCart.get(row.ownedItemId)?.quantity ?? 0) < row.quantity
+        };
+      });
+      context.sellCartItems = [...this.sellCart.values()].map(entry => {
+        const locationBlock = locationItemBlock(entry.row.rarity);
+        return {
+          ...entry.row,
+          quantity: entry.quantity,
+          locationBlockReason: locationBlock?.message ?? null,
+          canAddToSellCart: !this.isCheckingOut && context.canSell && !locationBlock && entry.quantity < (sellItems.find(row => row.ownedItemId === entry.row.ownedItemId)?.quantity ?? 0),
+          lineTotalCp: entry.row.sellPriceCp * entry.quantity,
+          lineTotal: CurrencyService.formatCp(entry.row.sellPriceCp * entry.quantity)
+        };
+      });
       context.sellCartCount = context.sellCartItems.reduce((sum, entry) => sum + entry.quantity, 0);
       context.sellCartTotalCp = context.sellCartItems.reduce((sum, entry) => sum + entry.lineTotalCp, 0);
       context.sellCartTotal = CurrencyService.formatCp(context.sellCartTotalCp);
-      context.canCheckoutSell = !this.isCheckingOut && Boolean(actor) && context.sellCartCount > 0 && context.canSell && !shopStale;
+      context.canCheckoutSell = !this.isCheckingOut && Boolean(actor) && context.sellCartCount > 0 && context.canSell && !shopStale && context.sellCartItems.every(entry => !entry.locationBlockReason);
     }
 
     if (context.isBuyTab && !this.isLoadingBuy) {
@@ -400,14 +416,16 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
           const effectiveReserved = Math.max(reservedTotal, cartQty);
           const remainingStock = Number.isFinite(stock) ? Math.max(0, stock - effectiveReserved) : Infinity;
           const stockAllowsNext = !Number.isFinite(stock) || remainingStock > 0;
+          const locationBlock = locationItemBlock(row.rarityKey);
           return {
             ...row,
             isWishlisted: wishlistUuids.has(row.uuid),
+            locationBlockReason: locationBlock?.message ?? null,
             cartQty,
             reservedQty: effectiveReserved,
             stockLabel: Number.isFinite(remainingStock) ? `${remainingStock}${effectiveReserved > 0 ? "*" : ""}` : "∞",
             stockTitle: effectiveReserved > 0 ? `${effectiveReserved} unit(s) reserved in active shopping cart(s)` : "",
-            canAddToCart: Boolean(actor && fundingActor) && canAffordNext && stockAllowsNext && context.canBuy
+            canAddToCart: Boolean(actor && fundingActor) && canAffordNext && stockAllowsNext && context.canBuy && !locationBlock
           };
         });
       context.buyPage = this.buyPage;
@@ -418,20 +436,24 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       context.previousBuyPage = Math.max(1, this.buyPage - 1);
       context.nextBuyPage = Math.min(context.buyPageCount, this.buyPage + 1);
 
-      context.cartItems = [...this.cart.values()].map(entry => ({
-        ...entry.row,
-        quantity: entry.quantity,
-        stockKey: ShopService.stockKey(entry.row),
-        canAddToCart: !this.isCheckingOut && context.canBuy && cartTotalBefore + entry.row.buyPriceCp <= availableCurrencyCp && (!shop || ShopService.getStock(shop, entry.row) > Math.max(ShopTransactionService.getReserved(shop.id, ShopService.stockKey(entry.row)), entry.quantity)),
-        lineTotalCp: entry.row.buyPriceCp * entry.quantity,
-        lineTotal: CurrencyService.formatCp(entry.row.buyPriceCp * entry.quantity)
-      }));
+      context.cartItems = [...this.cart.values()].map(entry => {
+        const locationBlock = locationItemBlock(entry.row.rarityKey);
+        return {
+          ...entry.row,
+          quantity: entry.quantity,
+          stockKey: ShopService.stockKey(entry.row),
+          locationBlockReason: locationBlock?.message ?? null,
+          canAddToCart: !locationBlock && !this.isCheckingOut && context.canBuy && cartTotalBefore + entry.row.buyPriceCp <= availableCurrencyCp && (!shop || ShopService.getStock(shop, entry.row) > Math.max(ShopTransactionService.getReserved(shop.id, ShopService.stockKey(entry.row)), entry.quantity)),
+          lineTotalCp: entry.row.buyPriceCp * entry.quantity,
+          lineTotal: CurrencyService.formatCp(entry.row.buyPriceCp * entry.quantity)
+        };
+      });
       context.cartTotalCp = context.cartItems.reduce((sum, entry) => sum + entry.lineTotalCp, 0);
       context.cartTotal = CurrencyService.formatCp(context.cartTotalCp);
       context.cartCount = context.cartItems.reduce((sum, entry) => sum + entry.quantity, 0);
       context.cartRemainingCp = Math.max(0, availableCurrencyCp - context.cartTotalCp);
       context.cartRemaining = CurrencyService.formatCp(context.cartRemainingCp);
-      context.canCheckout = !this.isCheckingOut && !shopStale && Boolean(actor && fundingActor) && context.cartCount > 0 && context.cartTotalCp <= availableCurrencyCp;
+      context.canCheckout = !this.isCheckingOut && !shopStale && context.canBuy && Boolean(actor && fundingActor) && context.cartCount > 0 && context.cartTotalCp <= availableCurrencyCp && context.cartItems.every(entry => !entry.locationBlockReason);
 
       const includedTypes = new Set(this.filters.types.include);
       const excludedTypes = new Set(this.filters.types.exclude);
@@ -463,11 +485,12 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       context.wishlistItems = WishlistService.getEntries(actor).map(saved => {
         const row = catalogByUuid.get(saved.uuid);
         const item = { ...saved, ...(row ?? {}) };
+        const locationBlock = row ? locationItemBlock(row.rarityKey) : null;
         return {
           ...item,
-          isAvailable: Boolean(row && context.canBuy),
-          canBuyNow: Boolean(row && context.canBuy && actor && fundingActor && row.buyPriceCp <= availableCurrencyCp),
-          availabilityLabel: !row ? "Unavailable" : (!context.canBuy ? "Buying disabled" : (row.buyPriceCp <= availableCurrencyCp ? "Available" : "Need more coin"))
+          isAvailable: Boolean(row && context.canBuy && !locationBlock),
+          canBuyNow: Boolean(row && context.canBuy && !locationBlock && actor && fundingActor && row.buyPriceCp <= availableCurrencyCp),
+          availabilityLabel: !row ? "Unavailable" : (locationBlock?.shortLabel ?? (!context.canBuy ? "Buying disabled" : (row.buyPriceCp <= availableCurrencyCp ? "Available" : "Need more coin")))
         };
       });
       context.wishlistCount = context.wishlistItems.length;
@@ -770,9 +793,15 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
     event?.preventDefault?.();
     if (!this.actor) return;
     const itemId = target.dataset.itemId;
-    const rows = await ActorService.getSellableItems(this.actor, { shop: this.shopId ? this.shopSnapshot : null });
+    const shop = this.shopId ? this.shopSnapshot : null;
+    const rows = await ActorService.getSellableItems(this.actor, { shop });
     const row = rows.find(entry => entry.ownedItemId === itemId);
     if (!row) return;
+    const locationBlock = LocationTradeService.block({ shop, rarity: row.rarity, shopAllowsItem: true });
+    if (locationBlock) {
+      ui.notifications.warn(locationBlock.message);
+      return;
+    }
     const current = this.sellCart.get(itemId) ?? { row, quantity: 0 };
     const quantity = Math.min(row.quantity, current.quantity + Number(requestedQuantity || 1));
     this.sellCart.set(itemId, { row, quantity });
@@ -805,7 +834,9 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
         itemId: entry.row.ownedItemId,
         quantity: entry.quantity
       })), { shop: this.shopId ? this.shopSnapshot : null });
-      if (result?.status === "completed" || result?.status === "pending") this.sellCart.clear();
+      if (result?.status === "blocked") {
+        if (result.error) ui.notifications.warn(result.error);
+      } else if (result?.status === "completed" || result?.status === "pending") this.sellCart.clear();
     } catch (error) {
       console.error(`[${MODULE_ID}] Sell cart checkout failed`, error);
       ui.notifications.error(error?.message ?? "The sell cart could not be completed. No changes were kept.");
@@ -846,6 +877,16 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
     const catalog = await CompendiumService.getBuyableCatalog(shop);
     const row = catalog.find(entry => entry.packId === target.dataset.packId && entry.documentId === target.dataset.documentId);
     if (!row || (shop && !ShopService.isInStock(shop, row))) return;
+
+    const locationBlock = LocationTradeService.block({
+      shop,
+      rarity: row.rarityKey,
+      shopAllowsItem: true
+    });
+    if (locationBlock) {
+      ui.notifications.warn(locationBlock.message);
+      return;
+    }
 
     const key = ShopService.stockKey(row);
     const current = this.cart.get(key) ?? { row, quantity: 0 };
@@ -929,7 +970,8 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
     }
 
     if (!result?.ok) {
-      ui.notifications.error(result?.error ?? "The cart purchase failed. No changes were kept.");
+      if (result?.status === "blocked" && result.error) ui.notifications.warn(result.error);
+      else ui.notifications.error(result?.error ?? "The cart purchase failed. No changes were kept.");
       await this.render();
       return;
     }

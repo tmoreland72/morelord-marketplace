@@ -2,7 +2,7 @@
 title: Morelord Marketplace Documentation
 slug: morelord-marketplace
 product: morelord-marketplace
-version: 0.11.1
+version: 0.12.0
 ---
 
 # Morelord Marketplace Documentation
@@ -11,7 +11,7 @@ version: 0.11.1
 
 Morelord Marketplace is a shopping, selling, and inventory-transfer system for Foundry Virtual Tabletop and the dnd5e game system. It gives players a searchable global item catalog, direct character purchases and sales, currency-free inventory transfers, automatic purchase and sale currency handling, and detailed filters for item type, category, weapon class, weapon range, weapon properties, weapon masteries, rarity, source, attunement, price, and affordability.
 
-Game Masters control which Item compendiums supply the catalog, whether global buying and selling are enabled, the default sale value, transaction chat cards, and optional approval requirements. With Tools Premium or Tools Champion access, GMs can also build scene vendors with custom products, prices, reputation, limited or unlimited stock, randomized restocking, separate shopper and funding actors, portable shop definitions, and interactive shop tokens.
+Game Masters control which Item compendiums supply the catalog, whether global buying and selling are enabled, whether the current location must have a Marketplace, the default sale value, transaction chat cards, and optional approval requirements. With Tools Premium or Tools Champion access, GMs can also build scene vendors with custom products, prices, reputation, limited or unlimited stock, randomized restocking, separate shopper and funding actors, portable shop definitions, and interactive shop tokens.
 
 The global Marketplace provides a broad world catalog, while scene shops create individual vendors with their own inventory and trading rules. Purchased items are added directly to the chosen character, payment can come from an owned character or shared Group actor, and completed sales deposit currency automatically.
 
@@ -56,10 +56,10 @@ Choose the guide that matches your role:
 - [Game Master Manual](gm-manual.md) — installation, world configuration, premium access, approvals, and Shop Manager.
 - [Player Manual](player-manual.md) — selecting a character, browsing, buying, selling, transferring inventory, and using scene shops.
 
-These manuals describe Morelord Marketplace 0.11.1 for Foundry Virtual Tabletop v14 and the dnd5e game system.
+These manuals describe Morelord Marketplace 0.12.0 for Foundry Virtual Tabletop v14 and the dnd5e game system.
 
 
-These manuals cover Marketplace 0.11.1 with Morelord Core 0.7.0 or later. Open **Morelord Tools** on the left side of the scene, then select **Morelord Marketplace**. GMs select **Manage Marketplace Shops** in that same control; it still requires Tools Premium or Tools Champion access. Buy and Sell use carts; shops support shared Locations, capability limits, and weighted random stock. Filled-container purchases include source compendium contents with separate container links for each copy. Placed shop tokens still open that vendor.
+These manuals cover Marketplace 0.12.0 with Morelord Core 0.7.0 or later. Open **Morelord Tools** on the left side of the scene, then select **Morelord Marketplace**. GMs select **Manage Marketplace Shops** in that same control; it still requires Tools Premium or Tools Champion access. Buy and Sell use carts; shops support shared Locations, capability limits, and weighted random stock. **Enable Locations** can require the current location's Marketplace capability before anything is bought or sold. That capability's tier limits the global Marketplace, while a shop's own stock and purchase rules override the tier. Filled-container purchases include source compendium contents with separate container links for each copy. Placed shop tokens still open that vendor.
 
 Version 0.9.9 adds manual-only shop stock, exclusive vendor purchase lists, Magical-property exclusion, and rarity-based prices for unpriced source items. Blank rarity defaults to Common at 100 gp; explicit prices and GM overrides take priority. Requires Morelord Core 0.4.0 or later.
 

@@ -26,7 +26,7 @@
                 {{#unless ../transfer}}<td>{{listPrice}}</td><td>{{sellPrice}}</td>{{/unless}}
                 <td>
             <div class="ml-actions ml-marketplace-row-actions ml-marketplace-actions">
-                        <button type="button" data-action="{{#if ../transfer}}addTransfer{{else}}sellOne{{/if}}" data-item-id="{{ownedItemId}}" title="Add one to {{#if ../transfer}}transfer{{else}}sell{{/if}} cart" aria-label="Add one {{name}} to cart" {{#if ../transfer}}{{#unless canAdd}}disabled{{/unless}}{{else}}{{#unless canAddToSellCart}}disabled{{/unless}}{{/if}}>
+                        <button type="button" data-action="{{#if ../transfer}}addTransfer{{else}}sellOne{{/if}}" data-item-id="{{ownedItemId}}" title="{{#if locationBlockReason}}{{locationBlockReason}}{{else}}Add one to {{#if ../transfer}}transfer{{else}}sell{{/if}} cart{{/if}}" aria-label="Add one {{name}} to cart" {{#if ../transfer}}{{#unless canAdd}}disabled{{/unless}}{{else}}{{#unless canAddToSellCart}}disabled{{/unless}}{{/if}}>
                         <i class="fa-solid fa-coin"></i>
                         </button>
 

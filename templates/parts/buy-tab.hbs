@@ -283,10 +283,10 @@
                       <div class="ml-marketplace-quantity-stepper" aria-label="{{name}} cart quantity">
                         <button type="button" data-action="removeFromCart" data-cart-key="{{packId}}:{{documentId}}" title="Remove one {{name}} from cart"><i class="fa-solid fa-minus"></i></button>
                         <span class="ml-marketplace-cart-qty" aria-label="Quantity">{{cartQty}}</span>
-                        <button type="button" data-action="buyItem" data-pack-id="{{packId}}" data-document-id="{{documentId}}" title="Add one {{name}} to cart" {{#unless canAddToCart}}disabled{{/unless}}><i class="fa-solid fa-plus"></i></button>
+                        <button type="button" data-action="buyItem" data-pack-id="{{packId}}" data-document-id="{{documentId}}" title="{{#if locationBlockReason}}{{locationBlockReason}}{{else}}Add one {{name}} to cart{{/if}}" {{#unless canAddToCart}}disabled{{/unless}}><i class="fa-solid fa-plus"></i></button>
                       </div>
                     {{else}}
-                      <button type="button" class="ml-marketplace-buy-button" title="Add {{name}} to cart" data-action="buyItem" data-pack-id="{{packId}}" data-document-id="{{documentId}}" {{#unless canAddToCart}}disabled{{/unless}}>
+                      <button type="button" class="ml-marketplace-buy-button" title="{{#if locationBlockReason}}{{locationBlockReason}}{{else}}Add {{name}} to cart{{/if}}" data-action="buyItem" data-pack-id="{{packId}}" data-document-id="{{documentId}}" {{#unless canAddToCart}}disabled{{/unless}}>
                         <i class="fa-solid fa-cart-plus"></i>
                       </button>
                     {{/if}}

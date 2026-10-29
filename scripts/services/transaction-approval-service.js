@@ -1,4 +1,5 @@
 import { preparePurchaseItems } from "./purchase-items.js";
+import { itemRarity } from "../../../morelord-core/scripts/services/item-rarity.js";
 import {
   MODULE_ID,
   FLAGS,
@@ -12,6 +13,7 @@ import { ShopService } from "./shop-service.js";
 import { EntitlementService } from "./entitlement-service.js";
 import { PricingService } from "./pricing-service.js";
 import { loadAllowedItem } from "./configured-sources.js";
+import { LocationTradeService, normalizeTradeRarity } from "./location-trade.js";
 
 export class TransactionApprovalService {
   static initialized = false;
@@ -49,7 +51,7 @@ export class TransactionApprovalService {
         ? `Your Marketplace request for ${payload.itemName} was approved.`
         : payload.status === TRANSACTION_STATUS.DENIED
           ? `Your Marketplace request for ${payload.itemName} was denied.`
-          : `Your Marketplace request for ${payload.itemName} could not be completed.`;
+          : (payload.reason || `Your Marketplace request for ${payload.itemName} could not be completed.`);
 
       if (payload.status === TRANSACTION_STATUS.APPROVED) {
         ui.notifications.info(message);
@@ -287,6 +289,12 @@ export class TransactionApprovalService {
       throw new Error("The requested item is no longer available for purchase.");
     }
 
+    const locationError = LocationTradeService.deny({
+      rarity: normalizeTradeRarity(itemRarity(item.system)),
+      user: globalThis.game?.users?.get?.(transaction.requestedByUserId) ?? null
+    });
+    if (locationError) throw locationError;
+
     if (!CurrencyService.canAfford(fundingActor, transaction.totalPriceCp)) {
       throw new Error("The selected purchase funds are no longer sufficient.");
     }
@@ -326,6 +334,12 @@ export class TransactionApprovalService {
     if (item.getFlag(MODULE_ID, "unsellable")) {
       throw new Error("The item is no longer eligible for sale.");
     }
+
+    const locationError = LocationTradeService.deny({
+      rarity: normalizeTradeRarity(itemRarity(item.system)),
+      user: globalThis.game?.users?.get?.(transaction.requestedByUserId) ?? null
+    });
+    if (locationError) throw locationError;
 
     const ownedQuantity = Number(item.system?.quantity ?? 1);
     const requestedQuantity = Number(transaction.quantity ?? 1);
@@ -368,6 +382,11 @@ export class TransactionApprovalService {
       const item = loaded.status === "ok" ? loaded.item : null;
       const quantity = Number(line.quantity);
       if (!item || !PurchaseEligibilityService.isPurchasable(item) || !Number.isInteger(quantity) || quantity < 1) throw new Error("An item in the cart is no longer available.");
+      const locationError = LocationTradeService.deny({
+        rarity: normalizeTradeRarity(itemRarity(item.system)),
+        user: globalThis.game?.users?.get?.(transaction.requestedByUserId) ?? null
+      });
+      if (locationError) throw locationError;
       const priceCp = PricingService.getBuyPriceCp(PricingService.getItemPriceCp(item));
       if (priceCp !== Number(line.unitPriceCp)) throw new Error(`${item.name}'s price changed.`);
       liveTotal += priceCp * quantity;
@@ -399,6 +418,11 @@ export class TransactionApprovalService {
       const quantity = Number(line.quantity);
       const owned = Number(item?.system?.quantity ?? 0);
       if (!item || item.getFlag(MODULE_ID, "unsellable") || !Number.isInteger(quantity) || quantity < 1 || quantity > owned) throw new Error("An item in the cart is no longer available.");
+      const locationError = LocationTradeService.deny({
+        rarity: normalizeTradeRarity(itemRarity(item.system)),
+        user: globalThis.game?.users?.get?.(transaction.requestedByUserId) ?? null
+      });
+      if (locationError) throw locationError;
       const priceCp = PricingService.getSellPriceCp(PricingService.getItemPriceCp(item), null, sellRate);
       if (priceCp !== Number(line.unitPriceCp)) throw new Error(`${item.name}'s sale price changed.`);
       liveTotal += priceCp * quantity;
@@ -472,7 +496,8 @@ export class TransactionApprovalService {
       userId: transaction.requestedByUserId,
       status,
       itemName: transaction.itemName,
-      messageId: message.id
+      messageId: message.id,
+      reason
     });
   }
 }

@@ -4,13 +4,13 @@ description: Install, configure, and operate Morelord Marketplace, including pre
 slug: morelord-marketplace/gm
 product: morelord-marketplace
 audience: game-master
-version: 0.11.1
+version: 0.12.0
 foundry: 14
 ---
 
 # Morelord Marketplace Game Master Manual
 
-This guide covers Morelord Marketplace 0.11.1, Foundry VTT v14, dnd5e, and Morelord Core 0.7.0 or later. Open Marketplace and Shop Manager from **Morelord Tools**. The global tabs run **Sell → Transfer → Buy → Wishlist**. Sell eligible inventory items at rates set by the GM; wishlists save desired items without reserving stock.
+This guide covers Morelord Marketplace 0.12.0, Foundry VTT v14, dnd5e, and Morelord Core 0.7.0 or later. Open Marketplace and Shop Manager from **Morelord Tools**. The global tabs run **Sell → Transfer → Buy → Wishlist**. Sell eligible inventory items at rates set by the GM; wishlists save desired items without reserving stock.
 
 ## Inventory transfers
 
@@ -18,7 +18,7 @@ The **Transfer** tab lets players move physical inventory quantities or whole st
 
 Morelord Marketplace gives a Foundry VTT world a global catalog for buying and selling dnd5e items. With Tools Premium or Tools Champion access, it also provides GM transaction approvals and Shop Manager for configurable scene vendors.
 
-This manual applies to Morelord Marketplace 0.11.1, Foundry VTT v14, and the dnd5e system.
+This manual applies to Morelord Marketplace 0.12.0, Foundry VTT v14, and the dnd5e system.
 
 ## Contents
 
@@ -59,7 +59,7 @@ The global Marketplace remains usable if premium access expires. Saved premium s
 - Foundry Virtual Tabletop v14
 - The dnd5e game system
 - Morelord Core 0.7.0 or later
-- Morelord Marketplace v0.11.1
+- Morelord Marketplace v0.12.0
 
 ### Install with the manifest
 
@@ -90,6 +90,7 @@ Open **Game Settings → Configure Settings → Module Settings → Morelord Mar
 | **Default Sell Rate** | `1` | Fraction of an item's list price paid for global sales, from `0` to `1`. Enter `0.5` for 50% or `1` for 100%. Shops can override this value. |
 | **Enable Global Marketplace Selling** | On | Enables selling in the global Marketplace. It does not affect shop-specific selling. |
 | **Enable Global Marketplace Buying** | On | Enables direct global purchases. If off, players can still browse the catalog as a reference. It does not affect shop-specific buying. |
+| **Enable Locations** | Off | When on, buying and selling require the current location to have a Marketplace capability. The global Marketplace only trades items of that capability's rarity or lower. A shop's own stock and purchase rules override that rarity limit. Off leaves trading unchanged. |
 | **Require GM Approval for Sales** | Off | Holds player-initiated global sales for a GM decision. Premium or Champion access is required. |
 | **Require GM Approval for Purchases** | Off | Holds player-initiated global purchases for a GM decision. Premium or Champion access is required. |
 | **Post Transaction Cards** | On | Posts pending and completed Marketplace transactions to chat. |
@@ -97,6 +98,14 @@ Open **Game Settings → Configure Settings → Module Settings → Morelord Mar
 GM-initiated global transactions do not wait for approval. Shop cart purchases are processed through the shop checkout workflow rather than the global approval settings.
 
 The settings page is GM-only. Number inputs accept steps of `0.05`; buying requires at least `1`, while selling accepts `0` through `1`. **Save** persists the world settings; closing without Save discards unsaved edits. Changes apply to subsequent global transactions, not individual shops' stored rates.
+
+**Enable Locations** uses Morelord Core's shared Locations. The current location is the Location associated with the scene the shopper is viewing. An active Downtime session replaces that scene: the session's Location is used, or **On the Road** when the session has no Location. On the Road has no Marketplace, so trading is blocked while the setting is on.
+
+The location must include a Marketplace capability. Its tier (Common, Uncommon, Rare, Very Rare, or Legendary) is the highest Marketplace tier at that location. Global buying and selling then allow only items of that rarity or lower. Blank rarity counts as Common. Artifact items are above Legendary.
+
+A scene shop still has to be at a location with a Marketplace, but its own stock and purchase rules decide which items it trades. A shop that stocks a Rare item can sell it where the location Marketplace is only Common. A shop that does not accept an item still refuses it. This is separate from a shop's **Morelord Location** and **Maximum Normal Rarity**, which control that shop's generated stock.
+
+Blocked purchases and sales show a warning in the Marketplace window. Cart completion, shop checkout, and GM approval check the same rule again on the Game Master client, using the shopper's viewed scene or the active Downtime session. Transfer is not affected.
 
 | Account control or value | Explanation |
 | --- | --- |
@@ -424,6 +433,7 @@ Deleting a shop removes its shop definition, generated shop actor, and associate
 - For shops, verify both **Shopping As** and **Paying From** have eligible actors.
 - Confirm the funding actor has a dnd5e currency record and enough coin.
 - Confirm global or shop-specific buying/selling is enabled.
+- If **Enable Locations** is on, confirm the shopper's current location, or the active Downtime session, has a Marketplace capability high enough for a global trade. A shop can still trade items in its own stock at a lower Marketplace tier, and cannot trade at all where there is no Marketplace.
 - Check reputation; Hostile parties cannot trade.
 
 ### A shop says it changed

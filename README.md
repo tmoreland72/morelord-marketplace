@@ -131,7 +131,7 @@ Install this URL using:
 
 Open the global Marketplace from **Morelord Tools** with the Marketplace store button, or interact with a placed shop token to browse that vendor.
 
-The global Marketplace can be used for buying, selling, or lookup depending on the GM's world settings. Shops use their own inventory, stock, pricing, reputation, and buy/sell rules.
+The global Marketplace can be used for buying, selling, or lookup depending on the GM's world settings. **Enable Locations** can require the current location's Marketplace capability, and that capability's tier limits global trades to the same rarity or lower. Shops use their own inventory, stock, pricing, reputation, and buy/sell rules; those rules override the location rarity limit.
 
 ---
 

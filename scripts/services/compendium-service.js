@@ -7,6 +7,7 @@ import { ShopService } from "./shop-service.js";
 import { TransactionService } from "./transaction-service.js";
 import { TransactionApprovalService } from "./transaction-approval-service.js";
 import { PurchaseEligibilityService } from "./purchase-eligibility-service.js";
+import { LocationTradeService, normalizeTradeRarity } from "./location-trade.js";
 import { PartyInventoryService } from "./party-inventory-service.js";
 import {
   getAllowedPacks,
@@ -867,6 +868,16 @@ export class CompendiumService {
       return;
     }
 
+    const locationBlock = LocationTradeService.block({
+      shop,
+      rarity: normalizeTradeRarity(itemRarity(item.system)),
+      shopAllowsItem: true
+    });
+    if (locationBlock) {
+      ui.notifications.warn(locationBlock.message);
+      return { status: "blocked", ok: false, error: locationBlock.message };
+    }
+
     let priceCp = priceCpOverride;
     if (!Number.isFinite(priceCp)) {
       priceCp = PricingService.getBuyPriceCp(
@@ -958,12 +969,17 @@ export class CompendiumService {
       return { status: "blocked" };
     }
 
+    const locationBlock = LocationTradeService.block({ rarity: "common", user: requestingUser });
+    if (locationBlock) return { status: "blocked", ok: false, error: locationBlock.message };
+
     const resolved = [];
     for (const line of items) {
       const quantity = Number(line.quantity);
       const loaded = await loadAllowedItem(line.packId, line.documentId);
       const item = loaded.status === "ok" ? loaded.item : null;
       if (!item || !Number.isInteger(quantity) || quantity < 1 || !PurchaseEligibilityService.isPurchasable(item)) throw new Error("An item in the buy cart is invalid or no longer allowed.");
+      const rarityBlock = LocationTradeService.block({ rarity: normalizeTradeRarity(itemRarity(item.system)), user: requestingUser });
+      if (rarityBlock) return { status: "blocked", ok: false, error: rarityBlock.message };
       const unitPriceCp = PricingService.getBuyPriceCp(PricingService.getItemPriceCp(item));
       if (unitPriceCp !== Number(line.priceCp)) throw new Error(`${item.name}'s price changed. Review your cart and try again.`);
       resolved.push({ packId: line.packId, documentId: line.documentId, item, name: item.name, img: item.img, uuid: item.uuid, quantity, unitPriceCp, totalPriceCp: unitPriceCp * quantity });
