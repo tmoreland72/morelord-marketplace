@@ -8,6 +8,7 @@
 - The current location is Morelord Core's location for the scene the shopper is viewing. An active Downtime session uses that session's location instead, including On the Road when the session has no location.
 - A shop's own stock and purchase rules override the location rarity. A shop can still buy and sell a rarer item it stocks when the location Marketplace is a lower tier. No Marketplace at the location blocks shop trading as well.
 - Blocked purchases and sales show a warning. The same check runs again when a Game Master client completes a cart, shop checkout, or approval, using the shopper's viewed scene.
+- Requires Morelord Core 0.9.0 or newer. Configure Sources, rate changes, and account access refresh open Marketplace windows in the background. The current place comes from Core's shared active location, including an active Downtime session and On the Road.
 
 ## 0.11.1
 

@@ -10,7 +10,7 @@ foundry: 14
 
 # Morelord Marketplace Game Master Manual
 
-This guide covers Morelord Marketplace 0.12.0, Foundry VTT v14, dnd5e, and Morelord Core 0.7.0 or later. Open Marketplace and Shop Manager from **Morelord Tools**. The global tabs run **Sell → Transfer → Buy → Wishlist**. Sell eligible inventory items at rates set by the GM; wishlists save desired items without reserving stock.
+This guide covers Morelord Marketplace 0.12.0, Foundry VTT v14, dnd5e, and Morelord Core 0.9.0 or later. Open Marketplace and Shop Manager from **Morelord Tools**. The global tabs run **Sell → Transfer → Buy → Wishlist**. Sell eligible inventory items at rates set by the GM; wishlists save desired items without reserving stock.
 
 ## Inventory transfers
 
@@ -58,7 +58,7 @@ The global Marketplace remains usable if premium access expires. Saved premium s
 
 - Foundry Virtual Tabletop v14
 - The dnd5e game system
-- Morelord Core 0.7.0 or later
+- Morelord Core 0.9.0 or later
 - Morelord Marketplace v0.12.0
 
 ### Install with the manifest
@@ -99,7 +99,7 @@ GM-initiated global transactions do not wait for approval. Shop cart purchases a
 
 The settings page is GM-only. Number inputs accept steps of `0.05`; buying requires at least `1`, while selling accepts `0` through `1`. **Save** persists the world settings; closing without Save discards unsaved edits. Changes apply to subsequent global transactions, not individual shops' stored rates.
 
-**Enable Locations** uses Morelord Core's shared Locations. The current location is the Location associated with the scene the shopper is viewing. An active Downtime session replaces that scene: the session's Location is used, or **On the Road** when the session has no Location. On the Road has no Marketplace, so trading is blocked while the setting is on.
+**Enable Locations** uses Morelord Core's shared active location. That place is the Location for the scene the shopper is viewing. An active Downtime session replaces that scene: the session's Location is used, or **On the Road** when the session has no Location. On the Road has no Marketplace, so trading is blocked while the setting is on. Changing **Configure Sources** or the buy and sell rates refreshes open Marketplace windows in the background, so the window where the change was made stays in front.
 
 The location must include a Marketplace capability. Its tier (Common, Uncommon, Rare, Very Rare, or Legendary) is the highest Marketplace tier at that location. Blank rarity counts as Common. Artifact items are above Legendary. Buy removes every item above that tier, so the item count, rarity filter counts, and pages do not include them. Sell still shows those owned items. Their sell buttons are disabled, and the tooltip says the location's Marketplace trades that tier and lower.
 

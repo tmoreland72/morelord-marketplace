@@ -5,6 +5,7 @@ import {
   describeLocationTrade,
   evaluateLocationTrade,
   filterBuyCatalog,
+  locationFromActiveContext,
   normalizeTradeRarity,
   resolveTradingLocation,
   sceneIdForUser,
@@ -99,6 +100,19 @@ test("shop stock overrides the location rarity limit and shop rules still win", 
   assert.equal(summary.canTrade, true);
   assert.match(summary.message, /Curios follows its own stock and purchase rules/);
   assert.match(summary.message, /Emberwood's Common Marketplace/);
+});
+
+test("Core activeContext supplies the location and the local lookup remains the fallback", () => {
+  const phandalin = { id: "phandalin", name: "Phandalin", capabilities: [{ type: "marketplace", tier: "common" }] };
+  const api = {
+    activeContext(user) {
+      assert.equal(user.id, "gm");
+      return { location: phandalin, source: "scene", sessionId: null };
+    }
+  };
+  assert.equal(locationFromActiveContext(api, { id: "gm" }, { id: "fallback" }).name, "Phandalin");
+  assert.equal(locationFromActiveContext({ activeContext: () => ({ location: null, source: "none" }) }, { id: "gm" }, { id: "fallback" }), null);
+  assert.equal(locationFromActiveContext(null, { id: "gm" }, { id: "fallback" }).id, "fallback");
 });
 
 test("an active Downtime session replaces the scene, including On the Road", () => {

@@ -120,7 +120,7 @@ Install this URL using:
 ## Requirements
 
 - Foundry VTT v14
-- Morelord Core 0.7.0 or later
+- Morelord Core 0.9.0 or later
 - dnd5e System compatible with Foundry v14
 
 ---
@@ -282,13 +282,13 @@ The Morelord Account section above Trading shows account connection, membership,
 
 ### Temporary global rates and shop defaults
 
-The GM can enable **Temporarily ignore buy and sell rates (both ×1)** in the global Marketplace. Everyone then buys and sells there at list price until the GM switches it off. Configured rates and shop prices are preserved. Rate changes refresh open windows and clear global carts so totals can be reviewed again. This is a world toggle, so it remains active across reloads until disabled.
+The GM can enable **Temporarily ignore buy and sell rates (both ×1)** in the global Marketplace. Everyone then buys and sells there at list price until the GM switches it off. Configured rates and shop prices are preserved. Rate changes refresh open windows in the background and clear global carts so totals can be reviewed again, without bringing those windows to the front. This is a world toggle, so it remains active across reloads until disabled.
 
 New template and prefab shops copy the buy and sell rates from Marketplace settings; the GM can edit each shop’s values. Existing shops retain their saved rates. Shop Manager uses Core’s standard header and keeps **Restock Now**; the Restocking editor section is removed without erasing saved restock metadata. Prefab names are deduplicated in the picker, preserving old IDs and saved shops. Configure Sources applies to copied SRD items as well as their containing packs.
 
 ## Release dependency
 
-This release requires Morelord Core 0.7.0 or newer. Marketplace and Shop Manager open from Morelord Tools. Optional integrations remain optional.
+This release requires Morelord Core 0.9.0 or newer. Marketplace and Shop Manager open from Morelord Tools. Optional integrations remain optional.
 
 ## Manually configured shop items
 

@@ -21,6 +21,12 @@ export function sceneIdForUser(user, { localUserId = null, localSceneId = null }
   return localSceneId && !user ? String(localSceneId) : null;
 }
 
+/** Prefer Core's shared active place. A missing API keeps the local Downtime and scene lookup. */
+export function locationFromActiveContext(locationsApi, user, fallbackLocation) {
+  if (typeof locationsApi?.activeContext !== "function") return fallbackLocation ?? null;
+  return locationsApi.activeContext(user)?.location ?? null;
+}
+
 export function resolveTradingLocation({
   sceneLocation = null,
   downtimeState = null,
@@ -309,6 +315,12 @@ export class LocationTradeService {
   }
 
   static currentLocation(user = globalThis.game?.user) {
+    const api = this.locationApi();
+    if (typeof api?.activeContext === "function") return locationFromActiveContext(api, user, null);
+    return this.fallbackLocation(user);
+  }
+
+  static fallbackLocation(user = globalThis.game?.user) {
     const api = this.locationApi();
     const downtime = this.downtimeContext();
     const localSceneId = globalThis.canvas?.scene?.id ?? globalThis.game?.scenes?.current?.id ?? null;
