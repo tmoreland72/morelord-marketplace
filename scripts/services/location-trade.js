@@ -168,6 +168,64 @@ export function evaluateLocationTrade({
   };
 }
 
+/** Global Buy omits rows above the location tier. A shop's own catalog is left intact. */
+export function filterBuyCatalog(rows = [], {
+  enabled = false,
+  locationsAvailable = true,
+  location = null,
+  capability,
+  shop = null,
+  meetsTier = null
+} = {}) {
+  if (!enabled) return rows;
+  const presence = evaluateLocationTrade({
+    enabled: true,
+    locationsAvailable,
+    location,
+    capability,
+    rarity: "common",
+    shop,
+    shopAllowsItem: true,
+    meetsTier
+  });
+  if (!presence.allowed) return [];
+  if (shop) return rows;
+  return rows.filter(row => evaluateLocationTrade({
+    enabled: true,
+    locationsAvailable,
+    location,
+    capability,
+    rarity: row?.rarityKey ?? row?.rarity,
+    meetsTier
+  }).allowed);
+}
+
+/** Sell keeps every owned row. Items above the tier stay listed with selling disabled. */
+export function sellLocationState(rarity, {
+  enabled = false,
+  locationsAvailable = true,
+  location = null,
+  capability,
+  shop = null,
+  meetsTier = null
+} = {}) {
+  const decision = evaluateLocationTrade({
+    enabled,
+    locationsAvailable,
+    location,
+    capability,
+    rarity,
+    shop,
+    shopAllowsItem: true,
+    meetsTier
+  });
+  return {
+    listed: true,
+    canSell: decision.allowed,
+    reason: decision.allowed ? null : decision.message
+  };
+}
+
 export function describeLocationTrade({
   enabled = false,
   locationsAvailable = true,
@@ -325,6 +383,22 @@ export class LocationTradeService {
     error.locationTrade = true;
     error.code = blocked.code;
     return error;
+  }
+
+  static filterBuyCatalog(rows, { shop = null } = {}) {
+    const enabled = this.enabled();
+    if (!enabled) return rows;
+    const api = this.locationApi();
+    const locationsAvailable = Boolean(api);
+    const location = this.currentLocation();
+    return filterBuyCatalog(rows, {
+      enabled: true,
+      locationsAvailable,
+      location,
+      capability: locationsAvailable ? this.capabilityFor(location) : undefined,
+      shop,
+      meetsTier: typeof api?.meetsTier === "function" ? api.meetsTier : null
+    });
   }
 
   static presentation({ shop = null } = {}) {

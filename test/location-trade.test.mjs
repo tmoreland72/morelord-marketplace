@@ -4,10 +4,12 @@ import { evaluateRequirements, meetsTier } from "../../morelord-core/scripts/loc
 import {
   describeLocationTrade,
   evaluateLocationTrade,
+  filterBuyCatalog,
   normalizeTradeRarity,
   resolveTradingLocation,
   sceneIdForUser,
-  selectMarketplaceCapability
+  selectMarketplaceCapability,
+  sellLocationState
 } from "../scripts/services/location-trade.js";
 
 const commonMarket = {
@@ -124,6 +126,63 @@ test("an active Downtime session replaces the scene, including On the Road", () 
   }).id, "scene-town");
   assert.equal(sceneIdForUser({ id: "player", viewedScene: "scene-7" }, { localUserId: "gm", localSceneId: "scene-1" }), "scene-7");
   assert.equal(sceneIdForUser({ id: "gm" }, { localUserId: "gm", localSceneId: "scene-1" }), "scene-1");
+});
+
+const catalog = [
+  { name: "Rope", rarityKey: "common" },
+  { name: "Torch", rarityKey: "common" },
+  { name: "Potion of Healing", rarityKey: "uncommon" },
+  { name: "Cloak of Protection", rarityKey: "rare" },
+  { name: "Armor of Resistance", rarityKey: "veryrare" },
+  { name: "Ring of Wishes", rarityKey: "legendary" },
+  { name: "Deck of Many Things", rarityKey: "artifact" }
+];
+
+test("the Buy catalog omits items above the location tier, including counts and pages", () => {
+  const visible = filterBuyCatalog(catalog, { enabled: true, location: commonMarket });
+  assert.deepEqual(visible.map(row => row.name), ["Rope", "Torch"]);
+  const counts = new Map();
+  for (const row of visible) counts.set(normalizeTradeRarity(row.rarityKey), (counts.get(normalizeTradeRarity(row.rarityKey)) ?? 0) + 1);
+  assert.equal(counts.get("common"), 2);
+  for (const rarity of ["uncommon", "rare", "veryRare", "legendary", "artifact"]) {
+    assert.equal(counts.get(rarity) ?? 0, 0);
+  }
+  const pageSize = 1;
+  const pageCount = Math.ceil(visible.length / pageSize);
+  assert.equal(visible.length, 2);
+  assert.equal(pageCount, 2);
+  assert.deepEqual(visible.slice(0, pageSize).map(row => row.rarityKey), ["common"]);
+  assert.equal(filterBuyCatalog(catalog, { enabled: false, location: commonMarket }).length, catalog.length);
+  assert.equal(filterBuyCatalog(catalog, { enabled: true, location: { name: "Camp", capabilities: [] } }).length, 0);
+});
+
+test("shop stock remains in the Buy catalog above the location tier", () => {
+  const visible = filterBuyCatalog(catalog, { enabled: true, location: commonMarket, shop: curios });
+  assert.equal(visible.length, catalog.length);
+  assert.ok(visible.some(row => row.rarityKey === "legendary"));
+  assert.ok(visible.some(row => row.rarityKey === "veryrare"));
+  assert.equal(filterBuyCatalog(catalog, {
+    enabled: true,
+    location: { name: "Camp", capabilities: [] },
+    shop: curios
+  }).length, 0);
+});
+
+test("Sell lists every owned item and disables those above the location tier", () => {
+  const rows = catalog.map(row => ({ ...row, ...sellLocationState(row.rarityKey, { enabled: true, location: commonMarket }) }));
+  assert.equal(rows.length, catalog.length);
+  assert.equal(rows.every(row => row.listed), true);
+  assert.equal(rows.find(row => row.name === "Rope").canSell, true);
+  assert.equal(rows.find(row => row.name === "Rope").reason, null);
+  for (const name of ["Potion of Healing", "Cloak of Protection", "Armor of Resistance", "Ring of Wishes", "Deck of Many Things"]) {
+    const row = rows.find(entry => entry.name === name);
+    assert.equal(row.canSell, false);
+    assert.match(row.reason, /Emberwood's Marketplace trades Common items and lower/);
+  }
+  const shopLegendary = sellLocationState("legendary", { enabled: true, location: commonMarket, shop: curios });
+  assert.equal(shopLegendary.listed, true);
+  assert.equal(shopLegendary.canSell, true);
+  assert.equal(shopLegendary.reason, null);
 });
 
 test("Core capability evaluation and meetsTier enforce the same gate", () => {

@@ -90,7 +90,7 @@ Open **Game Settings → Configure Settings → Module Settings → Morelord Mar
 | **Default Sell Rate** | `1` | Fraction of an item's list price paid for global sales, from `0` to `1`. Enter `0.5` for 50% or `1` for 100%. Shops can override this value. |
 | **Enable Global Marketplace Selling** | On | Enables selling in the global Marketplace. It does not affect shop-specific selling. |
 | **Enable Global Marketplace Buying** | On | Enables direct global purchases. If off, players can still browse the catalog as a reference. It does not affect shop-specific buying. |
-| **Enable Locations** | Off | When on, buying and selling require the current location to have a Marketplace capability. The global Marketplace only trades items of that capability's rarity or lower. A shop's own stock and purchase rules override that rarity limit. Off leaves trading unchanged. |
+| **Enable Locations** | Off | When on, buying and selling require the current location to have a Marketplace capability. Buy omits items above that capability's tier from the catalog, item count, rarity counts, and pages. Sell still lists owned items above the tier and disables their sell buttons; the button tooltip explains the limit. A shop's own stock and purchase rules override that rarity limit. Off leaves trading unchanged. |
 | **Require GM Approval for Sales** | Off | Holds player-initiated global sales for a GM decision. Premium or Champion access is required. |
 | **Require GM Approval for Purchases** | Off | Holds player-initiated global purchases for a GM decision. Premium or Champion access is required. |
 | **Post Transaction Cards** | On | Posts pending and completed Marketplace transactions to chat. |
@@ -101,7 +101,7 @@ The settings page is GM-only. Number inputs accept steps of `0.05`; buying requi
 
 **Enable Locations** uses Morelord Core's shared Locations. The current location is the Location associated with the scene the shopper is viewing. An active Downtime session replaces that scene: the session's Location is used, or **On the Road** when the session has no Location. On the Road has no Marketplace, so trading is blocked while the setting is on.
 
-The location must include a Marketplace capability. Its tier (Common, Uncommon, Rare, Very Rare, or Legendary) is the highest Marketplace tier at that location. Global buying and selling then allow only items of that rarity or lower. Blank rarity counts as Common. Artifact items are above Legendary.
+The location must include a Marketplace capability. Its tier (Common, Uncommon, Rare, Very Rare, or Legendary) is the highest Marketplace tier at that location. Blank rarity counts as Common. Artifact items are above Legendary. Buy removes every item above that tier, so the item count, rarity filter counts, and pages do not include them. Sell still shows those owned items. Their sell buttons are disabled, and the tooltip says the location's Marketplace trades that tier and lower.
 
 A scene shop still has to be at a location with a Marketplace, but its own stock and purchase rules decide which items it trades. A shop that stocks a Rare item can sell it where the location Marketplace is only Common. A shop that does not accept an item still refuses it. This is separate from a shop's **Morelord Location** and **Maximum Normal Rarity**, which control that shop's generated stock.
 

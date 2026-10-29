@@ -385,7 +385,16 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
     }
 
     if (context.isBuyTab && !this.isLoadingBuy) {
-      const catalog = await CompendiumService.getBuyableCatalog(shop);
+      const catalog = LocationTradeService.filterBuyCatalog(
+        await CompendiumService.getBuyableCatalog(shop),
+        { shop }
+      );
+      if (!shop) {
+        const offered = new Set(catalog.map(row => ShopService.stockKey(row)));
+        for (const key of this.cart.keys()) {
+          if (!offered.has(key)) this.cart.delete(key);
+        }
+      }
       const availableCurrencyCp = fundingActor
         ? CurrencyService.currencyToCp(CurrencyService.getCurrency(fundingActor))
         : 0;

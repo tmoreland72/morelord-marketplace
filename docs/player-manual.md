@@ -71,7 +71,7 @@ The global Marketplace contains four tabs, in this order:
 
 Your GM can disable global buying or selling independently. If buying is disabled, you may still browse the Buy catalog as a reference.
 
-If your GM turns on **Enable Locations**, buying and selling require a Marketplace at the current place. That place is the location for the scene you are viewing, unless a Downtime session is active. An active session uses its location, including **On the Road** when it has none. The Marketplace's tier limits the global catalog to that rarity or lower. A scene shop still trades the items in its own stock, even when those items are rarer than the location, but it cannot trade where there is no Marketplace. Marketplace shows a warning when a purchase or sale is blocked. Transfer is unchanged.
+If your GM turns on **Enable Locations**, buying and selling require a Marketplace at the current place. That place is the location for the scene you are viewing, unless a Downtime session is active. An active session uses its location, including **On the Road** when it has none. Buy lists only items of that Marketplace's rarity or lower. The item count, rarity filters, and pages follow that shorter list. Sell still lists everything you own. Items above the limit stay visible, and their sell buttons are disabled; hover a disabled button for the explanation. A scene shop still shows the items in its own stock, even when those items are rarer than the location, but it cannot trade where there is no Marketplace. Transfer is unchanged.
 
 ## Browse and filter items
 
@@ -302,7 +302,7 @@ Completed transaction cards may also be posted to chat when the GM enables that 
 ### The purchase button is disabled
 
 - Global or shop buying may be disabled.
-- **Enable Locations** may be on, and this place may have no Marketplace or a Marketplace below the item's rarity. The warning names the limit. A shop's own stock can still include rarer items.
+- **Enable Locations** may be on. Buy does not list items above this place's Marketplace. On Sell, those owned items remain, with the sell buttons disabled; the tooltip names the limit. A shop's own stock can still include rarer items.
 - The item may be out of unreserved stock.
 - Select valid Shopping As and Paying From actors.
 - Confirm the funding actor has enough coin.
