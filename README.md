@@ -131,7 +131,7 @@ Install this URL using:
 
 Open the global Marketplace from **Morelord Tools** with the Marketplace store button, or interact with a placed shop token to browse that vendor.
 
-The global Marketplace can be used for buying, selling, or lookup depending on the GM's world settings. **Enable Locations** can require the current location's Marketplace capability. Buy then omits items above that tier from the catalog, counts, and pages. Sell still lists owned items above the tier and disables their sell buttons. Shops use their own inventory, stock, pricing, reputation, and buy/sell rules; those rules override the location rarity limit.
+The global Marketplace can be used for buying, selling, or lookup depending on the GM's world settings. **Enable Locations** can require the current place's Marketplace capability. Buy then lists only items of that tier or lower, and the item count, rarity counts, and pages follow that shorter list. Sell still lists owned items above the tier and disables their sell buttons; the button tooltip explains the limit. A shop's own stock and purchase rules override that rarity limit. The player manual's Shared Locations section describes what shoppers see.
 
 ---
 
@@ -149,6 +149,14 @@ Game Settings
 ```
 
 Configure catalog compendiums under **D&D5e → Configure Sources**. That selection is the only source list: a compendium turned off there is not browsed, searched, purchased, approved, or opened from an item link, and shop filters only narrow it.
+
+### Shared Locations
+
+**Enable Locations** is off by default in **Configure Marketplace**. While it is on, buying and selling require a Marketplace capability at the shopper's current place. That place comes from Morelord Core: an active Downtime session's location, **On the Road** when that session has no location, or the location linked to the scene the shopper is viewing. The highest Marketplace tier at that place limits the global catalog to that rarity or lower. Common, Uncommon, Rare, Very Rare, and Legendary are the tiers. An item with no rarity counts as Common. Artifact is above Legendary.
+
+**Buy** leaves higher rarities out of the list, the item count, the rarity counts, and the pages. **Sell** keeps those owned items on the list and disables **Add one to sell cart** and **Add all to sell cart**. The button tooltip says the place's Marketplace trades that tier and lower. A scene shop still offers the items in its own stock, including items above the location tier, and its own purchase rules still apply. A place with no Marketplace capability blocks shop trading as well. **Transfer** ignores the current place.
+
+Create places, add the Marketplace capability, and associate scenes in Morelord Core. Those steps are in Core's [Shared Locations](https://morelordgaming.com/docs/morelord-core#shared-locations) guide. **Manage Locations** in the Marketplace window opens the same editor. The [Game Master Manual](docs/gm-manual.md#shared-locations) covers Marketplace's rules in full, including the separate **Morelord Location** and **Maximum Normal Rarity** settings that limit a shop's generated stock.
 
 ---
 

@@ -32,6 +32,7 @@ A connected GM applies transfers automatically, including to recipients whose in
 - [Wishlists and browsing](#wishlists-and-browsing)
 - [Before you shop](#before-you-shop)
 - [Open the global Marketplace](#open-the-global-marketplace)
+- [Shared Locations](#shared-locations)
 - [Browse and filter items](#browse-and-filter-items)
 - [Buy from the global Marketplace](#buy-from-the-global-marketplace)
 - [Sell from your inventory](#sell-from-your-inventory)
@@ -71,7 +72,23 @@ The global Marketplace contains four tabs, in this order:
 
 Your GM can disable global buying or selling independently. If buying is disabled, you may still browse the Buy catalog as a reference.
 
-If your GM turns on **Enable Locations**, buying and selling require a Marketplace at the current place. That place is the location for the scene you are viewing, unless a Downtime session is active. An active session uses its location, including **On the Road** when it has none. Buy lists only items of that Marketplace's rarity or lower. The item count, rarity filters, and pages follow that shorter list. Sell still lists everything you own. Items above the limit stay visible, and their sell buttons are disabled; hover a disabled button for the explanation. A scene shop still shows the items in its own stock, even when those items are rarer than the location, but it cannot trade where there is no Marketplace. Transfer is unchanged.
+If your GM turns on **Enable Locations**, what you can buy and sell depends on the current place. See [Shared Locations](#shared-locations).
+
+## Shared Locations
+
+Your GM may turn on **Enable Locations**. While it is on, buying and selling require a Marketplace at the current place. That place is the location for the scene you are viewing. An active Downtime session uses the session's location instead, including **On the Road** when the session has no location. On the Road has no Marketplace, so buying and selling are blocked for that session. Your GM creates those places and their Marketplace capabilities in Morelord Core. The setup steps are in Core's [Shared Locations](https://morelordgaming.com/docs/morelord-core#shared-locations) guide.
+
+The Marketplace window names the limit. A place with a Marketplace shows **Location Marketplace** and which tier it trades: Common, Uncommon, Rare, Very Rare, or Legendary. That tier includes every lower rarity. An item with no rarity counts as Common. Artifact is above Legendary.
+
+**Buy** lists items of that tier or lower. Higher rarities are left out of the list. The item count, rarity filters, and pages follow the shorter list.
+
+**Sell** still lists everything you can otherwise sell. Items above the tier stay on the list. **Add one to sell cart** and **Add all to sell cart** are disabled for those items. Hover either button to read the limit, for example "Emberwood's Marketplace trades Common items and lower. This item is above that limit." **Sell Cart** stays unavailable while the cart contains an item above the limit.
+
+A saved wish above the tier shows the status **Above location limit**, and its buy button is disabled. A place with no Marketplace shows the notice **No Marketplace here**. Wishes there show the status **No Marketplace**.
+
+While your current place has a Marketplace, a scene shop still shows the items in its own stock, including items rarer than that place. The notice is titled **Shop stock overrides this location**. The shop's own prices, stock, and purchase rules still apply. Where the current place has no Marketplace, the shop's Buy list is empty and its sell buttons are disabled.
+
+**Transfer** ignores the current place.
 
 ## Browse and filter items
 
@@ -302,7 +319,7 @@ Completed transaction cards may also be posted to chat when the GM enables that 
 ### The purchase button is disabled
 
 - Global or shop buying may be disabled.
-- **Enable Locations** may be on. Buy does not list items above this place's Marketplace. On Sell, those owned items remain, with the sell buttons disabled; the tooltip names the limit. A shop's own stock can still include rarer items.
+- **Enable Locations** may be on. See [Shared Locations](#shared-locations). Buy lists items of this place's Marketplace tier or lower. On Sell, items above that tier remain, with the sell buttons disabled and a tooltip that names the limit. A shop's own stock can still include rarer items.
 - The item may be out of unreserved stock.
 - Select valid Shopping As and Paying From actors.
 - Confirm the funding actor has enough coin.

@@ -53,13 +53,13 @@ The in-game Documentation button opens this home page on the Morelord Gaming web
 
 Choose the guide that matches your role:
 
-- [Game Master Manual](gm-manual.md) — installation, world configuration, premium access, approvals, and Shop Manager.
+- [Game Master Manual](gm-manual.md) — installation, world configuration, [Shared Locations](gm-manual.md#shared-locations), premium access, approvals, and Shop Manager.
 - [Player Manual](player-manual.md) — selecting a character, browsing, buying, selling, transferring inventory, and using scene shops.
 
 These manuals describe Morelord Marketplace 0.12.0 for Foundry Virtual Tabletop v14 and the dnd5e game system.
 
 
-These manuals cover Marketplace 0.12.0 with Morelord Core 0.9.0 or later. Open **Morelord Tools** on the left side of the scene, then select **Morelord Marketplace**. GMs select **Manage Marketplace Shops** in that same control; it still requires Tools Premium or Tools Champion access. Buy and Sell use carts; shops support shared Locations, capability limits, and weighted random stock. **Enable Locations** can require the current location's Marketplace capability before anything is bought or sold. Buy then omits items above that tier. Sell still lists owned items above the tier and disables their sell buttons. A shop's own stock and purchase rules override the tier. Filled-container purchases include source compendium contents with separate container links for each copy. Placed shop tokens still open that vendor.
+These manuals cover Marketplace 0.12.0 with Morelord Core 0.9.0 or later. Open **Morelord Tools** on the left side of the scene, then select **Morelord Marketplace**. GMs select **Manage Marketplace Shops** in that same control; it still requires Tools Premium or Tools Champion access. Buy and Sell use carts; shops support shared Locations, capability limits, and weighted random stock. **Enable Locations** can require the current place's Marketplace capability before anything is bought or sold. Buy then lists items of that tier or lower. Sell still lists owned items above the tier and disables their sell buttons, with a tooltip that explains the limit. A shop's own stock and purchase rules override the tier. The Game Master Manual's [Shared Locations](gm-manual.md#shared-locations) section explains those rules. Create the places themselves with Morelord Core's [Shared Locations](https://morelordgaming.com/docs/morelord-core#shared-locations) guide. Filled-container purchases include source compendium contents with separate container links for each copy. Placed shop tokens still open that vendor.
 
 Version 0.9.9 adds manual-only shop stock, exclusive vendor purchase lists, Magical-property exclusion, and rarity-based prices for unpriced source items. Blank rarity defaults to Common at 100 gp; explicit prices and GM overrides take priority. Requires Morelord Core 0.4.0 or later.
 
