@@ -4,7 +4,7 @@ description: Browse, buy, sell, transfer items, and use wishlists through Market
 slug: morelord-marketplace/player
 product: morelord-marketplace
 audience: player
-version: 0.11.1
+version: 0.12.0
 foundry: 14
 ---
 
@@ -16,7 +16,7 @@ Updated layout: Buy and Sell begin with **Shopper and Payer**, with portraits in
 
 Morelord Marketplace lets you browse, buy, sell eligible inventory items at rates set by the GM, transfer equipment, and save wishlists in Foundry VTT. Your GM may also place individual vendors with their own products, prices, reputation, and stock.
 
-This manual applies to Morelord Marketplace 0.11.1 with Morelord Core 0.7.0 or later.
+This manual applies to Morelord Marketplace 0.12.0 with Morelord Core 0.9.0 or later.
 
 ## Transfer inventory items
 
@@ -32,6 +32,7 @@ A connected GM applies transfers automatically, including to recipients whose in
 - [Wishlists and browsing](#wishlists-and-browsing)
 - [Before you shop](#before-you-shop)
 - [Open the global Marketplace](#open-the-global-marketplace)
+- [Shared Locations](#shared-locations)
 - [Browse and filter items](#browse-and-filter-items)
 - [Buy from the global Marketplace](#buy-from-the-global-marketplace)
 - [Sell from your inventory](#sell-from-your-inventory)
@@ -70,6 +71,24 @@ The global Marketplace contains four tabs, in this order:
 - **Wishlist** saves desired items for the selected shopper without reserving stock.
 
 Your GM can disable global buying or selling independently. If buying is disabled, you may still browse the Buy catalog as a reference.
+
+If your GM turns on **Enable Locations**, what you can buy and sell depends on the current place. See [Shared Locations](#shared-locations).
+
+## Shared Locations
+
+Your GM may turn on **Enable Locations**. While it is on, buying and selling require a Marketplace at the current place. That place is the location for the scene you are viewing. An active Downtime session with a chosen location uses that location instead. A session set to No Location keeps the scene's location, so a scene associated with Phandalin still counts as Phandalin. **On the Road** applies when that session has no location and the scene you are viewing has none either. On the Road has no Marketplace, so buying and selling are blocked. Your GM creates those places and their Marketplace capabilities in Morelord Core. The setup steps are in Core's [Shared Locations](https://morelordgaming.com/docs/morelord-core#shared-locations) guide.
+
+The Marketplace window names the limit. A place with a Marketplace shows **Location Marketplace** and which tier it trades: Common, Uncommon, Rare, Very Rare, or Legendary. That tier includes every lower rarity. An item with no rarity counts as Common. Artifact is above Legendary.
+
+**Buy** lists items of that tier or lower. Higher rarities are left out of the list. The item count, rarity filters, and pages follow the shorter list.
+
+**Sell** still lists everything you can otherwise sell. Items above the tier stay on the list. **Add one to sell cart** and **Add all to sell cart** are disabled for those items. Hover either button to read the limit, for example "Emberwood's Marketplace trades Common items and lower. This item is above that limit." **Sell Cart** stays unavailable while the cart contains an item above the limit.
+
+A saved wish above the tier shows the status **Above location limit**, and its buy button is disabled. A place with no Marketplace shows the notice **No Marketplace here**. Wishes there show the status **No Marketplace**.
+
+While your current place has a Marketplace, a scene shop still shows the items in its own stock, including items rarer than that place. The notice is titled **Shop stock overrides this location**. The shop's own prices, stock, and purchase rules still apply. Where the current place has no Marketplace, the shop's Buy list is empty and its sell buttons are disabled.
+
+**Transfer** ignores the current place.
 
 ## Browse and filter items
 
@@ -300,6 +319,7 @@ Completed transaction cards may also be posted to chat when the GM enables that 
 ### The purchase button is disabled
 
 - Global or shop buying may be disabled.
+- **Enable Locations** may be on. See [Shared Locations](#shared-locations). Buy lists items of this place's Marketplace tier or lower. On Sell, items above that tier remain, with the sell buttons disabled and a tooltip that names the limit. A shop's own stock can still include rarer items.
 - The item may be out of unreserved stock.
 - Select valid Shopping As and Paying From actors.
 - Confirm the funding actor has enough coin.

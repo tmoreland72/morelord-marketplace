@@ -41,7 +41,7 @@ test('direct, cart, and approved purchases create contents with preserved genera
   const packDoc = { collection: "pack", documentName: "Item", getDocument: async () => source };
   const packs = [packDoc];
   packs.get = id => packs.find(entry => entry.collection === id);
-  globalThis.game = { user: { isGM: true }, modules: new Map(), system: { id: "other" }, settings: { get: () => true }, packs };
+  globalThis.game = { user: { isGM: true }, modules: new Map(), system: { id: "other" }, settings: { get: (_module, key) => key !== "enableLocations" }, packs };
   let serial = 0, balance = 1000;
   globalThis.CONFIG = { Item: { documentClass: { createWithContents: async items => items.flatMap(() => {
     const root = String(++serial);

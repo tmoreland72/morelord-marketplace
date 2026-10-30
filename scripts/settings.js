@@ -52,6 +52,16 @@ export function registerSettings() {
     default: true
   });
 
+  game.settings.register(MODULE_ID, "enableLocations", {
+    name: "Enable Locations",
+    hint: "Require the current location's Marketplace capability before anything can be bought or sold. That capability's tier limits the global Marketplace. A shop's own stock and purchase rules override the tier.",
+    scope: "world",
+    config: false,
+    type: Boolean,
+    default: false,
+    restricted: true
+  });
+
   game.settings.register(MODULE_ID, "requireSellApproval", {
     name: "Require GM Approval for Sales",
     hint: "Player sales remain pending until a Game Master approves or denies each transaction.",

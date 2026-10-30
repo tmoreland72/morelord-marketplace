@@ -1,4 +1,5 @@
 import { canUseActorInventory, listCharacterActors } from "../../../morelord-core/scripts/ui/actor-participation.js";
+import { itemRarity } from "../../../morelord-core/scripts/services/item-rarity.js";
 import { MODULE_ID, ITEM_TYPES } from "../constants.js";
 import { PricingService } from "./pricing-service.js";
 import { CurrencyService } from "./currency-service.js";
@@ -6,6 +7,7 @@ import { TransactionService } from "./transaction-service.js";
 import { TransactionApprovalService } from "./transaction-approval-service.js";
 import { ShopService } from "./shop-service.js";
 import { PartyInventoryService } from "./party-inventory-service.js";
+import { LocationTradeService, normalizeTradeRarity } from "./location-trade.js";
 
 export class ActorService {
   /**
@@ -103,6 +105,7 @@ export class ActorService {
           name: item.name,
           img: item.img,
           type: item.type,
+          rarity: normalizeTradeRarity(itemRarity(item.system)),
           quantity,
           listPriceCp,
           sellPriceCp,
@@ -114,7 +117,11 @@ export class ActorService {
   }
 
   static async sellItem(actor, itemId, quantity = 1, { shop = null } = {}) {
-    if (PartyInventoryService.needsGM(actor)) return this.sellCart(actor, [{ itemId, quantity }], { shop });
+    if (PartyInventoryService.needsGM(actor)) {
+      const result = await this.sellCart(actor, [{ itemId, quantity }], { shop });
+      if (result?.status === "blocked" && result.error) ui.notifications.warn(result.error);
+      return result;
+    }
     if (shop?.id) {
       shop = ShopService.getShop(shop.id);
       if (!shop) throw new Error("This shop no longer exists.");
@@ -129,6 +136,12 @@ export class ActorService {
       return;
     }
 
+    const locationBlock = LocationTradeService.block({ shop, rarity: "common", shopAllowsItem: true });
+    if (locationBlock) {
+      ui.notifications.warn(locationBlock.message);
+      return { status: "blocked", ok: false, error: locationBlock.message };
+    }
+
     const item = actor.items.get(itemId);
     if (!item) {
       ui.notifications.error("Item not found.");
@@ -138,6 +151,14 @@ export class ActorService {
     if (!ShopService.acceptsPlayerItem(item, shop) || item.getFlag(MODULE_ID, "unsellable")) {
       ui.notifications.warn(`${item.name} cannot be sold.`);
       return;
+    }
+
+    if (!shop) {
+      const rarityBlock = LocationTradeService.block({ rarity: normalizeTradeRarity(itemRarity(item.system)) });
+      if (rarityBlock) {
+        ui.notifications.warn(rarityBlock.message);
+        return { status: "blocked", ok: false, error: rarityBlock.message };
+      }
     }
 
     const ownedQty = Number(item.system?.quantity ?? 1);
@@ -197,18 +218,35 @@ export class ActorService {
       return { status: "blocked" };
     }
 
+    const locationBlock = LocationTradeService.block({ shop, rarity: "common", shopAllowsItem: true, user: requestingUser });
+    if (locationBlock) return { status: "blocked", ok: false, error: locationBlock.message };
+
     const sellRate = Number(game.settings.get(MODULE_ID, "sellRate") ?? 1);
-    const items = lines.map(line => {
-      const item = actor.items.get(line.itemId);
-      const quantity = Number(line.quantity);
-      const ownedQuantity = Number(item?.system?.quantity ?? 0);
-      if (!item || !ShopService.acceptsPlayerItem(item, shop) || item.getFlag(MODULE_ID, "unsellable") || !Number.isInteger(quantity) || quantity < 1 || quantity > ownedQuantity) {
-        throw new Error("An item in the sell cart is no longer available in the requested quantity.");
-      }
-      const unitPriceCp = PricingService.getSellPriceCp(PricingService.getItemPriceCp(item), shop, sellRate);
-      if (unitPriceCp === null) throw new Error(`${shop?.name ?? "This shop"} will not buy ${item.name}.`);
-      return { item, itemId: item.id, name: item.name, img: item.img, uuid: item.uuid, quantity, ownedQuantity, unitPriceCp, totalPriceCp: unitPriceCp * quantity };
-    });
+    let items;
+    try {
+      items = lines.map(line => {
+        const item = actor.items.get(line.itemId);
+        const quantity = Number(line.quantity);
+        const ownedQuantity = Number(item?.system?.quantity ?? 0);
+        if (!item || !ShopService.acceptsPlayerItem(item, shop) || item.getFlag(MODULE_ID, "unsellable") || !Number.isInteger(quantity) || quantity < 1 || quantity > ownedQuantity) {
+          throw new Error("An item in the sell cart is no longer available in the requested quantity.");
+        }
+        const unitPriceCp = PricingService.getSellPriceCp(PricingService.getItemPriceCp(item), shop, sellRate);
+        if (unitPriceCp === null) throw new Error(`${shop?.name ?? "This shop"} will not buy ${item.name}.`);
+        if (!shop) {
+          const rarityBlock = LocationTradeService.block({ rarity: normalizeTradeRarity(itemRarity(item.system)), user: requestingUser });
+          if (rarityBlock) {
+            const error = new Error(rarityBlock.message);
+            error.locationTrade = true;
+            throw error;
+          }
+        }
+        return { item, itemId: item.id, name: item.name, img: item.img, uuid: item.uuid, quantity, ownedQuantity, unitPriceCp, totalPriceCp: unitPriceCp * quantity };
+      });
+    } catch (error) {
+      if (error?.locationTrade) return { status: "blocked", ok: false, error: error.message };
+      throw error;
+    }
     const totalPriceCp = items.reduce((sum, entry) => sum + entry.totalPriceCp, 0);
 
     if (!shop && TransactionApprovalService.requiresApproval("sell", requestingUser)) {

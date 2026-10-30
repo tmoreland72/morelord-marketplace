@@ -311,17 +311,25 @@ Hooks.on("createActor", actor => {
   queueMicrotask(() => installShopActorSheetRedirect(actor));
 });
 
+function renderMarketplaceInBackground(app) {
+  const renderInBackground = game.modules.get("morelord-core")?.api?.ui?.renderInBackground
+    ?? globalThis.MorelordCore?.ui?.renderInBackground;
+  if (typeof renderInBackground === "function") return renderInBackground(app);
+  return app.render({ force: false });
+}
+
 Hooks.on("updateSetting", setting => {
   if (["dnd5e.packSourceConfiguration", `${MODULE_ID}.buyRate`, `${MODULE_ID}.sellRate`, `${MODULE_ID}.ignoreGlobalRates`].includes(setting?.key)) {
     // D&D5e only refreshes its own Compendium Browser when Configure Sources
     // changes. Marketplace keeps separate indexes/catalogs, so invalidate them
     // and refresh every open Marketplace surface before an excluded pack can
-    // remain visible in a shop or its inventory picker.
+    // remain visible in a shop or its inventory picker. The refresh stays in
+    // the background so it does not take focus from the window that changed.
     CompendiumService.clearCache();
     foundry.applications.instances?.forEach(app => {
       if (app instanceof MorelordMarketplaceApp || app instanceof MorelordShopManagerApp) {
         if (app instanceof MorelordMarketplaceApp && !app.shopId) { app.cart.clear(); app.sellCart.clear(); }
-        void app.render({ force: true });
+        void renderMarketplaceInBackground(app);
       }
     });
     return;
@@ -413,16 +421,12 @@ Hooks.on("morelordCoreEntitlementsUpdated", productSlug => {
   if (productSlug !== MODULE_ID) return;
 
   for (const app of Object.values(ui.windows ?? {})) {
-    if (app instanceof MorelordMarketplaceSettingsApp) {
-      app.render({ force: true });
-    }
+    if (app instanceof MorelordMarketplaceSettingsApp) void renderMarketplaceInBackground(app);
   }
 });
 
 Hooks.on("morelordCoreDisconnected", () => {
   for (const app of Object.values(ui.windows ?? {})) {
-    if (app instanceof MorelordMarketplaceSettingsApp) {
-      app.render({ force: true });
-    }
+    if (app instanceof MorelordMarketplaceSettingsApp) void renderMarketplaceInBackground(app);
   }
 });
