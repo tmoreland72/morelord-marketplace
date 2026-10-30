@@ -6,6 +6,7 @@ import {
   evaluateLocationTrade,
   filterBuyCatalog,
   locationFromActiveContext,
+  LocationTradeService,
   normalizeTradeRarity,
   resolveTradingLocation,
   sceneIdForUser,
@@ -115,21 +116,30 @@ test("Core activeContext supplies the location and the local lookup remains the 
   assert.equal(locationFromActiveContext(null, { id: "gm" }, { id: "fallback" }).id, "fallback");
 });
 
-test("an active Downtime session replaces the scene, including On the Road", () => {
+test("an explicit Downtime location wins, and No Location uses the viewed scene", () => {
+  const phandalin = { id: "phandalin", name: "Phandalin", capabilities: [{ type: "marketplace", tier: "common" }] };
   const scene = { id: "scene-town", name: "Scene Town", capabilities: [{ type: "marketplace", tier: "legendary" }] };
   const locations = new Map([
     ["waterdeep", rareMarket],
+    ["phandalin", phandalin],
     ["scene-town", scene]
   ]);
   const downtime = { sessions: { live: { status: "active", locationId: "waterdeep" }, old: { status: "finalized", locationId: "scene-town" } } };
   assert.equal(resolveTradingLocation({
-    sceneLocation: scene,
+    sceneLocation: phandalin,
     downtimeActive: true,
     downtimeState: downtime,
     getLocation: id => locations.get(id) ?? null
   }).id, "city");
+  for (const locationId of ["", "  ", null]) {
+    assert.equal(resolveTradingLocation({
+      sceneLocation: phandalin,
+      downtimeActive: true,
+      downtimeState: { sessions: { live: { status: "active", locationId } } }
+    }).name, "Phandalin");
+  }
   assert.equal(resolveTradingLocation({
-    sceneLocation: scene,
+    sceneLocation: null,
     downtimeActive: true,
     downtimeState: { sessions: { live: { status: "active", locationId: "" } } }
   }).name, "On the Road");
@@ -140,6 +150,41 @@ test("an active Downtime session replaces the scene, including On the Road", () 
   }).id, "scene-town");
   assert.equal(sceneIdForUser({ id: "player", viewedScene: "scene-7" }, { localUserId: "gm", localSceneId: "scene-1" }), "scene-7");
   assert.equal(sceneIdForUser({ id: "gm" }, { localUserId: "gm", localSceneId: "scene-1" }), "scene-1");
+});
+
+test("Core's On the Road result yields to the scene associated with the viewed scene", () => {
+  const phandalin = { id: "phandalin", name: "Phandalin", capabilities: [{ type: "marketplace", tier: "common" }] };
+  const road = { id: "road", name: "On the Road", capabilities: [], metadata: { virtual: true } };
+  const api = {
+    activeContext() {
+      return { location: road, source: "road", sessionId: "week" };
+    },
+    forScene(sceneId) {
+      return sceneId === "scene-phandalin" ? phandalin : null;
+    }
+  };
+  assert.equal(locationFromActiveContext(api, { id: "gm", viewedScene: "scene-phandalin" }, phandalin).name, "Phandalin");
+  assert.equal(locationFromActiveContext(api, { id: "gm" }, null).id, "road");
+
+  const previousGame = globalThis.game;
+  const previousCanvas = globalThis.canvas;
+  globalThis.game = {
+    user: { id: "gm", viewedScene: "scene-phandalin" },
+    modules: {
+      get(id) {
+        return id === "morelord-core" ? { api: { locations: api } } : undefined;
+      }
+    }
+  };
+  globalThis.canvas = { scene: { id: "scene-other" } };
+  try {
+    assert.equal(LocationTradeService.currentLocation(globalThis.game.user).name, "Phandalin");
+    api.forScene = () => null;
+    assert.equal(LocationTradeService.currentLocation(globalThis.game.user).name, "On the Road");
+  } finally {
+    globalThis.game = previousGame;
+    globalThis.canvas = previousCanvas;
+  }
 });
 
 const catalog = [

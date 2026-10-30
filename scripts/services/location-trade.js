@@ -11,9 +11,7 @@ const TIER_LABELS = Object.freeze({
 });
 
 /**
- * Active Downtime session location, matching Craftworks' crafting environment
- * check. Core does not yet expose this resolver; Marketplace calls Core for the
- * scene location, capability evaluation, and tier comparison.
+ * Scene id for a shopper. Another user's missing viewed scene does not use this client.
  */
 export function sceneIdForUser(user, { localUserId = null, localSceneId = null } = {}) {
   if (user?.viewedScene) return String(user.viewedScene);
@@ -21,12 +19,41 @@ export function sceneIdForUser(user, { localUserId = null, localSceneId = null }
   return localSceneId && !user ? String(localSceneId) : null;
 }
 
-/** Prefer Core's shared active place. A missing API keeps the local Downtime and scene lookup. */
-export function locationFromActiveContext(locationsApi, user, fallbackLocation) {
-  if (typeof locationsApi?.activeContext !== "function") return fallbackLocation ?? null;
-  return locationsApi.activeContext(user)?.location ?? null;
+export function roadLocation() {
+  return {
+    id: "road",
+    name: "On the Road",
+    settlementType: "road",
+    sceneIds: [],
+    capabilities: [],
+    notes: "",
+    metadata: { virtual: true }
+  };
 }
 
+/** Core 0.9.0 reports this virtual place for any active session that has no location. */
+export function isUnplacedRoad(location, source = null) {
+  if (source === "road") return true;
+  return location?.id === "road" && location?.metadata?.virtual === true;
+}
+
+/**
+ * Prefer Core's shared active place. A missing API keeps the local lookup.
+ * A virtual On the Road result yields to the viewed scene's location when one exists,
+ * so a Downtime session set to No Location does not hide that scene.
+ */
+export function locationFromActiveContext(locationsApi, user, fallbackLocation) {
+  if (typeof locationsApi?.activeContext !== "function") return fallbackLocation ?? null;
+  const context = locationsApi.activeContext(user);
+  const location = context?.location ?? null;
+  if (isUnplacedRoad(location, context?.source) && fallbackLocation) return fallbackLocation;
+  return location;
+}
+
+/**
+ * An explicit Downtime session location wins. A session with no location uses the
+ * viewed scene's location. On the Road remains only when that scene has none.
+ */
 export function resolveTradingLocation({
   sceneLocation = null,
   downtimeState = null,
@@ -36,18 +63,9 @@ export function resolveTradingLocation({
   if (!downtimeActive) return sceneLocation ?? null;
   const session = Object.values(downtimeState?.sessions ?? {}).find(entry => entry?.status === "active") ?? null;
   if (!session) return sceneLocation ?? null;
-  if (!session.locationId) {
-    return {
-      id: "road",
-      name: "On the Road",
-      settlementType: "road",
-      sceneIds: [],
-      capabilities: [],
-      notes: "",
-      metadata: { virtual: true }
-    };
-  }
-  return getLocation(session.locationId) ?? null;
+  const locationId = String(session.locationId ?? "").trim();
+  if (locationId) return getLocation(locationId) ?? null;
+  return sceneLocation ?? roadLocation();
 }
 
 export function normalizeTradeRarity(value) {
@@ -316,20 +334,26 @@ export class LocationTradeService {
 
   static currentLocation(user = globalThis.game?.user) {
     const api = this.locationApi();
-    if (typeof api?.activeContext === "function") return locationFromActiveContext(api, user, null);
+    if (typeof api?.activeContext === "function") {
+      return locationFromActiveContext(api, user, this.sceneLocation(user));
+    }
     return this.fallbackLocation(user);
+  }
+
+  static sceneLocation(user = globalThis.game?.user) {
+    const api = this.locationApi();
+    const localSceneId = globalThis.canvas?.scene?.id ?? globalThis.game?.scenes?.current?.id ?? null;
+    const sceneId = sceneIdForUser(user, { localUserId: globalThis.game?.user?.id ?? null, localSceneId });
+    if (typeof api?.forScene === "function" && sceneId) return api.forScene(sceneId) ?? null;
+    if (typeof api?.current === "function" && (!user || user.id === globalThis.game?.user?.id)) return api.current() ?? null;
+    return null;
   }
 
   static fallbackLocation(user = globalThis.game?.user) {
     const api = this.locationApi();
     const downtime = this.downtimeContext();
-    const localSceneId = globalThis.canvas?.scene?.id ?? globalThis.game?.scenes?.current?.id ?? null;
-    const sceneId = sceneIdForUser(user, { localUserId: globalThis.game?.user?.id ?? null, localSceneId });
-    const sceneLocation = typeof api?.forScene === "function" && sceneId
-      ? api.forScene(sceneId)
-      : (typeof api?.current === "function" && (!user || user.id === globalThis.game?.user?.id) ? api.current() : null);
     return resolveTradingLocation({
-      sceneLocation,
+      sceneLocation: this.sceneLocation(user),
       downtimeState: downtime.state,
       downtimeActive: downtime.active,
       getLocation: id => (typeof api?.get === "function" ? api.get(id) : null)

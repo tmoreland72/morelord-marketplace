@@ -124,8 +124,9 @@ Marketplace can require a Marketplace capability at the shopper's current place 
 
 While it is on, Marketplace uses the place Morelord Core reports for that shopper:
 
-- An active Downtime session uses that session's location.
-- A session with no location is **On the Road**. On the Road has no Marketplace capability, so buying and selling are blocked. The notice is titled **No Marketplace here** and reads "On the Road has no Marketplace, so nothing can be bought or sold here."
+- An active Downtime session with a chosen location uses that location, even when the shopper is viewing a different scene.
+- A session set to No Location uses the location linked to the scene that shopper is viewing. Phandalin stays the current place when the open scene is associated with Phandalin.
+- **On the Road** is used only when that session has no location and the viewed scene has no linked location. On the Road has no Marketplace capability, so buying and selling are blocked. The notice is titled **No Marketplace here** and reads "On the Road has no Marketplace, so nothing can be bought or sold here."
 - With no active Downtime session, Marketplace uses the location linked to the scene that shopper is viewing. A scene with no linked location has no Marketplace. The notice then reads "The current location has no Marketplace, so nothing can be bought or sold here."
 
 A cart, shop checkout, or GM approval runs this check again for the shopper's place. **Transfer** ignores the current place. The location notice appears on Buy, Sell, and Wishlist, and stays off the Transfer tab.

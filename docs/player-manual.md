@@ -76,7 +76,7 @@ If your GM turns on **Enable Locations**, what you can buy and sell depends on t
 
 ## Shared Locations
 
-Your GM may turn on **Enable Locations**. While it is on, buying and selling require a Marketplace at the current place. That place is the location for the scene you are viewing. An active Downtime session uses the session's location instead, including **On the Road** when the session has no location. On the Road has no Marketplace, so buying and selling are blocked for that session. Your GM creates those places and their Marketplace capabilities in Morelord Core. The setup steps are in Core's [Shared Locations](https://morelordgaming.com/docs/morelord-core#shared-locations) guide.
+Your GM may turn on **Enable Locations**. While it is on, buying and selling require a Marketplace at the current place. That place is the location for the scene you are viewing. An active Downtime session with a chosen location uses that location instead. A session set to No Location keeps the scene's location, so a scene associated with Phandalin still counts as Phandalin. **On the Road** applies when that session has no location and the scene you are viewing has none either. On the Road has no Marketplace, so buying and selling are blocked. Your GM creates those places and their Marketplace capabilities in Morelord Core. The setup steps are in Core's [Shared Locations](https://morelordgaming.com/docs/morelord-core#shared-locations) guide.
 
 The Marketplace window names the limit. A place with a Marketplace shows **Location Marketplace** and which tier it trades: Common, Uncommon, Rare, Very Rare, or Legendary. That tier includes every lower rarity. An item with no rarity counts as Common. Artifact is above Legendary.
 
