@@ -42,6 +42,7 @@ export class MorelordMarketplaceSettingsApp extends HandlebarsApplicationMixin(A
         sellRate: game.settings.get(MODULE_ID, "sellRate"),
         enableSelling: game.settings.get(MODULE_ID, "enableSelling"),
         enableBuying: game.settings.get(MODULE_ID, "enableBuying"),
+        enableLocations: game.settings.get(MODULE_ID, "enableLocations"),
         requireSellApproval: game.settings.get(MODULE_ID, "requireSellApproval"),
         requireBuyApproval: game.settings.get(MODULE_ID, "requireBuyApproval"),
         postTransactionCards: game.settings.get(MODULE_ID, "postTransactionCards")
@@ -87,6 +88,7 @@ export class MorelordMarketplaceSettingsApp extends HandlebarsApplicationMixin(A
         sellRate: Number(this.element.querySelector("[name='sellRate']")?.value),
         enableSelling: Boolean(this.element.querySelector("[name='enableSelling']")?.checked),
         enableBuying: Boolean(this.element.querySelector("[name='enableBuying']")?.checked),
+        enableLocations: Boolean(this.element.querySelector("[name='enableLocations']")?.checked),
         requireSellApproval: Boolean(this.element.querySelector("[name='requireSellApproval']")?.checked),
         requireBuyApproval: Boolean(this.element.querySelector("[name='requireBuyApproval']")?.checked),
         postTransactionCards: Boolean(this.element.querySelector("[name='postTransactionCards']")?.checked)

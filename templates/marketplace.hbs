@@ -52,6 +52,17 @@
     </nav>
 
   <section id="ml-marketplace-panel" class="ml-stack" data-gap="3" role="tabpanel" aria-labelledby="ml-marketplace-tab-{{activeTab}}">
+  {{#if locationTrade.message}}
+  {{#unless isTransferTab}}
+  <aside class="ml-callout" data-tone="{{locationTrade.tone}}">
+    <i class="{{locationTrade.icon}}"></i>
+    <div>
+      <strong>{{locationTrade.title}}</strong>
+      <p>{{locationTrade.message}}</p>
+    </div>
+  </aside>
+  {{/unless}}
+  {{/if}}
   {{#unless isWishlistTab}}
     {{#if isTransferTab}}{{> "modules/morelord-marketplace/templates/parts/transfer-context.hbs"}}{{else}}{{> "modules/morelord-marketplace/templates/parts/shopping-context.hbs"}}{{/if}}
   {{/unless}}

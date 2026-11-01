@@ -26,11 +26,11 @@
                 {{#unless ../transfer}}<td>{{listPrice}}</td><td>{{sellPrice}}</td>{{/unless}}
                 <td>
             <div class="ml-actions ml-marketplace-row-actions ml-marketplace-actions">
-                        <button type="button" data-action="{{#if ../transfer}}addTransfer{{else}}sellOne{{/if}}" data-item-id="{{ownedItemId}}" title="Add one to {{#if ../transfer}}transfer{{else}}sell{{/if}} cart" aria-label="Add one {{name}} to cart" {{#if ../transfer}}{{#unless canAdd}}disabled{{/unless}}{{else}}{{#unless canAddToSellCart}}disabled{{/unless}}{{/if}}>
+                        <button type="button" data-action="{{#if ../transfer}}addTransfer{{else}}sellOne{{/if}}" data-item-id="{{ownedItemId}}" title="{{#if locationBlockReason}}{{locationBlockReason}}{{else}}Add one to {{#if ../transfer}}transfer{{else}}sell{{/if}} cart{{/if}}" aria-label="Add one {{name}} to cart" {{#if ../transfer}}{{#unless canAdd}}disabled{{/unless}}{{else}}{{#unless canAddToSellCart}}disabled{{/unless}}{{/if}}>
                         <i class="fa-solid fa-coin"></i>
                         </button>
 
-                        <button type="button" data-action="{{#if ../transfer}}addTransfer{{else}}sellAll{{/if}}" {{#if ../transfer}}data-all="true"{{/if}} data-item-id="{{ownedItemId}}" title="Add all to {{#if ../transfer}}transfer{{else}}sell{{/if}} cart" aria-label="Add stack of {{name}} to cart" {{#if ../transfer}}{{#unless canAdd}}disabled{{/unless}}{{else}}{{#unless canAddToSellCart}}disabled{{/unless}}{{/if}}>
+                        <button type="button" data-action="{{#if ../transfer}}addTransfer{{else}}sellAll{{/if}}" {{#if ../transfer}}data-all="true"{{/if}} data-item-id="{{ownedItemId}}" title="{{#if locationBlockReason}}{{locationBlockReason}}{{else}}Add all to {{#if ../transfer}}transfer{{else}}sell{{/if}} cart{{/if}}" aria-label="Add stack of {{name}} to cart" {{#if ../transfer}}{{#unless canAdd}}disabled{{/unless}}{{else}}{{#unless canAddToSellCart}}disabled{{/unless}}{{/if}}>
                         <i class="fa-solid fa-sack-dollar"></i>
                         </button>
                         {{#if cartQty}}<span class="ml-marketplace-cart-qty">{{cartQty}}</span>{{/if}}

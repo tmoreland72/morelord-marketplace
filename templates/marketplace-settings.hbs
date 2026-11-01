@@ -65,6 +65,10 @@
         <input type="checkbox" name="enableBuying" {{#if settings.enableBuying}}checked{{/if}}>
       </label>
       <label class="ml-setting-row">
+        <span><strong>Enable Locations</strong><small>Require the current location's Marketplace capability to buy or sell. A shop's own stock overrides that location's rarity limit.</small></span>
+        <input type="checkbox" name="enableLocations" {{#if settings.enableLocations}}checked{{/if}}>
+      </label>
+      <label class="ml-setting-row">
         <span><strong>Require GM Approval for Sales</strong><small>Player sales remain pending until a GM resolves them.</small></span>
         <input type="checkbox" name="requireSellApproval" {{#if settings.requireSellApproval}}checked{{/if}}>
       </label>

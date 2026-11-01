@@ -8,6 +8,7 @@ import { PurchaseEligibilityService } from "./purchase-eligibility-service.js";
 import { ShopService } from "./shop-service.js";
 import { CompendiumService } from "./compendium-service.js";
 import { loadAllowedItem } from "./configured-sources.js";
+import { LocationTradeService, normalizeTradeRarity } from "./location-trade.js";
 
 const SOCKET_NAME = `module.${MODULE_ID}`;
 const REQUEST_TIMEOUT_MS = 30000;
@@ -74,7 +75,11 @@ export class ShopTransactionService {
       result = await this.#executeCheckout(payload);
     } catch (error) {
       console.error(`[${MODULE_ID}] Shop checkout failed`, error);
-      result = { ok: false, error: error?.message ?? "The shop transaction failed." };
+      result = {
+        ok: false,
+        status: error?.locationTrade ? "blocked" : undefined,
+        error: error?.message ?? "The shop transaction failed."
+      };
     }
 
     game.socket.emit(SOCKET_NAME, {
@@ -242,6 +247,13 @@ export class ShopTransactionService {
       if (!ShopService.entryPassesShop(row, shop, line.packId)) {
         throw new Error(`${item.name} is not sold by ${shop.name}. Refresh the shop and review your cart.`);
       }
+      const locationError = LocationTradeService.deny({
+        shop,
+        rarity: normalizeTradeRarity(row.rarityKey),
+        shopAllowsItem: true,
+        user: requester
+      });
+      if (locationError) throw locationError;
 
       const key = ShopService.stockKey(row);
       stockNeeded.set(key, (stockNeeded.get(key) ?? 0) + line.quantity);
