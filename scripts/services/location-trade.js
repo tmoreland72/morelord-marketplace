@@ -31,7 +31,7 @@ export function roadLocation() {
   };
 }
 
-/** Core 0.9.0 reports this virtual place for any active session that has no location. */
+/** Released Core 0.8.2 uses this virtual place only when the session and the viewed scene are both empty. */
 export function isUnplacedRoad(location, source = null) {
   if (source === "road") return true;
   return location?.id === "road" && location?.metadata?.virtual === true;

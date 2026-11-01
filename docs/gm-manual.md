@@ -10,7 +10,7 @@ foundry: 14
 
 # Morelord Marketplace Game Master Manual
 
-This guide covers Morelord Marketplace 0.12.0, Foundry VTT v14, dnd5e, and Morelord Core 0.9.0 or later. Open Marketplace and Shop Manager from **Morelord Tools**. The global tabs run **Sell → Transfer → Buy → Wishlist**. Sell eligible inventory items at rates set by the GM; wishlists save desired items without reserving stock.
+This guide covers Morelord Marketplace 0.12.0, Foundry VTT v14, dnd5e, and Morelord Core 0.8.2 or later. Open Marketplace and Shop Manager from **Morelord Tools**. The global tabs run **Sell → Transfer → Buy → Wishlist**. Sell eligible inventory items at rates set by the GM; wishlists save desired items without reserving stock.
 
 ## Inventory transfers
 
@@ -59,7 +59,7 @@ The global Marketplace remains usable if premium access expires. Saved premium s
 
 - Foundry Virtual Tabletop v14
 - The dnd5e game system
-- Morelord Core 0.9.0 or later
+- Morelord Core 0.8.2 or later
 - Morelord Marketplace v0.12.0
 
 ### Install with the manifest
