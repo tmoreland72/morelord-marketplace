@@ -695,8 +695,29 @@ function Request-DocumentationDeployment {
             version = $ReleaseVersion
         }
     } | ConvertTo-Json -Depth 5 -Compress
-    $Dispatch | & gh api --method POST "repos/$Repository/dispatches" --input -
-    if ($LASTEXITCODE -ne 0) { throw "Unable to request documentation deployment from $Repository." }
+    # github.token can push this repo, and it cannot create a repository_dispatch
+    # on another repository. DOCS_DISPATCH_TOKEN is a PAT for that call only.
+    $DispatchToken = $env:DOCS_DISPATCH_TOKEN
+    $PreviousGhToken = $env:GH_TOKEN
+    $TokenWasReplaced = $false
+    try {
+        if (-not [string]::IsNullOrWhiteSpace($DispatchToken)) {
+            $env:GH_TOKEN = $DispatchToken
+            $TokenWasReplaced = $true
+        }
+        $Dispatch | & gh api --method POST "repos/$Repository/dispatches" --input -
+        if ($LASTEXITCODE -ne 0) { throw "Unable to request documentation deployment from $Repository." }
+    }
+    finally {
+        if ($TokenWasReplaced) {
+            if ($null -eq $PreviousGhToken) {
+                Remove-Item Env:\GH_TOKEN -ErrorAction SilentlyContinue
+            }
+            else {
+                $env:GH_TOKEN = $PreviousGhToken
+            }
+        }
+    }
 }
 
 function Show-Usage {

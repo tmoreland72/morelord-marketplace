@@ -12,10 +12,11 @@ Both secrets are already stored under **Settings > Secrets and variables > Actio
 | --- | --- |
 | `RELEASE_PUBLISH_TOKEN` | `morelordgaming.com` release feed |
 | `FOUNDRY_RELEASE_TOKEN` | Foundry VTT package listing |
+| `DOCS_DISPATCH_TOKEN` | `repository_dispatch` of `product-docs-updated` to `tmorelord72/morelord-gaming-web` |
 
-The workflow passes those values only as environment variables on the publish step. It does not write a `.env` file and it does not print the values. The job stops with a clear error when either secret is empty.
+The workflow passes those values only as environment variables on the publish step. It does not write a `.env` file and it does not print the values. The job stops with a clear error when any of them is empty.
 
-`GITHUB_TOKEN` is provided by Actions. The workflow sets `GH_TOKEN` from it so `release.ps1` can commit, tag, push, and create the GitHub Release. The workflow grants `contents: write` and commits as `github-actions[bot]`. Branch protection on `main` must allow that bot to push commits and tags.
+`GITHUB_TOKEN` is provided by Actions. The workflow sets `GH_TOKEN` from it so `release.ps1` can commit, tag, push, and create the GitHub Release. The workflow grants `contents: write` and commits as `github-actions[bot]`. Branch protection on `main` must allow that bot to push commits and tags. That token cannot create a repository dispatch on another repository. `release.ps1` uses `DOCS_DISPATCH_TOKEN` only for that `gh api` call, then restores `GH_TOKEN`.
 
 ## Inputs
 

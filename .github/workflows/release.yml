@@ -43,12 +43,16 @@ jobs:
         env:
           RELEASE_PUBLISH_TOKEN: ${{ secrets.RELEASE_PUBLISH_TOKEN }}
           FOUNDRY_RELEASE_TOKEN: ${{ secrets.FOUNDRY_RELEASE_TOKEN }}
+          DOCS_DISPATCH_TOKEN: ${{ secrets.DOCS_DISPATCH_TOKEN }}
         run: |
           if ([string]::IsNullOrWhiteSpace($env:RELEASE_PUBLISH_TOKEN)) {
             throw 'RELEASE_PUBLISH_TOKEN is empty. Add it under Settings > Secrets and variables > Actions.'
           }
           if ([string]::IsNullOrWhiteSpace($env:FOUNDRY_RELEASE_TOKEN)) {
             throw 'FOUNDRY_RELEASE_TOKEN is empty. Add it under Settings > Secrets and variables > Actions.'
+          }
+          if ([string]::IsNullOrWhiteSpace($env:DOCS_DISPATCH_TOKEN)) {
+            throw 'DOCS_DISPATCH_TOKEN is empty. Add it under Settings > Secrets and variables > Actions. The workflow GITHUB_TOKEN cannot create a repository_dispatch on another repository.'
           }
 
       - name: Checkout Marketplace
@@ -127,6 +131,7 @@ jobs:
         env:
           RELEASE_PUBLISH_TOKEN: ${{ secrets.RELEASE_PUBLISH_TOKEN }}
           FOUNDRY_RELEASE_TOKEN: ${{ secrets.FOUNDRY_RELEASE_TOKEN }}
+          DOCS_DISPATCH_TOKEN: ${{ secrets.DOCS_DISPATCH_TOKEN }}
           RELEASE_VERSION: ${{ steps.version.outputs.version }}
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -138,6 +143,7 @@ jobs:
         env:
           RELEASE_PUBLISH_TOKEN: ${{ secrets.RELEASE_PUBLISH_TOKEN }}
           FOUNDRY_RELEASE_TOKEN: ${{ secrets.FOUNDRY_RELEASE_TOKEN }}
+          DOCS_DISPATCH_TOKEN: ${{ secrets.DOCS_DISPATCH_TOKEN }}
           RELEASE_VERSION: ${{ steps.version.outputs.version }}
           GH_TOKEN: ${{ github.token }}
         # release.ps1 rebuilds CHANGELOG.md, puts it at the zip root, and commits it with module.json.
