@@ -1,5 +1,16 @@
 # Morelord Marketplace Changelog
 
+## 0.12.1
+
+### Fixed
+
+- A shop that inherits its rarity from a location uses the highest Marketplace capability on that location. A lower Marketplace listed first no longer caps generated stock below a higher one on the same place. Buying and selling already used the highest tier, and stock generation now follows that same rule.
+
+### Improvements
+
+- Disabled **Purchase**, **Sell Cart**, **Transfer Items**, Add, quantity, and Wishlist Buy controls say why. The tooltip title is the reason, such as **Not enough gold**, **Cart empty**, **No Marketplace**, or **Over this location's rarity limit**, with one short line under it.
+- Requires Morelord Core 0.9.0 or newer.
+
 ## 0.12.0
 
 ### Added

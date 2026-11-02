@@ -16,7 +16,7 @@ Updated layout: Buy and Sell begin with **Shopper and Payer**, with portraits in
 
 Morelord Marketplace lets you browse, buy, sell eligible inventory items at rates set by the GM, transfer equipment, and save wishlists in Foundry VTT. Your GM may also place individual vendors with their own products, prices, reputation, and stock.
 
-This manual applies to Morelord Marketplace 0.12.0 with Morelord Core 0.8.2 or later.
+This manual applies to Morelord Marketplace 0.12.0 with Morelord Core 0.9.0 or later.
 
 ## Transfer inventory items
 
@@ -82,9 +82,9 @@ The Marketplace window names the limit. A place with a Marketplace shows **Locat
 
 **Buy** lists items of that tier or lower. Higher rarities are left out of the list. The item count, rarity filters, and pages follow the shorter list.
 
-**Sell** still lists everything you can otherwise sell. Items above the tier stay on the list. **Add one to sell cart** and **Add all to sell cart** are disabled for those items. Hover either button to read the limit, for example "Emberwood's Marketplace trades Common items and lower. This item is above that limit." **Sell Cart** stays unavailable while the cart contains an item above the limit.
+**Sell** still lists everything you can otherwise sell. Items above the tier stay on the list. **Add one to sell cart** and **Add all to sell cart** are disabled for those items. Hover either button. The tooltip title is **Over this location's rarity limit**, and the line under it names the tier, for example "Emberwood trades Common items and lower." **Sell Cart** stays unavailable while the cart contains an item above the limit, with that same tooltip.
 
-A saved wish above the tier shows the status **Above location limit**, and its buy button is disabled. A place with no Marketplace shows the notice **No Marketplace here**. Wishes there show the status **No Marketplace**.
+A saved wish above the tier shows the status **Above location limit**, and its buy button is disabled. Hover that button for **Over this location's rarity limit**. A place with no Marketplace shows the notice **No Marketplace here**. Wishes there show the status **No Marketplace**, and the buy button's tooltip is titled **No Marketplace** with the line "This location has no Marketplace capability."
 
 While your current place has a Marketplace, a scene shop still shows the items in its own stock, including items rarer than that place. The notice is titled **Shop stock overrides this location**. The shop's own prices, stock, and purchase rules still apply. Where the current place has no Marketplace, the shop's Buy list is empty and its sell buttons are disabled.
 
@@ -176,12 +176,12 @@ Filters start unrestricted. Facet choices and counts depend on enabled sources a
 | **Filters / Clear all filters** | Expands or collapses the filter sidebar; Clear all filters resets all catalog restrictions. |
 | **Previous page / Next page** | Navigates catalog pages while retaining the Buy cart. The page indicator shows the current result range and page totals. |
 | **Heart / Add to wishlist** | Saves the product to the selected shopper's wishlist. Already saved entries are disabled. |
-| **Add one / Add all** | Plans one unit or the full available inventory stack in the relevant cart. No inventory or coin changes yet. |
-| **Cart plus / minus / remove item** | Increments, decrements, or removes the whole line. Quantities cannot exceed available inventory/stock; decrementing the last unit removes the line. |
+| **Add one / Add all** | Plans one unit or the full available inventory stack in the relevant cart. No inventory or coin changes yet. A disabled button explains why, such as **Over this location's rarity limit**, **Selling is off**, or **All in the cart**. |
+| **Cart plus / minus / remove item** | Increments, decrements, or removes the whole line. Quantities cannot exceed available inventory/stock; decrementing the last unit removes the line. A disabled plus or a stepper disabled during checkout shows why, such as **Not enough gold**, **Out of stock**, **All in the cart**, or **Purchasing**. |
 | **Clear Cart** | Removes all planned lines without changing inventory or coin. Shown when the cart contains items. |
-| **Purchase / Sell Cart** | Submits the purchase or sale; global approval settings may make a player request pending. Disabled when current eligibility, funds, or availability prevents checkout. |
-| **Transfer Items** | Sends the selected quantities using a connected GM, without currency changes or transaction approval. |
-| **Wishlist cart button / remove** | Adds an available wish to the Buy cart or deletes the saved wish. |
+| **Purchase / Sell Cart** | Submits the purchase or sale; global approval settings may make a player request pending. When the button is disabled, its tooltip gives the reason. Titles include **Cart empty**, **Not enough gold**, **No Marketplace**, **Over this location's rarity limit**, **Buying is off**, **Selling is off**, **No shopper**, **No payer**, and **Shop changed**. |
+| **Transfer Items** | Sends the selected quantities using a connected GM, without currency changes or transaction approval. A disabled button explains the missing sender, recipient, or empty cart. |
+| **Wishlist cart button / remove** | Adds an available wish to the Buy cart or deletes the saved wish. A disabled Buy button explains why, such as **Not enough gold**, **No Marketplace**, **Over this location's rarity limit**, or **Unavailable**. |
 
 GM-only Marketplace controls are documented in the GM guide.
 
@@ -193,7 +193,7 @@ GM-only Marketplace controls are documented in the GM guide.
 
 If the transaction completes immediately, Marketplace deducts the price from the character and adds the item to that character's inventory. If GM approval is enabled, the request remains pending until a GM approves or denies it.
 
-The purchase button may be unavailable when global buying is disabled. Marketplace also prevents a purchase when the character cannot afford the current price or the source item is no longer available.
+The purchase button may be unavailable when global buying is disabled, the cart is empty, or the character cannot afford the current price. Hover **Purchase** to read the reason.
 
 ## Sell from your inventory
 
@@ -318,6 +318,7 @@ Completed transaction cards may also be posted to chat when the GM enables that 
 
 ### The purchase button is disabled
 
+- Hover **Purchase**. The tooltip title is the reason: **Cart empty**, **Not enough gold**, **Buying is off**, **No Marketplace**, **No shopper**, **No payer**, **Shop changed**, or **Over this location's rarity limit**.
 - Global or shop buying may be disabled.
 - **Enable Locations** may be on. See [Shared Locations](#shared-locations). Buy lists items of this place's Marketplace tier or lower. On Sell, items above that tier remain, with the sell buttons disabled and a tooltip that names the limit. A shop's own stock can still include rarer items.
 - The item may be out of unreserved stock.
@@ -327,7 +328,7 @@ Completed transaction cards may also be posted to chat when the GM enables that 
 
 ### An item cannot be added to the cart
 
-The item may already be fully reserved by you or other shoppers, or adding it would exceed the funding actor's available currency.
+Hover the disabled Add or plus button. The tooltip title is the reason, such as **Not enough gold**, **Out of stock**, or **All in the cart**. The item may already be fully reserved by you or other shoppers, or adding it would exceed the funding actor's available currency.
 
 ### A sale item is not listed
 

@@ -11,8 +11,8 @@
             <div class="ml-marketplace-cart-line-details">
               <a class="content-link ml-marketplace-cart-item-name" data-link data-uuid="{{uuid}}">{{name}}</a>
               <div class="ml-marketplace-cart-line-pricing"><span>{{sellPrice}} each</span><strong>{{lineTotal}}</strong></div>
-              <div class="ml-marketplace-cart-quantity-row"><span>Qty</span>
-                {{> "modules/morelord-core/templates/components/quantity-controls.hbs" action="adjustCartQuantity" clearAction="adjustCartQuantity" cartType="sell" itemId=ownedItemId name=name quantity=quantity increaseEnabled=canAddToSellCart disabled=../isCheckingOut classes="ml-marketplace-quantity-stepper ml-marketplace-cart-stepper" quantityClass="ml-marketplace-cart-qty"}}
+              <div class="ml-marketplace-cart-quantity-row" {{#if increaseDisabledReason}}data-ml-increase-reason="{{increaseDisabledReason}}"{{/if}}><span>Qty</span>
+                {{> "modules/morelord-core/templates/components/quantity-controls.hbs" action="adjustCartQuantity" clearAction="adjustCartQuantity" cartType="sell" itemId=ownedItemId name=name quantity=quantity increaseEnabled=canAddToSellCart disabled=../isCheckingOut disabledReason=../sellStepperDisabledReason classes="ml-marketplace-quantity-stepper ml-marketplace-cart-stepper" quantityClass="ml-marketplace-cart-qty"}}
               </div>
             </div>
           </div>
@@ -22,7 +22,7 @@
       </div>
       <div class="ml-marketplace-cart-footer">
         <div><span>Sale Total</span><strong>{{sellCartTotal}}</strong></div>
-        <button type="button" class="primary" data-action="checkoutSellCart" {{#unless canCheckoutSell}}disabled{{/unless}}>{{#if isCheckingOut}}<i class="fa-solid fa-spinner fa-spin"></i> Selling…{{else}}<i class="fa-solid fa-coins"></i> Sell Cart{{/if}}</button>
+        {{> "modules/morelord-core/templates/components/ml-button.hbs" label=sellCartLabel icon=sellCartIcon action="checkoutSellCart" class="primary" disabledReason=sellCartDisabledReason}}
         {{#if sellCartCount}}<button type="button" data-action="clearSellCart"><i class="fa-solid fa-trash"></i> Clear Cart</button>{{/if}}
       </div>
     </aside>

@@ -13,9 +13,9 @@
           <img src="{{img}}" alt="{{name}}" data-link data-uuid="{{uuid}}" title="Open {{name}}">
           <div class="ml-marketplace-cart-line-details">
             <a class="content-link ml-marketplace-cart-item-name" data-link data-uuid="{{uuid}}">{{name}}</a>
-            <div class="ml-marketplace-cart-quantity-row">
+            <div class="ml-marketplace-cart-quantity-row" {{#if increaseDisabledReason}}data-ml-increase-reason="{{increaseDisabledReason}}"{{/if}}>
               <span>Qty</span>
-              {{> "modules/morelord-core/templates/components/quantity-controls.hbs" action="adjustTransferQuantity" clearAction="adjustCartQuantity" cartType="transfer" itemId=ownedItemId name=name quantity=cartQty increaseEnabled=canAdd disabled=../isCheckingOut classes="ml-marketplace-quantity-stepper ml-marketplace-cart-stepper" quantityClass="ml-marketplace-cart-qty"}}
+              {{> "modules/morelord-core/templates/components/quantity-controls.hbs" action="adjustTransferQuantity" clearAction="adjustCartQuantity" cartType="transfer" itemId=ownedItemId name=name quantity=cartQty increaseEnabled=canAdd disabled=../isCheckingOut disabledReason=../transferStepperDisabledReason classes="ml-marketplace-quantity-stepper ml-marketplace-cart-stepper" quantityClass="ml-marketplace-cart-qty"}}
             </div>
           </div>
         </div>
@@ -23,7 +23,7 @@
       </div>
       <div class="ml-marketplace-cart-footer">
         <div><span>Item Total</span><strong>{{transferCartCount}}</strong></div>
-        <button type="button" class="primary" data-action="checkoutTransfer" {{#unless canCheckoutTransfer}}disabled{{/unless}}>{{#if isCheckingOut}}<i class="fa-solid fa-spinner fa-spin"></i> Transferring...{{else}}<i class="fa-solid fa-right-left"></i> Transfer Items{{/if}}</button>
+        {{> "modules/morelord-core/templates/components/ml-button.hbs" label=transferLabel icon=transferIcon action="checkoutTransfer" class="primary" disabledReason=transferDisabledReason}}
         {{#if transferCartCount}}<button type="button" data-action="clearTransfer"><i class="fa-solid fa-trash"></i> Clear Cart</button>{{/if}}
       </div>
     </aside>

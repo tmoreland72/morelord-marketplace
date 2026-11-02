@@ -3,7 +3,7 @@ import { MODULE_ID, FLAGS } from "../constants.js";
 import { WishlistService } from "./wishlist-service.js";
 import { SHOP_ITEM_OPTIONS, SHOP_TYPES, REPUTATION_TIERS, ShopProfileModel, getItemTypesForOptions } from "../models/shop-profile.js";
 import { PrefabShopService } from "./prefab-shop-service.js";
-import { inventoryEntryAllowedByCapability, normalizeCapabilityTier } from "./shop-capability.js";
+import { inventoryEntryAllowedByCapability, normalizeCapabilityTier, selectMarketplaceCapability } from "./shop-capability.js";
 import { isUuidAllowed } from "./configured-sources.js";
 
 export class ShopService {
@@ -65,17 +65,25 @@ export class ShopService {
   }
 
   static getLocationApi() {
-    return game.modules.get("morelord-core")?.api?.locations ?? globalThis.MorelordCore?.locations ?? null;
+    return globalThis.game?.modules?.get?.("morelord-core")?.api?.locations
+      ?? globalThis.MorelordCore?.locations
+      ?? null;
   }
 
   static getEffectiveCapability(shop) {
     const explicitTier = normalizeCapabilityTier(shop?.capabilityTier);
     if (explicitTier) return { tier: explicitTier, source: "shop", location: null };
     const locationApi = this.getLocationApi();
-    const location = shop?.locationId ? locationApi?.get(shop.locationId) : null;
-    const capability = location?.capabilities?.find(entry => entry.type === "marketplace") ?? null;
+    const location = shop?.locationId && typeof locationApi?.get === "function"
+      ? locationApi.get(shop.locationId)
+      : null;
+    const capability = selectMarketplaceCapability(
+      location,
+      typeof locationApi?.meetsTier === "function" ? locationApi.meetsTier : null,
+      typeof locationApi?.evaluateRequirements === "function" ? locationApi.evaluateRequirements : null
+    );
     return {
-      tier: normalizeCapabilityTier(capability?.tier),
+      tier: capability?.tier ?? null,
       source: capability ? "location" : "legacy",
       location
     };
