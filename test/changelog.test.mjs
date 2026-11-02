@@ -1,14 +1,15 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readdirSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-const root = new URL("..", import.meta.url).pathname;
-const changelog = readFileSync(join(root, "CHANGELOG.md"), "utf8");
+const root = fileURLToPath(new URL("..", import.meta.url));
+const changelog = readFileSync(path.join(root, "CHANGELOG.md"), "utf8");
 const lines = changelog.split(/\r?\n/);
-const manifest = JSON.parse(readFileSync(join(root, "module.json"), "utf8"));
-const releaseConfig = JSON.parse(readFileSync(join(root, "release.config.json"), "utf8"));
-const releaseScript = readFileSync(join(root, "release.ps1"), "utf8");
+const manifest = JSON.parse(readFileSync(path.join(root, "module.json"), "utf8"));
+const releaseConfig = JSON.parse(readFileSync(path.join(root, "release.config.json"), "utf8"));
+const releaseScript = readFileSync(path.join(root, "release.ps1"), "utf8");
 
 function versionValue(version) {
   return version.split(".").map(part => Number(part));
@@ -29,7 +30,7 @@ test("root changelog uses the module title and BBMM heading rules", () => {
 });
 
 test("changelog versions are every release note, newest first, without internal sections", () => {
-  const noteVersions = readdirSync(join(root, "release-notes"))
+  const noteVersions = readdirSync(path.join(root, "release-notes"))
     .map(name => /^RELEASE-NOTES-(\d+\.\d+\.\d+)\.md$/.exec(name)?.[1])
     .filter(Boolean)
     .sort((left, right) => {
@@ -61,4 +62,15 @@ test("release packaging commits and requires the root changelog", () => {
   assert.match(releaseScript, /function Update-Changelog/);
   assert.match(releaseScript, /git add -- module\.json CHANGELOG\.md/);
   assert.match(releaseScript, /\[switch\]\$ValidateOnly/);
+  assert.match(releaseScript, /\[switch\]\$FoundryOnly/);
+});
+
+test("Windows file URL roots keep a single drive letter", () => {
+  const testUrl = new URL("file:///E:/repo/test/changelog.test.mjs");
+  const pathnameRoot = new URL("..", testUrl).pathname;
+  assert.equal(path.win32.resolve("E:\\repo", pathnameRoot, "CHANGELOG.md"), "E:\\E:\\repo\\CHANGELOG.md");
+
+  const windowsRoot = fileURLToPath(new URL("..", testUrl), { windows: true });
+  assert.equal(path.win32.join(windowsRoot, "CHANGELOG.md"), "E:\\repo\\CHANGELOG.md");
+  assert.equal(path.win32.join(windowsRoot, "release-notes"), "E:\\repo\\release-notes");
 });

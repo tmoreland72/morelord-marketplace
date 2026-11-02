@@ -32,6 +32,9 @@ param(
     [switch]$WebsiteOnly,
 
     [Parameter(Mandatory = $false)]
+    [switch]$FoundryOnly,
+
+    [Parameter(Mandatory = $false)]
     [string]$WebsiteUrl,
 
     [Parameter(Mandatory = $false)]
@@ -704,6 +707,7 @@ function Show-Usage {
     Write-Host '  .\release.ps1 -Version <x.y.z> [-DryRun] [-Prerelease] [-Draft]' -ForegroundColor Yellow
     Write-Host '  .\release.ps1 -Version <x.y.z> -ValidateOnly' -ForegroundColor Yellow
     Write-Host '  .\release.ps1 -Version <x.y.z> -WebsiteOnly' -ForegroundColor Yellow
+    Write-Host '  .\release.ps1 -Version <x.y.z> -FoundryOnly' -ForegroundColor Yellow
     Write-Host ''
     Write-Host 'Normal releases publish GitHub + Foundry + morelordgaming.com/releases.'
     Write-Host 'The release rebuilds CHANGELOG.md from release-notes/ and commits it with module.json.'
@@ -713,6 +717,7 @@ function Show-Usage {
     Write-Host 'Draft and prerelease builds are not published to the public website release feed.'
     Write-Host '-ValidateOnly checks the archive and rewrites CHANGELOG.md only when it is out of date.'
     Write-Host 'An already current CHANGELOG.md is left untouched, so Git stays clean.'
+    Write-Host '-WebsiteOnly and -FoundryOnly publish an existing version. They do not commit, tag, or create a GitHub Release.'
     Write-Host ''
 }
 
@@ -764,8 +769,56 @@ $ShouldPublishWebsite = -not $SkipWebsitePublish -and -not $Draft -and -not $Pre
 $ShouldPublishFoundry = -not $SkipFoundryPublish -and -not $Draft -and -not $Prerelease
 if ($WebsiteOnly) { $ShouldPublishWebsite = $true }
 if ($ValidateOnly -and $WebsiteOnly) { throw '-ValidateOnly cannot be combined with -WebsiteOnly.' }
+if ($ValidateOnly -and $FoundryOnly) { throw '-ValidateOnly cannot be combined with -FoundryOnly.' }
+if ($WebsiteOnly -and $FoundryOnly) { throw 'Pass -WebsiteOnly or -FoundryOnly, not both. Run the script once for each destination.' }
 
 Set-Location $ProjectRoot
+
+if ($FoundryOnly) {
+    if (-not (Test-Path $ManifestPath)) { throw 'module.json was not found.' }
+    if ([string]::IsNullOrWhiteSpace($FoundryToken)) { throw 'Foundry-only publishing requires FOUNDRY_RELEASE_TOKEN in the environment or -FoundryToken.' }
+    Assert-CommandExists 'git'
+    Assert-Utf8JsonFile -Path $ManifestPath
+    $Manifest = Get-Content $ManifestPath -Raw | ConvertFrom-Json
+    Assert-Manifest -Manifest $Manifest -ExpectedModuleId $ModuleId
+    if ([string]$Manifest.version -ne $Version) {
+        throw "Foundry-only publishing requires module.json version $([string]$Manifest.version) to equal $Version. This path does not change the manifest, tag, or GitHub Release."
+    }
+    if (-not (Test-RemoteTagExists -Tag $Tag)) { throw "Git tag '$Tag' was not found on origin. Foundry-only publishing uses the existing tag and does not create one." }
+    $FoundryCompatibility = [ordered]@{
+        minimum = [string]$Manifest.compatibility.minimum
+        verified = [string]$Manifest.compatibility.verified
+    }
+    if ($Manifest.compatibility.PSObject.Properties.Name -contains 'maximum' -and -not [string]::IsNullOrWhiteSpace([string]$Manifest.compatibility.maximum)) {
+        $FoundryCompatibility.maximum = [string]$Manifest.compatibility.maximum
+    }
+    $FoundryPayload = [pscustomobject]@{
+        id = $ModuleId
+        release = [pscustomobject]@{
+            version = $Version
+            manifest = $VersionManifestUrl
+            notes = $GitHubReleaseUrl
+            compatibility = $FoundryCompatibility
+        }
+    }
+    Write-Host ''
+    Write-Host "Publishing existing $ModuleTitle $Tag to Foundry VTT..." -ForegroundColor Cyan
+    if ($DryRun) {
+        Write-Host ($FoundryPayload | ConvertTo-Json -Depth 20)
+        Write-Host 'Foundry-only dry run completed; nothing was published.' -ForegroundColor Green
+        exit 0
+    }
+    $FoundryResponse = Publish-FoundryRelease -Token $FoundryToken -Payload $FoundryPayload
+    if ($FoundryResponse.status -ne 'success') {
+        $FoundryError = if ($FoundryResponse.errors) { $FoundryResponse.errors | ConvertTo-Json -Compress } else { 'Foundry did not return status success.' }
+        throw "Foundry release publication failed: $FoundryError"
+    }
+    Write-Host 'Published to Foundry VTT.' -ForegroundColor Green
+    if ($FoundryResponse.PSObject.Properties.Name -contains 'page' -and -not [string]::IsNullOrWhiteSpace([string]$FoundryResponse.page)) {
+        Write-Host "Package page: $($FoundryResponse.page)"
+    }
+    exit 0
+}
 
 if ($WebsiteOnly) {
     if (-not (Test-Path $ReleaseNotesPath -PathType Leaf)) { throw "Release notes were not found: $ReleaseNotesPath" }

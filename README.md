@@ -229,6 +229,8 @@ Created by **Morelord Gaming**
 
 Production Morelord Foundry modules use the same `release.ps1`. Character Export and Downtime follow these release steps. Project-specific values are stored in `release.config.json`, so improvements to the workflow can be copied between repositories without editing module logic.
 
+Dispatch **Release** from the `main` branch (`.github/workflows/release.yml`) to run that script in GitHub Actions. The workflow uses the repository secrets `RELEASE_PUBLISH_TOKEN` and `FOUNDRY_RELEASE_TOKEN`. A normal run checks out Morelord Core beside this repository, runs `node --test test/*.test.mjs`, then calls `release.ps1`. The zip contents stay the `requiredPaths` and existing `optionalPaths` in `release.config.json`. `publish_only` republishes an existing version to the website and then to Foundry, and does not create a commit, tag, or GitHub Release. See `RELEASING.md`.
+
 Before a normal release, create `release-notes/RELEASE-NOTES-x.y.z.md`. The same Markdown file is used for the GitHub Release and parsed into the public Morelord Gaming `/releases` feed. Recognized headings are `Added`, `Features`, `Improvements`, `Changed`, `Fixed`, `Breaking Changes`, and `Security`. Prefix a bullet with `[Premium]` or `[Champion]` when the change is tier-specific; otherwise it is treated as Standard.
 
 `release.ps1` rebuilds the root `CHANGELOG.md` from `release-notes/RELEASE-NOTES-*.md` before it stages the archive, then commits `CHANGELOG.md` with `module.json`. Versions are newest first. The file uses `#` / `##` / `###` headings with a space after each hash and `- ` bullets, and it omits verification sections and `---` rules so in-Foundry viewers such as Big Bad Module Manager can read it. `CHANGELOG.md` is a required release path and ships at the root of the module `.zip`. The per-version notes stay out of the archive.
@@ -264,6 +266,14 @@ If GitHub release creation succeeds but website publication fails, retry only th
 ```powershell
 .\release.ps1 -Version x.y.z -WebsiteOnly
 ```
+
+If the GitHub Release exists but Foundry publication fails, retry only the Foundry step. `module.json` must already equal that version, and the `v` tag must already exist on origin. Set `FOUNDRY_RELEASE_TOKEN` in the environment or pass `-FoundryToken`:
+
+```powershell
+.\release.ps1 -Version x.y.z -FoundryOnly
+```
+
+`-FoundryOnly` does not change the manifest, tag, or GitHub Release. Pass `-WebsiteOnly` or `-FoundryOnly`, not both.
 
 Use `-SkipWebsitePublish` only when intentionally creating a normal GitHub/Foundry release that should not appear on the Morelord website.
 
