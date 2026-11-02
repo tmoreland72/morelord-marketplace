@@ -51,7 +51,7 @@ When `publish_only` is false, the workflow checks out the public repository `tmo
 
 The owner is `tmoreland72`, the same value as `githubOwner` in `release.config.json`. The raw manifest is `https://raw.githubusercontent.com/tmoreland72/morelord-core/main/module.json`.
 
-This repository has no `package.json`. The workflow runs `node --test "test/*.test.mjs"`. Tests import Core from the sibling path, including `scripts/ui/disabled-reason.js`.
+This repository has no `package.json`. The workflow runs on Node 20 under PowerShell. Node 20 treats a quoted `test/*.test.mjs` argument as a literal path, so the test step lists those files with `Get-ChildItem` and passes each path to `node --test`. Tests import Core from the sibling path, including `scripts/ui/disabled-reason.js`.
 
 `publish_only` skips that checkout and skips the unit tests.
 

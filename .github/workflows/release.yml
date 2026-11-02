@@ -95,7 +95,12 @@ jobs:
 
       - name: Run unit tests
         if: ${{ inputs.publish_only == false }}
-        run: node --test "test/*.test.mjs"
+        # Node 20 stats each argument. A quoted glob is one literal path
+        # (Could not find test/*.test.mjs). PowerShell expands the list.
+        run: |
+          $tests = @(Get-ChildItem -LiteralPath test -Filter *.test.mjs -File)
+          if ($tests.Count -eq 0) { throw 'No test/*.test.mjs files were found.' }
+          node --test @($tests.FullName)
 
       - name: Resolve release version
         id: version
