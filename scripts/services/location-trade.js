@@ -1,4 +1,6 @@
-import { normalizeCapabilityTier, rarityWithinCapability } from "./shop-capability.js";
+import { normalizeCapabilityTier, rarityWithinCapability, selectMarketplaceCapability } from "./shop-capability.js";
+
+export { selectMarketplaceCapability };
 
 export const ENABLE_LOCATIONS_SETTING = "enableLocations";
 
@@ -78,23 +80,6 @@ export function normalizeTradeRarity(value) {
 
 export function tierLabel(tier) {
   return TIER_LABELS[normalizeCapabilityTier(tier)] ?? "Common";
-}
-
-export function selectMarketplaceCapability(location, meetsTier = null) {
-  const matches = (location?.capabilities ?? [])
-    .filter(entry => String(entry?.type ?? "").trim() === "marketplace")
-    .map(entry => {
-      const tier = normalizeCapabilityTier(entry?.tier);
-      return tier ? { ...entry, type: "marketplace", tier } : null;
-    })
-    .filter(Boolean);
-  return matches.reduce((best, entry) => {
-    if (!best) return entry;
-    const higher = typeof meetsTier === "function"
-      ? meetsTier(entry.tier, best.tier) === true
-      : rarityWithinCapability(best.tier, entry.tier);
-    return higher ? entry : best;
-  }, null);
 }
 
 function rarityAllowed(rarity, capabilityTier, meetsTier) {
@@ -362,22 +347,11 @@ export class LocationTradeService {
 
   static capabilityFor(location) {
     const api = this.locationApi();
-    const meetsTier = typeof api?.meetsTier === "function" ? api.meetsTier : null;
-    if (typeof api?.evaluateRequirements === "function") {
-      try {
-        const evaluation = api.evaluateRequirements(
-          [{ kind: "capability", type: "marketplace", tier: "common" }],
-          { location }
-        );
-        const result = evaluation?.results?.find(entry => entry?.kind === "capability");
-        const tier = result?.passed ? normalizeCapabilityTier(result.actual?.tier) : null;
-        if (tier) return { type: "marketplace", tier, specialty: result.actual?.specialty ?? null };
-        return null;
-      } catch {
-        return selectMarketplaceCapability(location, meetsTier);
-      }
-    }
-    return selectMarketplaceCapability(location, meetsTier);
+    return selectMarketplaceCapability(
+      location,
+      typeof api?.meetsTier === "function" ? api.meetsTier : null,
+      typeof api?.evaluateRequirements === "function" ? api.evaluateRequirements : null
+    );
   }
 
   static decide({

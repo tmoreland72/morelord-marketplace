@@ -27,6 +27,7 @@ Hooks.once("init", async () => {
   registerSettings();
 
   await foundry.applications.handlebars.loadTemplates([
+    "modules/morelord-core/templates/components/ml-button.hbs",
     "modules/morelord-core/templates/components/quantity-controls.hbs",
     `modules/${MODULE_ID}/templates/parts/shopping-context.hbs`,
     `modules/${MODULE_ID}/templates/parts/transfer-context.hbs`,

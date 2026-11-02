@@ -120,7 +120,7 @@ Install this URL using:
 ## Requirements
 
 - Foundry VTT v14
-- Morelord Core 0.8.2 or later
+- Morelord Core 0.9.0 or later
 - dnd5e System compatible with Foundry v14
 
 ---
@@ -131,7 +131,7 @@ Install this URL using:
 
 Open the global Marketplace from **Morelord Tools** with the Marketplace store button, or interact with a placed shop token to browse that vendor.
 
-The global Marketplace can be used for buying, selling, or lookup depending on the GM's world settings. **Enable Locations** can require the current place's Marketplace capability. Buy then lists only items of that tier or lower, and the item count, rarity counts, and pages follow that shorter list. Sell still lists owned items above the tier and disables their sell buttons; the button tooltip explains the limit. A shop's own stock and purchase rules override that rarity limit. The player manual's Shared Locations section describes what shoppers see.
+The global Marketplace can be used for buying, selling, or lookup depending on the GM's world settings. **Enable Locations** can require the current place's Marketplace capability. Buy then lists only items of that tier or lower, and the item count, rarity counts, and pages follow that shorter list. Sell still lists owned items above the tier and disables their sell buttons; the tooltip title is **Over this location's rarity limit**. Disabled Purchase, Sell Cart, quantity, and Wishlist Buy controls name their own reason the same way. A shop's own stock and purchase rules override that rarity limit. The player manual's Shared Locations section describes what shoppers see.
 
 ---
 
@@ -296,7 +296,7 @@ New template and prefab shops copy the buy and sell rates from Marketplace setti
 
 ## Release dependency
 
-This release requires Morelord Core 0.8.2 or newer. Marketplace and Shop Manager open from Morelord Tools. Optional integrations remain optional.
+This release requires Morelord Core 0.9.0 or newer. Marketplace and Shop Manager open from Morelord Tools. Optional integrations remain optional.
 
 ## Manually configured shop items
 

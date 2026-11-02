@@ -14,6 +14,20 @@ import { ShopTransactionService } from "../services/shop-transaction-service.js"
 import { EntitlementService } from "../services/entitlement-service.js";
 import { WishlistService } from "../services/wishlist-service.js";
 import { LocationTradeService } from "../services/location-trade.js";
+import {
+  applyDisabledReasons,
+  buyAddReason,
+  buyingDisabledReason,
+  checkoutStepperReason,
+  purchaseButtonReason,
+  sellAddReason,
+  sellCartButtonReason,
+  sellingDisabledReason,
+  tradeBlockReason,
+  transferAddReason,
+  transferButtonReason,
+  wishlistBuyReason
+} from "../services/disabled-reasons.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -250,6 +264,7 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       rarity,
       shopAllowsItem: true
     });
+    const placeReason = tradeBlockReason(locationItemBlock("common"));
 
     const context = {
       actor,
@@ -316,6 +331,8 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       canCheckout: false,
       isCheckingOut: Boolean(this.isCheckingOut)
     };
+    const buyingOffReason = context.canBuy || placeReason ? null : buyingDisabledReason({ shop: Boolean(shop) });
+    const sellingOffReason = context.canSell || placeReason ? null : sellingDisabledReason({ shop: Boolean(shop) });
 
     if (!actor && !shop && context.isBuyTab) {
       context.error = game.user.isGM
@@ -342,14 +359,34 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
         if (!row) this.transferCart.delete(id);
         else this.transferCart.set(id, Math.min(quantity, row.quantity));
       }
-      context.transferItems = rows.map(row => ({ ...row, cartQty: this.transferCart.get(row.ownedItemId) ?? 0, canAdd: !this.isCheckingOut && (this.transferCart.get(row.ownedItemId) ?? 0) < row.quantity }));
+      context.transferItems = rows.map(row => {
+        const cartQty = this.transferCart.get(row.ownedItemId) ?? 0;
+        const allowed = !this.isCheckingOut && cartQty < row.quantity;
+        const addDisabledReason = transferAddReason({ allowed, checkingOut: this.isCheckingOut });
+        return {
+          ...row,
+          cartQty,
+          canAdd: allowed,
+          addDisabledReason,
+          increaseDisabledReason: this.isCheckingOut ? null : addDisabledReason
+        };
+      });
       context.transferCartItems = context.transferItems.filter(row => row.cartQty > 0);
       const quantities = new Map(this.transferCart);
       for (const [id] of this.transferCart) if (actor.items.get(id)?.type === "container") {
         for (const child of TransferService.contents(actor, id)) quantities.set(child.id, child.system.quantity);
       }
       context.transferCartCount = [...quantities.values()].reduce((sum, quantity) => sum + quantity, 0);
-      context.canCheckoutTransfer = !this.isCheckingOut && Boolean(actor && this.transferTargetId && context.transferCartCount);
+      context.transferStepperDisabledReason = this.isCheckingOut ? checkoutStepperReason("transfer") : null;
+      context.transferLabel = this.isCheckingOut ? "Transferring..." : "Transfer Items";
+      context.transferIcon = this.isCheckingOut ? "fa-solid fa-spinner fa-spin" : "fa-solid fa-right-left";
+      context.transferDisabledReason = transferButtonReason({
+        checkingOut: this.isCheckingOut,
+        hasSender: Boolean(actor),
+        hasRecipient: Boolean(this.transferTargetId),
+        cartCount: context.transferCartCount
+      });
+      context.canCheckoutTransfer = !context.transferDisabledReason;
     }
 
     if (context.isSellTab) {
@@ -360,20 +397,34 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       }
       context.sellItems = this.sortSellItems(sellItems).map(row => {
         const locationBlock = locationItemBlock(row.rarity);
+        const cartQty = this.sellCart.get(row.ownedItemId)?.quantity ?? 0;
+        const allowed = context.canSell && !locationBlock && cartQty < row.quantity;
         return {
           ...row,
-          cartQty: this.sellCart.get(row.ownedItemId)?.quantity ?? 0,
+          cartQty,
           locationBlockReason: locationBlock?.message ?? null,
-          canAddToSellCart: context.canSell && !locationBlock && (this.sellCart.get(row.ownedItemId)?.quantity ?? 0) < row.quantity
+          canAddToSellCart: allowed,
+          addDisabledReason: sellAddReason({
+            allowed,
+            locationReason: tradeBlockReason(locationBlock),
+            sellingOffReason
+          })
         };
       });
       context.sellCartItems = [...this.sellCart.values()].map(entry => {
         const locationBlock = locationItemBlock(entry.row.rarity);
+        const owned = sellItems.find(row => row.ownedItemId === entry.row.ownedItemId)?.quantity ?? 0;
+        const allowed = context.canSell && !locationBlock && entry.quantity < owned;
         return {
           ...entry.row,
           quantity: entry.quantity,
           locationBlockReason: locationBlock?.message ?? null,
-          canAddToSellCart: !this.isCheckingOut && context.canSell && !locationBlock && entry.quantity < (sellItems.find(row => row.ownedItemId === entry.row.ownedItemId)?.quantity ?? 0),
+          canAddToSellCart: !this.isCheckingOut && allowed,
+          increaseDisabledReason: this.isCheckingOut ? null : sellAddReason({
+            allowed,
+            locationReason: tradeBlockReason(locationBlock),
+            sellingOffReason
+          }),
           lineTotalCp: entry.row.sellPriceCp * entry.quantity,
           lineTotal: CurrencyService.formatCp(entry.row.sellPriceCp * entry.quantity)
         };
@@ -381,7 +432,19 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       context.sellCartCount = context.sellCartItems.reduce((sum, entry) => sum + entry.quantity, 0);
       context.sellCartTotalCp = context.sellCartItems.reduce((sum, entry) => sum + entry.lineTotalCp, 0);
       context.sellCartTotal = CurrencyService.formatCp(context.sellCartTotalCp);
-      context.canCheckoutSell = !this.isCheckingOut && Boolean(actor) && context.sellCartCount > 0 && context.canSell && !shopStale && context.sellCartItems.every(entry => !entry.locationBlockReason);
+      context.sellStepperDisabledReason = this.isCheckingOut ? checkoutStepperReason("sell") : null;
+      context.sellCartLabel = this.isCheckingOut ? "Selling…" : "Sell Cart";
+      context.sellCartIcon = this.isCheckingOut ? "fa-solid fa-spinner fa-spin" : "fa-solid fa-coins";
+      context.sellCartDisabledReason = sellCartButtonReason({
+        checkingOut: this.isCheckingOut,
+        hasShopper: Boolean(actor),
+        placeReason,
+        sellingOffReason,
+        shopStale,
+        cartCount: context.sellCartCount,
+        lineReason: context.sellCartItems.map(entry => tradeBlockReason(locationItemBlock(entry.rarity))).find(Boolean) ?? null
+      });
+      context.canCheckoutSell = !context.sellCartDisabledReason;
     }
 
     if (context.isBuyTab && !this.isLoadingBuy) {
@@ -426,6 +489,7 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
           const remainingStock = Number.isFinite(stock) ? Math.max(0, stock - effectiveReserved) : Infinity;
           const stockAllowsNext = !Number.isFinite(stock) || remainingStock > 0;
           const locationBlock = locationItemBlock(row.rarityKey);
+          const allowed = Boolean(actor && fundingActor) && canAffordNext && stockAllowsNext && context.canBuy && !locationBlock;
           return {
             ...row,
             isWishlisted: wishlistUuids.has(row.uuid),
@@ -434,7 +498,16 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
             reservedQty: effectiveReserved,
             stockLabel: Number.isFinite(remainingStock) ? `${remainingStock}${effectiveReserved > 0 ? "*" : ""}` : "∞",
             stockTitle: effectiveReserved > 0 ? `${effectiveReserved} unit(s) reserved in active shopping cart(s)` : "",
-            canAddToCart: Boolean(actor && fundingActor) && canAffordNext && stockAllowsNext && context.canBuy && !locationBlock
+            canAddToCart: allowed,
+            addDisabledReason: buyAddReason({
+              allowed,
+              locationReason: tradeBlockReason(locationBlock),
+              buyingOffReason,
+              hasShopper: Boolean(actor),
+              hasPayer: Boolean(fundingActor),
+              inStock: stockAllowsNext,
+              canAfford: canAffordNext
+            })
           };
         });
       context.buyPage = this.buyPage;
@@ -447,12 +520,24 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
 
       context.cartItems = [...this.cart.values()].map(entry => {
         const locationBlock = locationItemBlock(entry.row.rarityKey);
+        const canAffordNext = cartTotalBefore + entry.row.buyPriceCp <= availableCurrencyCp;
+        const stockAllowsNext = !shop || ShopService.getStock(shop, entry.row) > Math.max(ShopTransactionService.getReserved(shop.id, ShopService.stockKey(entry.row)), entry.quantity);
+        const allowed = !locationBlock && context.canBuy && canAffordNext && stockAllowsNext;
         return {
           ...entry.row,
           quantity: entry.quantity,
           stockKey: ShopService.stockKey(entry.row),
           locationBlockReason: locationBlock?.message ?? null,
-          canAddToCart: !locationBlock && !this.isCheckingOut && context.canBuy && cartTotalBefore + entry.row.buyPriceCp <= availableCurrencyCp && (!shop || ShopService.getStock(shop, entry.row) > Math.max(ShopTransactionService.getReserved(shop.id, ShopService.stockKey(entry.row)), entry.quantity)),
+          canAddToCart: !this.isCheckingOut && allowed,
+          increaseDisabledReason: this.isCheckingOut ? null : buyAddReason({
+            allowed,
+            locationReason: tradeBlockReason(locationBlock),
+            buyingOffReason,
+            hasShopper: Boolean(actor),
+            hasPayer: Boolean(fundingActor),
+            inStock: stockAllowsNext,
+            canAfford: canAffordNext
+          }),
           lineTotalCp: entry.row.buyPriceCp * entry.quantity,
           lineTotal: CurrencyService.formatCp(entry.row.buyPriceCp * entry.quantity)
         };
@@ -462,7 +547,21 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
       context.cartCount = context.cartItems.reduce((sum, entry) => sum + entry.quantity, 0);
       context.cartRemainingCp = Math.max(0, availableCurrencyCp - context.cartTotalCp);
       context.cartRemaining = CurrencyService.formatCp(context.cartRemainingCp);
-      context.canCheckout = !this.isCheckingOut && !shopStale && context.canBuy && Boolean(actor && fundingActor) && context.cartCount > 0 && context.cartTotalCp <= availableCurrencyCp && context.cartItems.every(entry => !entry.locationBlockReason);
+      context.buyStepperDisabledReason = this.isCheckingOut ? checkoutStepperReason("buy") : null;
+      context.purchaseLabel = this.isCheckingOut ? "Purchasing…" : "Purchase";
+      context.purchaseIcon = this.isCheckingOut ? "fa-solid fa-spinner fa-spin" : "fa-solid fa-coins";
+      context.purchaseDisabledReason = purchaseButtonReason({
+        checkingOut: this.isCheckingOut,
+        shopStale,
+        placeReason,
+        buyingOffReason,
+        hasShopper: Boolean(actor),
+        hasPayer: Boolean(fundingActor),
+        cartCount: context.cartCount,
+        canAfford: context.cartTotalCp <= availableCurrencyCp,
+        lineReason: context.cartItems.map(entry => tradeBlockReason(locationItemBlock(entry.rarityKey))).find(Boolean) ?? null
+      });
+      context.canCheckout = !context.purchaseDisabledReason;
 
       const includedTypes = new Set(this.filters.types.include);
       const excludedTypes = new Set(this.filters.types.exclude);
@@ -495,11 +594,23 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
         const row = catalogByUuid.get(saved.uuid);
         const item = { ...saved, ...(row ?? {}) };
         const locationBlock = row ? locationItemBlock(row.rarityKey) : null;
+        const canAfford = Boolean(row && row.buyPriceCp <= availableCurrencyCp);
+        const allowed = Boolean(row && context.canBuy && !locationBlock && actor && fundingActor && canAfford);
+        const buyDisabledReason = wishlistBuyReason({
+          allowed,
+          inCatalog: Boolean(row),
+          locationReason: tradeBlockReason(locationBlock),
+          buyingOffReason,
+          hasShopper: Boolean(actor),
+          hasPayer: Boolean(fundingActor),
+          canAfford
+        });
         return {
           ...item,
           isAvailable: Boolean(row && context.canBuy && !locationBlock),
-          canBuyNow: Boolean(row && context.canBuy && !locationBlock && actor && fundingActor && row.buyPriceCp <= availableCurrencyCp),
-          availabilityLabel: !row ? "Unavailable" : (locationBlock?.shortLabel ?? (!context.canBuy ? "Buying disabled" : (row.buyPriceCp <= availableCurrencyCp ? "Available" : "Need more coin")))
+          canBuyNow: !buyDisabledReason,
+          buyDisabledReason,
+          availabilityLabel: !row ? "Unavailable" : (locationBlock?.shortLabel ?? (!context.canBuy ? "Buying disabled" : (canAfford ? "Available" : "Need more coin")))
         };
       });
       context.wishlistCount = context.wishlistItems.length;
@@ -510,6 +621,9 @@ export class MorelordMarketplaceApp extends HandlebarsApplicationMixin(Applicati
 
   _onRender(context, options) {
     super._onRender(context, options);
+    const setDisabled = globalThis.game?.modules?.get?.("morelord-core")?.api?.ui?.setDisabled
+      ?? globalThis.MorelordCore?.ui?.setDisabled;
+    applyDisabledReasons(this.element, setDisabled);
     this._itemLinkController?.abort();
     this._itemLinkController = new AbortController();
     this.element.addEventListener("click", event => {

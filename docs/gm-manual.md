@@ -10,7 +10,7 @@ foundry: 14
 
 # Morelord Marketplace Game Master Manual
 
-This guide covers Morelord Marketplace 0.12.0, Foundry VTT v14, dnd5e, and Morelord Core 0.8.2 or later. Open Marketplace and Shop Manager from **Morelord Tools**. The global tabs run **Sell → Transfer → Buy → Wishlist**. Sell eligible inventory items at rates set by the GM; wishlists save desired items without reserving stock.
+This guide covers Morelord Marketplace 0.12.0, Foundry VTT v14, dnd5e, and Morelord Core 0.9.0 or later. Open Marketplace and Shop Manager from **Morelord Tools**. The global tabs run **Sell → Transfer → Buy → Wishlist**. Sell eligible inventory items at rates set by the GM; wishlists save desired items without reserving stock.
 
 ## Inventory transfers
 
@@ -59,7 +59,7 @@ The global Marketplace remains usable if premium access expires. Saved premium s
 
 - Foundry Virtual Tabletop v14
 - The dnd5e game system
-- Morelord Core 0.8.2 or later
+- Morelord Core 0.9.0 or later
 - Morelord Marketplace v0.12.0
 
 ### Install with the manifest
@@ -141,7 +141,7 @@ When the place has a Marketplace, the notice is titled **Location Marketplace**.
 
 **Buy** lists items of that tier or lower. Higher rarities are left out of the catalog. The item count, the rarity filter counts, and the pages all use that shorter list.
 
-**Sell** still lists every owned item that can otherwise be sold, including items above the tier. **Add one to sell cart** and **Add all to sell cart** are disabled for those items. Hovering either button shows "Emberwood's Marketplace trades Common items and lower. This item is above that limit." **Sell Cart** stays unavailable while the cart contains an item above the limit.
+**Sell** still lists every owned item that can otherwise be sold, including items above the tier. **Add one to sell cart** and **Add all to sell cart** are disabled for those items. Hovering either button shows a tooltip titled **Over this location's rarity limit**, with a short line such as "Emberwood trades Common items and lower." **Sell Cart** stays unavailable while the cart contains an item above the limit, and its tooltip uses that same reason. **Purchase**, **Sell Cart**, quantity steppers, and **Wishlist** Buy use the same kind of tooltip whenever they are disabled: a bold title and one short line, for example **Cart empty**, **Not enough gold**, or **No Marketplace** ("This location has no Marketplace capability.").
 
 **Wishlist** keeps saved items. An item above the tier shows the status **Above location limit** and cannot be added to the Buy cart. A place with no Marketplace shows the status **No Marketplace**.
 
@@ -151,7 +151,7 @@ A scene shop uses the shopper's current place, the same place as the global Mark
 
 When the place has a Marketplace, the shop's own stock and purchase rules decide which items it trades. The location tier leaves that stock in place. While the shopper's current place has a Common Marketplace, a shop can still sell a Rare item that is in its stock, and it can still buy an item its purchase rules accept. The notice is titled **Shop stock overrides this location**. It names the shop, the place, and the tier, for example "Curios follows its own stock and purchase rules. Emberwood's Common Marketplace does not remove items this shop trades." An item the shop's own rules refuse is still refused, for example "Curios does not trade this item."
 
-The shop's **Morelord Location** and **Maximum Normal Rarity** are a separate stock-generation limit. **Inherit from Location** uses the Marketplace capability of the location assigned to that shop. An explicit shop tier overrides the assigned location. Items added by hand may be rarer than that limit; the **Manual** badge marks them. That assigned location is the one used when generating stock. **Enable Locations** uses the shopper's current place instead.
+The shop's **Morelord Location** and **Maximum Normal Rarity** are a separate stock-generation limit. **Inherit from Location** uses the Marketplace capability of the location assigned to that shop. When that location lists more than one Marketplace capability, the highest tier is the limit, the same rule buying and selling use. An explicit shop tier overrides the assigned location. Items added by hand may be rarer than that limit; the **Manual** badge marks them. That assigned location is the one used when generating stock. **Enable Locations** uses the shopper's current place instead.
 
 ## Open and test the Marketplace
 
@@ -317,7 +317,7 @@ These fields are the same in the saved-shop editor and the New Shop popup. Expla
 | **Buy Multiplier** | Multiplies the item's list price before the reputation adjustment. New shops initially use the global purchase multiplier. |
 | **Base Sell Rate** | Fraction of list price paid for player sales before reputation adjustment. New shops initially use the global sale rate. |
 | **Morelord Location** | Optional association with Core's shared Location registry. The Location's Marketplace capability supplies the rarity limit when inherited; assigning a Location does not place a token. |
-| **Maximum Normal Rarity** | Limits generated catalog items and random restocks to the chosen rarity or lower. An explicit shop tier overrides its Location; Inherit from Location uses that Location's Marketplace capability. Without either limit, Products rarity selections apply. Manual additions may exceed the capability limit; prefab stores retain their matched product lists. |
+| **Maximum Normal Rarity** | Limits generated catalog items and random restocks to the chosen rarity or lower. An explicit shop tier overrides its Location. Inherit from Location uses that Location's Marketplace capability, and the highest Marketplace tier when the Location has more than one. Without either limit, Products rarity selections apply. Manual additions may exceed the capability limit; prefab stores retain their matched product lists. |
 | **Stock Plan** | Controls unlimited, manual, or random inventory and what Restock Now does. Every option is explained in the Stock Plan table above, including the legacy Keep existing stock option. |
 | **Common** | Number of distinct Common products selected for random stock. Hidden and unused when common products are unlimited. |
 | **Uncommon** | Number of distinct Uncommon products selected for random stock. |

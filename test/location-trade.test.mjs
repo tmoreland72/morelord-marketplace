@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { evaluateRequirements, meetsTier } from "../../morelord-core/scripts/location/location-domain.js";
+import { ShopService } from "../scripts/services/shop-service.js";
 import {
   describeLocationTrade,
   evaluateLocationTrade,
@@ -242,6 +243,61 @@ test("Sell lists every owned item and disables those above the location tier", (
   assert.equal(shopLegendary.listed, true);
   assert.equal(shopLegendary.canSell, true);
   assert.equal(shopLegendary.reason, null);
+});
+
+test("shop stock and location trade use the highest Marketplace tier, in either order", () => {
+  const lowerFirst = {
+    id: "waterdeep",
+    name: "Waterdeep",
+    capabilities: [
+      { type: "marketplace", tier: "common" },
+      { type: "forge", tier: "legendary" },
+      { type: "marketplace", tier: "rare" }
+    ]
+  };
+  const higherFirst = {
+    ...lowerFirst,
+    id: "reversed",
+    capabilities: [...lowerFirst.capabilities].reverse()
+  };
+  const forgeOnly = { id: "camp", name: "Camp", capabilities: [{ type: "forge", tier: "legendary" }] };
+  const locations = new Map([lowerFirst, higherFirst, forgeOnly].map(location => [location.id, location]));
+  const api = {
+    get: id => locations.get(id) ?? null,
+    meetsTier,
+    evaluateRequirements
+  };
+  const previousGame = globalThis.game;
+  const previousCore = globalThis.MorelordCore;
+  globalThis.game = { modules: { get: () => ({ api: { locations: api } }) } };
+  delete globalThis.MorelordCore;
+  try {
+    for (const location of [lowerFirst, higherFirst]) {
+      assert.equal(selectMarketplaceCapability(location).tier, "rare");
+      assert.equal(selectMarketplaceCapability(location, meetsTier, evaluateRequirements).tier, "rare");
+      assert.equal(LocationTradeService.capabilityFor(location).tier, "rare");
+      assert.equal(ShopService.getEffectiveCapability({ locationId: location.id }).tier, "rare");
+      assert.equal(evaluateLocationTrade({ enabled: true, location, rarity: "rare" }).allowed, true);
+      assert.equal(evaluateLocationTrade({ enabled: true, location, rarity: "veryRare" }).allowed, false);
+      assert.equal(ShopService.canNormallyOffer({ locationId: location.id }, "rare"), true);
+      assert.equal(ShopService.canNormallyOffer({ locationId: location.id }, "veryRare"), false);
+    }
+    const explicit = ShopService.getEffectiveCapability({ capabilityTier: "uncommon", locationId: "waterdeep" });
+    assert.equal(explicit.tier, "uncommon");
+    assert.equal(explicit.source, "shop");
+    assert.equal(ShopService.canNormallyOffer({ capabilityTier: "uncommon", locationId: "waterdeep" }, "rare"), false);
+    const missing = ShopService.getEffectiveCapability({ locationId: "missing" });
+    assert.equal(missing.tier, null);
+    assert.equal(missing.source, "legacy");
+    assert.equal(ShopService.canNormallyOffer({ locationId: "camp" }, "legendary"), true);
+    assert.equal(LocationTradeService.capabilityFor(forgeOnly), null);
+    assert.equal(selectMarketplaceCapability(null), null);
+  } finally {
+    if (previousGame === undefined) delete globalThis.game;
+    else globalThis.game = previousGame;
+    if (previousCore === undefined) delete globalThis.MorelordCore;
+    else globalThis.MorelordCore = previousCore;
+  }
 });
 
 test("Core capability evaluation and meetsTier enforce the same gate", () => {

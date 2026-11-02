@@ -15,7 +15,7 @@
             <td>{{buyPrice}}</td>
 <td><span class="ml-badge ml-marketplace-wishlist-status {{#if canBuyNow}}available{{/if}}" data-tone="{{#if canBuyNow}}success{{else}}warning{{/if}}">{{availabilityLabel}}</span></td>
 <td><div class="ml-actions ml-marketplace-row-actions ml-marketplace-actions">
-              <button type="button" class="ml-marketplace-buy-button" title="Buy {{name}}" data-action="buyItem" data-pack-id="{{packId}}" data-document-id="{{documentId}}" {{#unless canBuyNow}}disabled{{/unless}}><i class="fa-solid fa-cart-plus"></i></button>
+              <button type="button" class="ml-marketplace-buy-button" data-action="buyItem" data-pack-id="{{packId}}" data-document-id="{{documentId}}" aria-label="Buy {{name}}" {{#if buyDisabledReason}}disabled aria-disabled="true" data-ml-disabled-reason="{{buyDisabledReason}}"{{else}}title="Buy {{name}}"{{/if}}><i class="fa-solid fa-cart-plus"></i></button>
               <button type="button" title="Remove {{name}} from wishlist" data-action="removeFromWishlist" data-uuid="{{uuid}}"><i class="fa-solid fa-trash"></i></button>
             </div></td>
           </tr>

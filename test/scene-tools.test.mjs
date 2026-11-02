@@ -155,7 +155,7 @@ test("Marketplace registers both tools and keeps the shop-token HUD button", () 
   assert.match(source, /Hooks\.on\("renderTokenHUD"/);
   assert.equal(manifest.version, "0.12.0");
   const core = manifest.relationships.requires.find(requirement => requirement.id === "morelord-core");
-  assert.equal(core.compatibility.minimum, "0.8.2");
+  assert.equal(core.compatibility.minimum, "0.9.0");
   assert.match(source, /api\?\.ui\?\.renderInBackground/);
   assert.match(source, /return app\.render\(\{ force: false \}\)/);
   assert.equal(source.includes("app.render({ force: true })"), false);
