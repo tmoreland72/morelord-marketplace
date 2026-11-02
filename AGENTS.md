@@ -14,6 +14,7 @@
 - Keep shared assets simple and focused on demonstrated needs. Keep behavior specific to one module in that module unless there is a clear shared use case.
 - Preserve compatibility for existing consumers when changing shared assets, and check the affected modules.
 - In the completion summary, briefly identify shared assets reused, extended, or introduced when relevant.
+- Always use Morelord Core's global features (shared CSS, UI components, helper functions, settings, APIs) instead of building module-local versions. For every new feature, consider whether its CSS, UI component or helper belongs in Core so other modules can share it; if so, request it from the Core owner and use it from Core. Never change morelord-core from this repo.
 
 ## Brand and interface consistency
 
