@@ -179,19 +179,22 @@ Hooks.once("ready", async () => {
         const gp = Number(amountGp);
         if (!actor || actor.type !== "character") throw new Error("Sourcing investment requires a character.");
         if (!Number.isFinite(gp) || gp <= 0) throw new Error("Sourcing investment must be positive.");
-        await CurrencyService.deductCurrency(actor, Math.round(gp * 100));
+        const perGold = CurrencyService.copperRate("gp") || 100;
+        await CurrencyService.deductCurrency(actor, Math.round(gp * perGold));
         return true;
       },
       availableInvestmentGp: async actorUuid => {
         const actor = await fromUuid(String(actorUuid ?? ""));
         if (!actor || actor.type !== "character") return 0;
-        return Math.floor(CurrencyService.currencyToCp(CurrencyService.getCurrency(actor)) / 100);
+        const perGold = CurrencyService.copperRate("gp") || 100;
+        return Math.floor(CurrencyService.currencyToCp(CurrencyService.getCurrency(actor)) / perGold);
       },
       refundInvestment: async ({ actorUuid, amountGp } = {}) => {
         const actor = await fromUuid(String(actorUuid ?? ""));
         const gp = Number(amountGp);
         if (!actor || actor.type !== "character" || !Number.isFinite(gp) || gp <= 0) return false;
-        await CurrencyService.addCurrency(actor, Math.round(gp * 100));
+        const perGold = CurrencyService.copperRate("gp") || 100;
+        await CurrencyService.addCurrency(actor, Math.round(gp * perGold));
         return true;
       }
     }),

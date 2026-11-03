@@ -19,14 +19,6 @@ export const ITEM_TYPES = {
   ]
 };
 
-export const DENOMINATION_TO_CP = {
-  cp: 1,
-  sp: 10,
-  ep: 50,
-  gp: 100,
-  pp: 1000
-};
-
 export const DEFAULT_SELL_RATE = 1;
 
 export const FLAGS = {

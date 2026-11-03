@@ -1,81 +1,77 @@
-import { DENOMINATION_TO_CP } from "../constants.js";
+import {
+  addCurrency,
+  canAfford,
+  copperRate,
+  cpToCurrency,
+  currencyToCp,
+  deductCurrency,
+  getCurrency,
+  setCurrency
+} from "../../../morelord-core/scripts/services/currency-service.js";
+
+const importedCurrency = Object.freeze({
+  addCurrency,
+  canAfford,
+  copperRate,
+  cpToCurrency,
+  currencyToCp,
+  deductCurrency,
+  getCurrency,
+  setCurrency
+});
+
+/** Prefer Core's published currency API. Node tests use the same module that API wraps. */
+export function coreCurrency() {
+  return globalThis.game?.modules?.get?.("morelord-core")?.api?.currency
+    ?? globalThis.MorelordCore?.currency
+    ?? importedCurrency;
+}
+
+const PRICE_DENOMINATIONS = ["pp", "gp", "ep", "sp", "cp"];
 
 export class CurrencyService {
+  static copperRate(denomination) {
+    return coreCurrency().copperRate(denomination);
+  }
+
   static getCurrency(actor) {
-    return actor.system.currency ?? {};
+    return coreCurrency().getCurrency(actor);
   }
 
   static currencyToCp(currency) {
-    return (
-      (currency.cp ?? 0) * DENOMINATION_TO_CP.cp +
-      (currency.sp ?? 0) * DENOMINATION_TO_CP.sp +
-      (currency.ep ?? 0) * DENOMINATION_TO_CP.ep +
-      (currency.gp ?? 0) * DENOMINATION_TO_CP.gp +
-      (currency.pp ?? 0) * DENOMINATION_TO_CP.pp
-    );
+    return coreCurrency().currencyToCp(currency);
   }
 
   static cpToCurrency(cp) {
-    let remaining = Math.max(0, Math.floor(cp));
-
-    const pp = Math.floor(remaining / 1000);
-    remaining %= 1000;
-
-    const gp = Math.floor(remaining / 100);
-    remaining %= 100;
-
-    const ep = Math.floor(remaining / 50);
-    remaining %= 50;
-
-    const sp = Math.floor(remaining / 10);
-    remaining %= 10;
-
-    const cpFinal = remaining;
-
-    return { pp, gp, ep, sp, cp: cpFinal };
+    return coreCurrency().cpToCurrency(cp);
   }
 
   static async setCurrency(actor, cp) {
-    const currency = this.cpToCurrency(cp);
-
-    await actor.update({
-      "system.currency.pp": currency.pp,
-      "system.currency.gp": currency.gp,
-      "system.currency.ep": currency.ep,
-      "system.currency.sp": currency.sp,
-      "system.currency.cp": currency.cp
-    });
+    return coreCurrency().setCurrency(actor, cp);
   }
 
   static async addCurrency(actor, cpToAdd) {
-    const currentCp = this.currencyToCp(this.getCurrency(actor));
-    await this.setCurrency(actor, currentCp + cpToAdd);
+    return coreCurrency().addCurrency(actor, cpToAdd);
   }
 
   static async deductCurrency(actor, cpToDeduct) {
-    const currentCp = this.currencyToCp(this.getCurrency(actor));
-
-    if (currentCp < cpToDeduct) {
-      throw new Error("Insufficient funds.");
-    }
-
-    await this.setCurrency(actor, currentCp - cpToDeduct);
+    return coreCurrency().deductCurrency(actor, cpToDeduct);
   }
 
   static canAfford(actor, priceCp) {
-    return this.currencyToCp(this.getCurrency(actor)) >= priceCp;
+    return coreCurrency().canAfford(actor, priceCp);
   }
 
+  /**
+   * Core formatCp prints gold, silver, and copper only.
+   * Marketplace still names platinum and electrum, using Core's change-making split.
+   */
   static formatCp(cp) {
-    const c = this.cpToCurrency(cp);
+    const purse = this.cpToCurrency(cp);
     const parts = [];
-
-    if (c.pp) parts.push(`${c.pp} pp`);
-    if (c.gp) parts.push(`${c.gp} gp`);
-    if (c.ep) parts.push(`${c.ep} ep`);
-    if (c.sp) parts.push(`${c.sp} sp`);
-    if (c.cp) parts.push(`${c.cp} cp`);
-
+    for (const denomination of PRICE_DENOMINATIONS) {
+      if (purse[denomination]) parts.push(`${purse[denomination]} ${denomination}`);
+    }
     return parts.length ? parts.join(", ") : "0 cp";
   }
 

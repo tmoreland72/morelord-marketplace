@@ -1,4 +1,5 @@
-import { MODULE_ID, DENOMINATION_TO_CP } from "../constants.js";
+import { MODULE_ID } from "../constants.js";
+import { CurrencyService } from "./currency-service.js";
 import { ShopService } from "./shop-service.js";
 import { itemRarity } from "../../../morelord-core/scripts/services/item-rarity.js";
 
@@ -27,7 +28,8 @@ export class PricingService {
     if (!price) return 0;
     const value = Number(price.value ?? 0);
     const denomination = price.denomination ?? "gp";
-    return Math.round(value * (DENOMINATION_TO_CP[denomination] ?? 100));
+    const rate = CurrencyService.copperRate(denomination);
+    return Math.round(value * (rate > 0 ? rate : 100));
   }
 
   static getBuyPriceCp(basePriceCp, shop = null) {
