@@ -86,7 +86,7 @@ test("post, cart, purchase, and transfer cards call itemCard with prices and tot
   assert.equal(cards.at(-1).content.includes("ml-award-card"), true);
 });
 
-test("approval cards call itemCard with line prices, the total, and approval actions", () => {
+test("approval cards keep Marketplace markup and never call itemCard", () => {
   const { calls } = install({ itemCard: true });
   const transaction = {
     id: "txn",
@@ -95,34 +95,25 @@ test("approval cards call itemCard with line prices, the total, and approval act
     actorUuid: "Actor.Ada",
     fundingActorUuid: "Actor.party",
     fundingActorName: "party",
-    itemName: "Cart",
-    quantity: 3,
-    totalPriceCp: 150,
-    payload: { items: [rope, { uuid: "Item.torch", name: "Torch", quantity: 1, unitPriceCp: 50 }] }
+    itemName: "Rope",
+    itemImg: "rope.webp",
+    quantity: 1,
+    totalPriceCp: 100
   };
 
   const pending = TransactionService.renderPendingCard(transaction);
-  assert.deepEqual(calls[0].items, [
-    { uuid: "Item.rope", name: "Rope", img: "rope.webp", quantity: 2, value: "1 gp" },
-    { uuid: "Item.torch", name: "Torch", quantity: 1, value: "1 ep" }
-  ]);
-  assert.equal(calls[0].totalLabel, "Total: 1 gp, 1 ep");
-  assert.match(calls[0].actionsHTML, /data-ml-marketplace-approval-action="approve"/);
-  assert.match(calls[0].actionsHTML, /data-ml-marketplace-approval-action="deny"/);
-  assert.match(calls[0].actionsHTML, /data-ml-marketplace-transaction-id="txn"/);
-  assert.match(calls[0].actionsHTML, /class="ml-marketplace-gm-actions"/);
-  assert.match(calls[0].bodyHTML, /Awaiting GM Approval/);
-  assert.equal(pending, `<section class="ml-award-card">${calls[0].totalLabel}</section>`);
-
-  const single = { ...transaction, payload: {}, itemName: "Rope", itemUuid: "Item.rope", itemImg: "rope.webp", quantity: 1, totalPriceCp: 100 };
-  TransactionService.renderProcessingCard(single, "GM");
-  assert.deepEqual(calls[1].items, [{ uuid: "Item.rope", name: "Rope", img: "rope.webp", quantity: 1, value: "1 gp" }]);
-  assert.equal(calls[1].totalLabel, "Total: 1 gp");
-
-  TransactionService.renderResolvedCard(transaction, "approved", "GM", "Looks good");
-  assert.deepEqual(calls[2].items, calls[0].items);
-  assert.equal(calls[2].totalLabel, "Total: 1 gp, 1 ep");
-  assert.match(calls[2].bodyHTML, /Resolved by GM/);
+  const processing = TransactionService.renderProcessingCard(transaction, "GM");
+  const resolved = TransactionService.renderResolvedCard(transaction, "approved", "GM", "Looks good");
+  assert.equal(calls.length, 0);
+  assert.match(pending, /ml-marketplace-approval-card/);
+  assert.match(pending, /data-ml-marketplace-approval-action="approve"/);
+  assert.match(pending, /data-ml-marketplace-approval-action="deny"/);
+  assert.match(pending, /data-ml-marketplace-transaction-id="txn"/);
+  assert.match(processing, /ml-marketplace-approval-card/);
+  assert.match(resolved, /ml-marketplace-approval-card/);
+  assert.doesNotMatch(pending, /ml-award-card/);
+  assert.doesNotMatch(processing, /ml-award-card/);
+  assert.doesNotMatch(resolved, /ml-award-card/);
 });
 
 test("cards keep the previous markup when itemCard is unavailable", async () => {

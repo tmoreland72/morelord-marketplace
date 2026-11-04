@@ -26,43 +26,6 @@ export class TransactionService {
     return item;
   }
 
-  static approvalItems(transaction) {
-    const items = transaction.payload?.items;
-    if (!Array.isArray(items)) {
-      return [this.cardItem({
-        uuid: this.getItemUuid(transaction),
-        name: transaction.itemName,
-        img: transaction.itemImg,
-        quantity: transaction.quantity ?? 1,
-        value: CurrencyService.formatCp(transaction.totalPriceCp)
-      })];
-    }
-    return items.map(item => this.cardItem({
-      uuid: item.uuid,
-      name: item.name,
-      img: item.img,
-      rarity: item.rarity,
-      quantity: item.quantity,
-      value: CurrencyService.formatCp(Number(item.unitPriceCp) * Number(item.quantity))
-    }));
-  }
-
-  static approvalActions(transaction) {
-    return `
-      <div class="ml-marketplace-gm-actions" data-ml-marketplace-transaction-id="${this.escape(transaction.id)}">
-        <button type="button" data-ml-marketplace-approval-action="approve">
-          <i class="fa-solid fa-check"></i>
-          Approve
-        </button>
-        <button type="button" data-ml-marketplace-approval-action="deny">
-          <i class="fa-solid fa-xmark"></i>
-          Deny
-        </button>
-      </div>
-    `;
-  }
-
-
   static contentLink(uuid, label) {
     const safeLabel = this.escape(label);
     if (!uuid) return `<strong>${safeLabel}</strong>`;
@@ -297,20 +260,6 @@ export class TransactionService {
     const action = transaction.type === "sell" ? "sell" : "buy";
     const price = CurrencyService.formatCp(transaction.totalPriceCp);
     const isCart = Array.isArray(transaction.payload?.items);
-    const funding = transaction.type === "buy" && transaction.fundingActorUuid !== transaction.actorUuid
-      ? `<p><strong>Paying from:</strong> ${this.escape(transaction.fundingActorName)}</p>`
-      : "";
-    const shared = this.sharedCard({
-      title: "Approval requested",
-      icon: "fa-solid fa-hourglass-half",
-      recipientName: transaction.actorName,
-      subtitle: `${transaction.actorName} requested to ${action} ${transaction.itemName}.`,
-      items: this.approvalItems(transaction),
-      totalLabel: `Total: ${price}`,
-      bodyHTML: `<div class="ml-marketplace-approval-status ml-marketplace-status-pending"><i class="fa-solid fa-hourglass-half"></i><span>Awaiting GM Approval</span></div>${funding}`,
-      actionsHTML: this.approvalActions(transaction)
-    });
-    if (shared) return shared;
 
     const lines = this.renderApprovalLines(transaction);
     return `
@@ -344,17 +293,6 @@ export class TransactionService {
   }
 
   static renderProcessingCard(transaction, gmName) {
-    const price = CurrencyService.formatCp(transaction.totalPriceCp);
-    const shared = this.sharedCard({
-      title: "Processing",
-      icon: "fa-solid fa-spinner",
-      recipientName: transaction.actorName,
-      subtitle: `${transaction.actorName}'s request for ${transaction.itemName} is being processed.`,
-      items: this.approvalItems(transaction),
-      totalLabel: `Total: ${price}`,
-      bodyHTML: `<p>Processing by ${this.escape(gmName)}</p>`
-    });
-    if (shared) return shared;
     return `
       <div class="ml-chat-card ml-marketplace-card ml-marketplace-approval-card">
         <div class="ml-marketplace-transaction-source">Morelord Marketplace</div>
@@ -384,19 +322,6 @@ export class TransactionService {
         : "ml-marketplace-status-failed";
     const price = CurrencyService.formatCp(transaction.totalPriceCp);
     const action = transaction.type === "sell" ? "sell" : "buy";
-    const funding = transaction.type === "buy" && transaction.fundingActorUuid !== transaction.actorUuid
-      ? `<p><strong>Paid from:</strong> ${this.escape(transaction.fundingActorName)}</p>`
-      : "";
-    const shared = this.sharedCard({
-      title: label,
-      icon: `fa-solid ${icon}`,
-      recipientName: transaction.actorName,
-      subtitle: `${transaction.actorName}'s request to ${action} ${transaction.itemName} was ${approved ? "approved" : denied ? "denied" : "not completed"}.`,
-      items: this.approvalItems(transaction),
-      totalLabel: `Total: ${price}`,
-      bodyHTML: `${funding}${reason ? `<p class="ml-marketplace-resolution-reason">${this.escape(reason)}</p>` : ""}<div class="ml-marketplace-resolution-meta">Resolved by ${this.escape(resolverName)}</div>`
-    });
-    if (shared) return shared;
 
     return `
       <div class="ml-chat-card ml-marketplace-card ml-marketplace-approval-card ml-marketplace-approval-resolved">
