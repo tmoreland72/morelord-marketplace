@@ -132,6 +132,7 @@ Hooks.once("ready", async () => {
 
   game.modules.get(MODULE_ID).api = {
     openMarketplace: options => new MorelordMarketplaceApp(options ?? {}).render(true),
+    open(options) { return this.openMarketplace(options); },
     openShop: shopId => MorelordMarketplaceApp.openShop(shopId),
     manageShops: () => {
       if (!EntitlementService.hasShopManager()) { ui.notifications.warn("Shop Manager requires the Marketplace Shop Manager premium feature."); return null; }
