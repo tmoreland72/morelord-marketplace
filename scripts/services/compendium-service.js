@@ -1,4 +1,4 @@
-import { preparePurchaseItems } from "./purchase-items.js";
+import { grantPurchasedItems, preparePurchaseItems } from "./purchase-items.js";
 import { itemRarity } from "../../../morelord-core/scripts/services/item-rarity.js";
 import { MODULE_ID, FLAGS } from "../constants.js";
 import { PricingService } from "./pricing-service.js";
@@ -336,6 +336,8 @@ export class CompendiumService {
         "system.mastery",
         "system.attunement",
         "system.identifier",
+        "system.quantity",
+        "system.container",
         "system.source",
         `flags.${MODULE_ID}.${FLAGS.PURCHASABLE}`,
         `flags.${MODULE_ID}.customPrice`,
@@ -401,6 +403,7 @@ export class CompendiumService {
     );
     const weaponClassification = this.getWeaponClassification(typeKey, subtypeKey);
 
+    const stackSize = this.stackSizeOf({ system });
     const source = this.getSourceBook(
       system.source,
       pack
@@ -438,6 +441,9 @@ export class CompendiumService {
 
       sourceKey,
       source,
+      stackSize,
+      showStackSize: stackSize > 1,
+      contained: Boolean(system.container),
 
       listPriceCp,
       listPrice:
@@ -1000,11 +1006,11 @@ export class CompendiumService {
     const originalCurrencyCp = CurrencyService.currencyToCp(CurrencyService.getCurrency(fundingActor));
     const originalItemIds = new Set(actor.items.map(item => item.id));
     await CurrencyService.deductCurrency(fundingActor, totalPriceCp);
+    const grants = [];
     try {
-      const documents = await preparePurchaseItems(resolved.flatMap(entry => Array(entry.quantity).fill(entry.item)));
-      await actor.createEmbeddedDocuments("Item", documents, { keepId: true });
+      for (const entry of resolved) grants.push(await grantPurchasedItems(actor, entry.item, entry.quantity));
     } catch (error) {
-      await this.rollbackBoughtItems(actor, fundingActor, originalCurrencyCp, originalItemIds);
+      await this.rollbackBoughtItems(actor, fundingActor, originalCurrencyCp, originalItemIds, grants.flatMap(grant => grant.updated));
       throw error;
     }
     try {
@@ -1016,17 +1022,45 @@ export class CompendiumService {
     return { status: "completed", ok: true };
   }
 
-  static async rollbackBoughtItems(actor, fundingActor, originalCurrencyCp, originalItemIds) {
+  static async rollbackBoughtItems(actor, fundingActor, originalCurrencyCp, originalItemIds, updates = []) {
     const rollbackErrors = [];
     const createdIds = actor.items.filter(item => !originalItemIds.has(item.id)).map(item => item.id);
     try { if (createdIds.length) await actor.deleteEmbeddedDocuments("Item", createdIds); }
     catch (error) { rollbackErrors.push(error); }
+    try {
+      for (const entry of [...updates].reverse()) {
+        const item = actor.items.find?.(owned => owned.id === entry.id) ?? actor.items.get?.(entry.id);
+        if (typeof item?.update === "function") await item.update({ "system.quantity": entry.quantity });
+        else await actor.updateEmbeddedDocuments("Item", [{ _id: entry.id, "system.quantity": entry.quantity }]);
+      }
+    } catch (error) { rollbackErrors.push(error); }
     try { await CurrencyService.setCurrency(fundingActor, originalCurrencyCp); }
     catch (error) { rollbackErrors.push(error); }
     if (rollbackErrors.length) {
       console.error(`[${MODULE_ID}] Buy-cart rollback was incomplete`, rollbackErrors);
       throw new Error("The purchase failed and could not be fully rolled back. A Game Master must review the character's inventory and currency.");
     }
+  }
+
+  static stackSizeOf(row) {
+    const raw = row?.stackSize ?? this.extractValue(row?.system?.quantity);
+    const quantity = Number(raw);
+    return Number.isFinite(quantity) && quantity > 0 ? quantity : 1;
+  }
+
+  static rowIsContained(row) {
+    return Boolean(row?.contained ?? row?.system?.container);
+  }
+
+  /** Loose listings beat pack contents. Equal containment keeps the smaller stack, then the first row. */
+  static preferCatalogRow(candidate, current) {
+    const candidateContained = this.rowIsContained(candidate);
+    const currentContained = this.rowIsContained(current);
+    if (candidateContained !== currentContained) return currentContained;
+    const candidateQty = this.stackSizeOf(candidate);
+    const currentQty = this.stackSizeOf(current);
+    if (candidateQty !== currentQty) return candidateQty < currentQty;
+    return false;
   }
 
   static dedupeRows(rows) {
@@ -1040,9 +1074,8 @@ export class CompendiumService {
         row.buyPriceCp ?? 0
       ].join("|");
 
-      if (!seen.has(key)) {
-        seen.set(key, row);
-      }
+      const current = seen.get(key);
+      if (!current || this.preferCatalogRow(row, current)) seen.set(key, row);
     }
 
     return Array.from(seen.values());

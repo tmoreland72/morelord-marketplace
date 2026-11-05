@@ -11,6 +11,8 @@ test("legacy and v6 indexed magic items keep their rarity and shop capability re
   const pack = { collection: "test.rarity", getIndex: async ({ fields }) => {
     assert.ok(fields.includes("system.rarity"));
     assert.ok(fields.includes("system.rarities"));
+    assert.ok(fields.includes("system.quantity"));
+    assert.ok(fields.includes("system.container"));
     return [];
   } };
   await CompendiumService.getPackIndex(pack);
@@ -42,4 +44,19 @@ test("unpriced known-rarity entries are retained by the catalog without document
   }
   entry.flags = { 'morelord-marketplace': { purchasable: false } };
   assert.equal(CompendiumService.indexEntryToMarketplaceRow(pack, entry), null);
+});
+
+test("dedupe keeps a loose listing ahead of pack contents, then the smaller stack", () => {
+  const rations = { name: "Rations", typeKey: "consumable", sourceKey: "phb", buyPriceCp: 50 };
+  const rows = CompendiumService.dedupeRows([
+    { ...rations, documentId: "priest-pack", contained: true, stackSize: 7 },
+    { ...rations, documentId: "phbagRations0000", contained: false, stackSize: 1 },
+    { name: "Torch", typeKey: "loot", sourceKey: "phb", buyPriceCp: 1, documentId: "ten", contained: false, stackSize: 10 },
+    { name: "Torch", typeKey: "loot", sourceKey: "phb", buyPriceCp: 1, documentId: "two", contained: false, stackSize: 2 },
+    { name: "Rope", typeKey: "loot", sourceKey: "phb", buyPriceCp: 1, documentId: "first", contained: false, stackSize: 1 },
+    { name: "Rope", typeKey: "loot", sourceKey: "phb", buyPriceCp: 1, documentId: "second", contained: false, stackSize: 1 }
+  ]);
+  assert.equal(rows.find(row => row.name === "Rations").documentId, "phbagRations0000");
+  assert.equal(rows.find(row => row.name === "Torch").documentId, "two");
+  assert.equal(rows.find(row => row.name === "Rope").documentId, "first");
 });
