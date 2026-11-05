@@ -363,6 +363,9 @@ export class CompendiumService {
     entry,
     shop
   ) {
+    // Pack contents are not sold on their own. Buying the container expands them.
+    if (entry?.system?.container) return null;
+
     // An explicit false flag means the item may still have monetary
     // value and be sellable, but it must never appear in the Buy catalog.
     if (!PurchaseEligibilityService.isPurchasable(entry)) {

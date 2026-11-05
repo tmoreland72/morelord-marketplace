@@ -171,7 +171,7 @@ The player guide's **Marketplace field and action reference** covers all shared 
 1. Open a scene and select **Morelord Tools**.
 2. Select the **Morelord Marketplace** store icon.
 3. Select a character token or assign a user character before testing a transaction.
-4. Open **Buy** and confirm that items from the enabled compendiums load.
+4. Open **Buy** and confirm that items from the enabled compendiums load. Items stored inside a container are not listed; the container is the item for sale.
 5. Open **Sell** and confirm that priced, sellable inventory appears.
 
 The Buy sidebar separates weapon class (Martial or Simple) from weapon range (Melee or Ranged), exposes weapon mastery filters when weapons are in scope, and preserves its scroll position after filter changes. Sell inventory is always alphabetical in global and shop views.

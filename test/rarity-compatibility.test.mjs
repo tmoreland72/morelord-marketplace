@@ -46,6 +46,34 @@ test("unpriced known-rarity entries are retained by the catalog without document
   assert.equal(CompendiumService.indexEntryToMarketplaceRow(pack, entry), null);
 });
 
+test("pack contents are omitted from Buy rows while the container and standalone items stay", () => {
+  globalThis.CONFIG = { DND5E: {}, Item: { typeLabels: {} } };
+  globalThis.game = { settings: { get: () => 1 }, modules: new Map(), system: {}, i18n: { localize: value => value } };
+  globalThis.MorelordCore = { sources: { resolveBookLabel } };
+  const pack = { collection: "test.items" };
+  const price = { value: 5, denomination: "sp" };
+  assert.equal(CompendiumService.indexEntryToMarketplaceRow(pack, {
+    _id: "rations-in-pack", name: "Rations", type: "consumable",
+    system: { price, quantity: 7, container: "priests-pack" }
+  }), null);
+  assert.equal(CompendiumService.indexEntryToMarketplaceRow(pack, {
+    _id: "blank-container", name: "Rations", type: "consumable",
+    system: { price, quantity: 1, container: "" }
+  })?.documentId, "blank-container");
+  const loose = CompendiumService.indexEntryToMarketplaceRow(pack, {
+    _id: "phbagRations0000", name: "Rations", type: "consumable",
+    system: { price, quantity: 1 }
+  });
+  const box = CompendiumService.indexEntryToMarketplaceRow(pack, {
+    _id: "priests-pack", name: "Priest's Pack", type: "container",
+    system: { price: { value: 33, denomination: "gp" } }
+  });
+  assert.equal(loose?.documentId, "phbagRations0000");
+  assert.equal(loose?.contained, false);
+  assert.equal(box?.documentId, "priests-pack");
+  assert.equal(box?.typeKey, "container");
+});
+
 test("dedupe keeps a loose listing ahead of pack contents, then the smaller stack", () => {
   const rations = { name: "Rations", typeKey: "consumable", sourceKey: "phb", buyPriceCp: 50 };
   const rows = CompendiumService.dedupeRows([

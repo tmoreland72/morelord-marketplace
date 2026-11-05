@@ -51,7 +51,7 @@ Select your character token before opening the global Marketplace when you want 
 
 Your character needs enough dnd5e currency to purchase an item. The Marketplace automatically converts denominations when checking funds and applying a transaction.
 
-Buying a filled container such as **Explorer's Pack** includes the items stored in its source compendium document, at the listed pack price. Each purchased copy keeps its own contents and nested container organization. Items mentioned only in a description are not added automatically. This applies to global purchases, shops, and GM-approved purchases.
+Items stored inside a container are not listed on their own in Buy. The container is the item for sale. Buying a filled container such as **Explorer's Pack** includes the items stored in its source compendium document, at the listed pack price. Each purchased copy keeps its own contents and nested container organization. Items mentioned only in a description are not added automatically. This applies to global purchases, shops, and GM-approved purchases.
 
 ## Open the global Marketplace
 
