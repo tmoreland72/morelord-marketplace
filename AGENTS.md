@@ -19,7 +19,7 @@
 ## Brand and interface consistency
 
 - ALL Foundry UI in every Morelord module MUST use Core's shared components, styles, tokens, and UI functions. This applies to new and existing windows, dialogs, forms, cards, lists, chat output, and sheet integrations, including prototypes and unreleased modules.
-- Before UI work, read Morelord Core's `MORELORD-BRAND-GUIDE.md` (in Core's repository, or `../morelord-core/MORELORD-BRAND-GUIDE.md` from sibling module repositories).
+- Before UI work, read the [Morelord Brand Guide](https://docs.google.com/document/d/1ppfwqiKhtnCsOTK_5-OtV8Ho5patd5dSm2m5eWpiwBk/edit) in the [shared Drive folder](https://drive.google.com/drive/folders/1JKMCzl8f7MyNhgtuIMzCz1Y2o4_w9cC0).
 - Use the appropriate Core component with its required markup, classes, and behavior. Adding `ml-*` classes or Core tokens to independently designed markup is not sufficient. Core is the source of truth; another module is only an example of consuming it, not a design system to copy.
 - Do not recreate, override, or patch shared UI in a feature module. If Core lacks a needed shared component or its component does not work correctly, add or fix it in Core, preserve existing consumers, and have the feature module consume that implementation.
 - Module-specific UI code may implement domain-specific layout and behavior only. Shared typography, surfaces, controls, spacing, states, and window behavior remain owned by Core. Ensure Core's assets and required UI initialization are actually loaded; do not compensate for missing integration with local styling.

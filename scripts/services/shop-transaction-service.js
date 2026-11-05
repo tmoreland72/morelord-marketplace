@@ -1,4 +1,4 @@
-import { preparePurchaseItems } from "./purchase-items.js";
+import { grantPurchasedItems, undoPurchasedItems } from "./purchase-items.js";
 import { itemRarity } from "../../../morelord-core/scripts/services/item-rarity.js";
 import { canUseActorInventory } from "../../../morelord-core/scripts/ui/actor-participation.js";
 import { MODULE_ID } from "../constants.js";
@@ -273,13 +273,14 @@ export class ShopTransactionService {
 
     const stockSnapshot = foundry.utils.deepClone(shop.stock ?? {});
     const createdIds = [];
+    const quantityUpdates = [];
     const ownedUuidsByKey = new Map();
     try {
       for (const line of prepared) {
-        const sources = await preparePurchaseItems(Array(line.quantity).fill(line.item));
-        const created = await actor.createEmbeddedDocuments("Item", sources, { keepId: true });
-        createdIds.push(...created.map(document => document.id));
-        if (created[0]?.uuid) ownedUuidsByKey.set(line.key, created[0].uuid);
+        const grant = await grantPurchasedItems(actor, line.item, line.quantity);
+        createdIds.push(...grant.created);
+        quantityUpdates.push(...grant.updated);
+        if (grant.uuid) ownedUuidsByKey.set(line.key, grant.uuid);
       }
 
       await CurrencyService.setCurrency(fundingActor, originalCurrencyCp - totalCp);
@@ -315,7 +316,7 @@ export class ShopTransactionService {
       };
     } catch (error) {
       try {
-        if (createdIds.length) await actor.deleteEmbeddedDocuments("Item", createdIds);
+        await undoPurchasedItems(actor, [{ created: createdIds, updated: quantityUpdates }]);
       } catch (rollbackError) {
         console.error(`[${MODULE_ID}] Failed to rollback purchased items`, rollbackError);
       }

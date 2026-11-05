@@ -1,4 +1,4 @@
-import { preparePurchaseItems } from "./purchase-items.js";
+import { grantPurchasedItems, undoPurchasedItems } from "./purchase-items.js";
 import { itemRarity } from "../../../morelord-core/scripts/services/item-rarity.js";
 import {
   MODULE_ID,
@@ -305,10 +305,14 @@ export class TransactionApprovalService {
 
     await CurrencyService.deductCurrency(fundingActor, transaction.totalPriceCp);
 
+    const grants = [];
     try {
-      await actor.createEmbeddedDocuments("Item", await preparePurchaseItems([item]), { keepId: true });
+      grants.push(await grantPurchasedItems(actor, item, Number(transaction.quantity) || 1));
     } catch (error) {
-      await CurrencyService.setCurrency(fundingActor, originalCurrencyCp);
+      const rollbackErrors = [];
+      try { await undoPurchasedItems(actor, grants); } catch (rollbackError) { rollbackErrors.push(rollbackError); }
+      try { await CurrencyService.setCurrency(fundingActor, originalCurrencyCp); } catch (rollbackError) { rollbackErrors.push(rollbackError); }
+      if (rollbackErrors.length) throw new Error("The purchase failed and could not be fully rolled back. Review the character's inventory and currency.");
       throw error;
     }
   }
@@ -374,7 +378,7 @@ export class TransactionApprovalService {
   }
 
   static async executeApprovedBuyCart(transaction, actor, fundingActor, lines) {
-    const documents = [];
+    const purchases = [];
     let liveTotal = 0;
     for (const line of lines) {
       const loaded = await loadAllowedItem(line.packId, line.documentId);
@@ -390,18 +394,18 @@ export class TransactionApprovalService {
       const priceCp = PricingService.getBuyPriceCp(PricingService.getItemPriceCp(item));
       if (priceCp !== Number(line.unitPriceCp)) throw new Error(`${item.name}'s price changed.`);
       liveTotal += priceCp * quantity;
-      documents.push(...await preparePurchaseItems(Array(quantity).fill(item)));
+      purchases.push({ item, quantity });
     }
     if (liveTotal !== Number(transaction.totalPriceCp)) throw new Error("The cart total changed.");
     if (!CurrencyService.canAfford(fundingActor, liveTotal)) throw new Error("The selected purchase funds are no longer sufficient.");
     const originalCurrencyCp = CurrencyService.currencyToCp(CurrencyService.getCurrency(fundingActor));
-    const originalItemIds = new Set(actor.items.map(item => item.id));
     await CurrencyService.deductCurrency(fundingActor, liveTotal);
-    try { await actor.createEmbeddedDocuments("Item", documents, { keepId: true }); }
-    catch (error) {
+    const grants = [];
+    try {
+      for (const purchase of purchases) grants.push(await grantPurchasedItems(actor, purchase.item, purchase.quantity));
+    } catch (error) {
       const rollbackErrors = [];
-      const createdIds = actor.items.filter(item => !originalItemIds.has(item.id)).map(item => item.id);
-      try { if (createdIds.length) await actor.deleteEmbeddedDocuments("Item", createdIds); } catch (rollbackError) { rollbackErrors.push(rollbackError); }
+      try { await undoPurchasedItems(actor, grants); } catch (rollbackError) { rollbackErrors.push(rollbackError); }
       try { await CurrencyService.setCurrency(fundingActor, originalCurrencyCp); } catch (rollbackError) { rollbackErrors.push(rollbackError); }
       if (rollbackErrors.length) throw new Error("The purchase failed and could not be fully rolled back. Review the character's inventory and currency.");
       throw error;
