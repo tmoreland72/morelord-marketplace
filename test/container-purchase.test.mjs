@@ -185,3 +185,78 @@ test('a non-container cart quantity is one stack, and a container cart stays one
   assert.deepEqual(boxes.map(item => item.system.quantity), [1, 1]);
   assert.equal(owned.length, 3);
 });
+
+test("Buy lists a purchasable container without its nested contents, and keeps loose items", async t => {
+  const { resolveBookLabel } = await import("../../morelord-core/scripts/services/source-book-service.js");
+  const previous = { game: globalThis.game, CONFIG: globalThis.CONFIG, MorelordCore: globalThis.MorelordCore };
+  t.after(() => {
+    Object.assign(globalThis, previous);
+    CompendiumService.clearCache();
+  });
+  const price = (value, denomination = "gp") => ({ value, denomination });
+  const index = [
+    { _id: "pack", name: "Explorer's Pack", type: "container", system: { price: price(10), quantity: 1 } },
+    { _id: "pouch", name: "Pouch", type: "container", system: { price: price(5, "sp"), quantity: 1, container: "pack" } },
+    { _id: "rope", name: "Rope", type: "loot", system: { price: price(1), quantity: 1, container: "pouch" } },
+    { _id: "loose-rope", name: "Rope", type: "loot", system: { price: price(1), quantity: 1 } },
+    { _id: "pack-rations", name: "Rations", type: "consumable", system: { price: price(5, "sp"), quantity: 7, container: "pack" } },
+    { _id: "loose-rations", name: "Rations", type: "consumable", system: { price: price(5, "sp"), quantity: 1 } },
+    { _id: "tinderbox", name: "Tinderbox", type: "loot", system: { price: price(5, "sp"), quantity: 1, container: "pack" } },
+    {
+      _id: "kit", name: "Unsold Kit", type: "container",
+      flags: { "morelord-marketplace": { purchasable: false } },
+      system: { price: price(10), quantity: 1 }
+    },
+    { _id: "torch", name: "Torch", type: "loot", system: { price: price(1, "cp"), quantity: 1, container: "kit" } },
+    { _id: "bedroll", name: "Bedroll", type: "loot", system: { price: price(1), quantity: 1, container: "missing" } }
+  ];
+  const pack = {
+    collection: "world.containers",
+    documentName: "Item",
+    metadata: { packageType: "world" },
+    getIndex: async () => index
+  };
+  const packs = [pack];
+  packs.get = id => packs.find(entry => entry.collection === id);
+  globalThis.CONFIG = { DND5E: {}, Item: { typeLabels: {} } };
+  globalThis.MorelordCore = { sources: { resolveBookLabel } };
+  globalThis.game = {
+    system: { id: "dnd5e" },
+    packs,
+    i18n: { has: () => false, localize: value => value },
+    modules: new Map([["morelord-core", { api: { sources: { resolveBookLabel } } }]]),
+    settings: {
+      get: (_module, key) => key === "packSourceConfiguration" ? { "world.containers": true } : undefined
+    }
+  };
+  CompendiumService.clearCache();
+  const ids = (await CompendiumService.getBuyableCatalog()).map(row => row.documentId).sort();
+  assert.deepEqual(ids, ["bedroll", "loose-rations", "loose-rope", "pack", "torch"]);
+
+  const shop = {
+    buyModifier: 1,
+    reputation: "neutral",
+    inventoryMode: "unlimited",
+    compendiums: [],
+    itemTypes: [],
+    rarities: [],
+    prefabItemUuids: [],
+    manualInventoryOnly: false,
+    inventoryOverrides: { included: [], excluded: [], limited: [] }
+  };
+  CompendiumService.clearCache();
+  const lootIds = (await CompendiumService.getBuyableCatalog({
+    ...shop,
+    id: "loot-only",
+    itemOptions: ["loot", "consumable"]
+  })).map(row => row.documentId).sort();
+  assert.deepEqual(lootIds, ["bedroll", "loose-rations", "loose-rope", "tinderbox", "torch"]);
+
+  CompendiumService.clearCache();
+  const gearIds = (await CompendiumService.getBuyableCatalog({
+    ...shop,
+    id: "gear",
+    itemOptions: ["loot", "consumable", "container"]
+  })).map(row => row.documentId).sort();
+  assert.deepEqual(gearIds, ["bedroll", "loose-rations", "loose-rope", "pack", "torch"]);
+});

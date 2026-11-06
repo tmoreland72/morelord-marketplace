@@ -4,7 +4,7 @@ description: Browse, buy, sell, transfer items, and use wishlists through Market
 slug: morelord-marketplace/player
 product: morelord-marketplace
 audience: player
-version: 0.12.1
+version: 0.12.2
 foundry: 14
 ---
 
@@ -16,7 +16,7 @@ Updated layout: Buy and Sell begin with **Shopper and Payer**, with portraits in
 
 Morelord Marketplace lets you browse, buy, sell eligible inventory items at rates set by the GM, transfer equipment, and save wishlists in Foundry VTT. Your GM may also place individual vendors with their own products, prices, reputation, and stock.
 
-This manual applies to Morelord Marketplace 0.12.1 with Morelord Core 0.9.0 or later.
+This manual applies to Morelord Marketplace 0.12.2 with Morelord Core 0.9.2 or later.
 
 ## Transfer inventory items
 
@@ -51,7 +51,7 @@ Select your character token before opening the global Marketplace when you want 
 
 Your character needs enough dnd5e currency to purchase an item. The Marketplace automatically converts denominations when checking funds and applying a transaction.
 
-Buying a filled container such as **Explorer's Pack** includes the items stored in its source compendium document, at the listed pack price. Each purchased copy keeps its own contents and nested container organization. Items mentioned only in a description are not added automatically. This applies to global purchases, shops, and GM-approved purchases.
+Buying a filled container such as **Explorer's Pack** includes the items stored in its source compendium document, at the listed pack price. Each purchased copy keeps its own contents and nested container organization. Items mentioned only in a description are not added automatically. This applies to global purchases, shops, and GM-approved purchases. When **Buy** lists that container, it does not also list the items stored inside it, including items in a nested container. A top-level item that is not inside the container, such as a loose rope, remains its own listing. The container's item link still opens its contents. Sell and Transfer still show items you already own, including items inside containers.
 
 ## Open the global Marketplace
 

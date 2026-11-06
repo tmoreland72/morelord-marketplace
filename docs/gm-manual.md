@@ -4,13 +4,13 @@ description: Install, configure, and operate Morelord Marketplace, including pre
 slug: morelord-marketplace/gm
 product: morelord-marketplace
 audience: game-master
-version: 0.12.1
+version: 0.12.2
 foundry: 14
 ---
 
 # Morelord Marketplace Game Master Manual
 
-This guide covers Morelord Marketplace 0.12.1, Foundry VTT v14, dnd5e, and Morelord Core 0.9.0 or later. Open Marketplace and Shop Manager from **Morelord Tools**. The global tabs run **Sell → Transfer → Buy → Wishlist**. Sell eligible inventory items at rates set by the GM; wishlists save desired items without reserving stock.
+This guide covers Morelord Marketplace 0.12.2, Foundry VTT v14, dnd5e, and Morelord Core 0.9.2 or later. Open Marketplace and Shop Manager from **Morelord Tools**. The global tabs run **Sell → Transfer → Buy → Wishlist**. Sell eligible inventory items at rates set by the GM; wishlists save desired items without reserving stock.
 
 ## Inventory transfers
 
@@ -18,7 +18,7 @@ The **Transfer** tab lets players move physical inventory quantities or whole st
 
 Morelord Marketplace gives a Foundry VTT world a global catalog for buying and selling dnd5e items. With Tools Premium or Tools Champion access, it also provides GM transaction approvals and Shop Manager for configurable scene vendors.
 
-This manual applies to Morelord Marketplace 0.12.1, Foundry VTT v14, and the dnd5e system.
+This manual applies to Morelord Marketplace 0.12.2, Foundry VTT v14, and the dnd5e system.
 
 ## Contents
 
@@ -59,8 +59,8 @@ The global Marketplace remains usable if premium access expires. Saved premium s
 
 - Foundry Virtual Tabletop v14
 - The dnd5e game system
-- Morelord Core 0.9.0 or later
-- Morelord Marketplace v0.12.1
+- Morelord Core 0.9.2 or later
+- Morelord Marketplace v0.12.2
 
 ### Install with the manifest
 
@@ -484,7 +484,7 @@ Report reproducible problems at [Morelord Marketplace Issues](https://github.com
 
 ## Current catalog and shop controls
 
-Global Buy and Sell both use carts. Adding items only prepares a transaction; Purchase or Sell Cart submits it. When global GM approval is enabled, the complete cart is one request and current prices, funds, availability, and quantities are revalidated before commitment. Buy results are paginated at 50 items per page while filters cover the entire catalog.
+Global Buy and Sell both use carts. Adding items only prepares a transaction; Purchase or Sell Cart submits it. When global GM approval is enabled, the complete cart is one request and current prices, funds, availability, and quantities are revalidated before commitment. Buy results are paginated at 50 items per page while filters cover the entire catalog. When Buy lists a purchasable container, items stored inside it are not separate listings. Buying the container still includes those contents. A top-level item outside that container stays listed. Item links still open container contents, and Sell and Transfer still show owned items inside containers.
 
 Shop Manager can associate a shop with a shared Core Location. Normal stock can inherit its capability tier or use the shop's maximum normal rarity override. Manually included inventory may exceed that limit; its Manual badge identifies manually managed stock. Normal restocking preserves remaining quantity; manual-only shops restore configured quantities.
 

@@ -51,7 +51,7 @@ Buy and Sell provide explicit Core portrait selectors in both the global Marketp
 
 - **Shopping As** determines which player character receives purchased items.
 
-Filled-container purchases (for example, Explorer's Pack) include their source compendium contents at the listed pack price. Each copy retains its own nested contents; description-only lists do not create items.
+Filled-container purchases (for example, Explorer's Pack) include their source compendium contents at the listed pack price. Each copy retains its own nested contents; description-only lists do not create items. When Buy lists that container, it does not also list the items stored inside it. A loose item of the same name stays listed.
 - **Paying From** determines which player character or Group actor supplies the currency.
 
 This allows a character to receive an item while a shared party Group actor pays for it.
@@ -120,7 +120,7 @@ Install this URL using:
 ## Requirements
 
 - Foundry VTT v14
-- Morelord Core 0.9.0 or later
+- Morelord Core 0.9.2 or later
 - dnd5e System compatible with Foundry v14
 
 ---
@@ -306,7 +306,7 @@ New template and prefab shops copy the buy and sell rates from Marketplace setti
 
 ## Release dependency
 
-This release requires Morelord Core 0.9.0 or newer. Marketplace and Shop Manager open from Morelord Tools. Optional integrations remain optional.
+This release requires Morelord Core 0.9.2 or newer. Prices and purses use Core's currency API, and completed purchase, sale, and transfer chat cards use Core's item card. Marketplace and Shop Manager open from Morelord Tools. Optional integrations remain optional.
 
 ## Manually configured shop items
 

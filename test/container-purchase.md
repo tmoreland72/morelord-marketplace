@@ -5,10 +5,12 @@ The launcher checks the join page and loaded world are Dev1 before running Core'
 Enable buying and a compendium containing Explorer's Pack with actual container contents.
 
 The module-owned `containerPurchaseCheck` in `scripts/testing/container-purchase.mjs`
-buys one pack through the direct purchase path and two through the approved-cart path.
-It verifies the source's complete item count, separate top-level packs, valid owned
-containment links, and the exact listed-price currency deduction. It deletes its
-disposable actor in cleanup without changing source documents or world settings.
+confirms Explorer's Pack remains a Buy listing and that its indexed contents, including
+items in a nested container, are not separate Buy listings. It then buys one pack through
+the direct purchase path and two through the approved-cart path. It verifies the source's
+complete item count, separate top-level packs, valid owned containment links, and the
+exact listed-price currency deduction. It deletes its disposable actor in cleanup without
+changing source documents or world settings.
 The launcher saves `test/in-game-reports/container-purchase.json`.
 
 Offline: `node --test test/*.test.mjs`. Container preparation checks cover repeated
@@ -18,5 +20,6 @@ October 17, 2026: passed all five shared-runner checks in verified Dev1 on
 Foundry 14.369 / D&D5e 6.0.3. The native Explorer's Pack purchase and two-copy
 approved cart preserved all contents, owned container links, and exact currency
 deductions. Evidence: `test/in-game-reports/container-purchase.json`.
+The Buy-catalog assertion added for 0.12.2 has not been run in Dev1.
 Shop checkout and a real player approval interaction were not separately exercised live.
 The launcher supports the current `userId` login field and the older `username` field.

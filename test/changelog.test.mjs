@@ -57,6 +57,21 @@ test("changelog versions are every release note, newest first, without internal 
   assert.match(changelog, /### Changes\n\n- Added a paginated Buy catalog/);
 });
 
+test("release workflow lists test files in PowerShell and publishes through release.ps1", () => {
+  const workflow = readFileSync(path.join(root, ".github/workflows/release.yml"), "utf8");
+  assert.match(workflow, /\$tests = @\(Get-ChildItem -LiteralPath test -Filter \*\.test\.mjs -File\)/);
+  assert.match(workflow, /node --test @\(\$tests\.FullName\)/);
+  assert.equal(workflow.includes("node --test test/*.test.mjs"), false);
+  assert.equal(workflow.includes("repository_dispatch"), false);
+  assert.equal(workflow.includes("product-docs-updated"), false);
+  assert.equal(Object.hasOwn(releaseConfig, "documentationWebsiteRepository"), false);
+  assert.match(workflow, /\/release\.ps1 -Version \$env:RELEASE_VERSION -WebsiteOnly\r?\n\s+\.\/release\.ps1 -Version \$env:RELEASE_VERSION -FoundryOnly/);
+  assert.match(workflow, /^        run: \.\/release\.ps1 -Version \$env:RELEASE_VERSION$/m);
+  assert.match(releaseScript, /if \(-not \[string\]::IsNullOrWhiteSpace\(\$DocumentationWebsiteRepository\)\)/);
+  assert.match(releaseScript, /function Publish-FoundryRelease/);
+  assert.match(releaseScript, /function Publish-WebsiteRelease/);
+});
+
 test("release packaging commits and requires the root changelog", () => {
   assert.equal(releaseConfig.requiredPaths.includes("CHANGELOG.md"), true);
   assert.match(releaseScript, /function Update-Changelog/);
