@@ -2,6 +2,8 @@
 
 Dispatch the **Release** workflow from the `main` branch after this workflow file is on `main`. The workflow runs `.github/workflows/release.yml` on `ubuntu-latest` with PowerShell. It does not run in-Foundry tests.
 
+The workflow does not dispatch documentation. `release.config.json` has no `documentationWebsiteRepository`, and `release.ps1` requests a documentation deployment only when that key is set. A normal release publishes Foundry and the website from `release.ps1` after the GitHub Release. `publish_only` publishes the website with `-WebsiteOnly`, then Foundry with `-FoundryOnly`. The unit-test step lists `test/*.test.mjs` with `Get-ChildItem` and passes each path to `node --test`.
+
 The workflow does not list archive files. `release.ps1` packages `release.config.json` `requiredPaths`, plus any `optionalPaths` that exist, and checks the zip against those required paths. Marketplace required paths are `module.json`, `README.md`, `CHANGELOG.md`, `scripts`, `styles`, `templates`, and `docs`. Optional paths are `data`, `assets`, `lang`, `LICENSE`, and `LICENSE.md`. `release-notes/` stays out of the zip.
 
 ## Secrets
@@ -25,15 +27,15 @@ The workflow passes those values only as environment variables on the publish st
 | `version` | empty | Explicit `x.y.z`. When set, `bump` is ignored |
 | `publish_only` | false | Skip the version bump, tag, and GitHub Release. Publish that version to the website and then to Foundry |
 
-With `module.json` at `0.12.0` and no explicit version, the bumps are:
+With `module.json` at `0.12.1` and no explicit version, the bumps are:
 
 | `bump` | Next version |
 | --- | --- |
-| `patch` | `0.12.1` |
+| `patch` | `0.12.2` |
 | `minor` | `0.13.0` |
 | `major` | `1.0.0` |
 
-`publish_only` without `version` uses the version already in `module.json`. It does not increment it. `publish_only` with `version` publishes that exact version. `module.json` on `main` must already equal that version, and the `v` tag must already exist on `origin`. `publish_only` with version `0.12.0` sends the existing 0.12.0 release to the website feed and the Foundry listing.
+`publish_only` without `version` uses the version already in `module.json`. It does not increment it. `publish_only` with `version` publishes that exact version. `module.json` on `main` must already equal that version, and the `v` tag must already exist on `origin`. `publish_only` with version `0.12.1` sends the existing 0.12.1 release to the website feed and the Foundry listing.
 
 A normal release still needs `release-notes/RELEASE-NOTES-<version>.md` and `docs/README.md` frontmatter for that version before the dispatch. `release.ps1` creates the commit, tag, GitHub Release, website record, and Foundry release.
 
@@ -61,7 +63,7 @@ Website-only and Foundry-only publishing are separate script invocations. They d
 
 ```powershell
 $env:RELEASE_PUBLISH_TOKEN = '<token>'
-./release.ps1 -Version 0.12.0 -WebsiteOnly
+./release.ps1 -Version 0.12.1 -WebsiteOnly
 $env:FOUNDRY_RELEASE_TOKEN = '<token>'
-./release.ps1 -Version 0.12.0 -FoundryOnly
+./release.ps1 -Version 0.12.1 -FoundryOnly
 ```

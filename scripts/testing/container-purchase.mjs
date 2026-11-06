@@ -12,6 +12,35 @@ export const containerPurchaseCheck = {
     const rows = await CompendiumService.getInventorySearchCatalog();
     const row = rows.find(row => /explorer.?s pack/i.test(row.name));
     assert(row, 'Enable a compendium containing Explorer’s Pack.');
+    const pack = game.packs.get(row.packId);
+    const index = await pack.getIndex({ fields: ["name", "system.container"] });
+    const parentById = new Map();
+    const parentIdOf = entry => {
+      const raw = entry?.system?.container;
+      const value = raw && typeof raw === "object" && "value" in raw ? raw.value : raw;
+      if (value && typeof value === "object") return String(value.id ?? value._id ?? "").trim();
+      return String(value ?? "").trim();
+    };
+    for (const entry of index) {
+      const parentId = parentIdOf(entry);
+      if (parentId) parentById.set(entry._id, parentId);
+    }
+    const packed = [];
+    for (const entry of index) {
+      const seen = new Set();
+      let parentId = parentById.get(entry._id);
+      while (parentId && !seen.has(parentId)) {
+        if (parentId === row.documentId) { packed.push(entry._id); break; }
+        seen.add(parentId);
+        parentId = parentById.get(parentId);
+      }
+    }
+    assert(packed.length > 0, "Explorer's Pack indexes contained items.");
+    const catalog = await CompendiumService.getBuyableCatalog();
+    assert(catalog.some(item => item.packId === row.packId && item.documentId === row.documentId), "The pack remains a Buy listing.");
+    for (const id of packed) {
+      assert(!catalog.some(item => item.packId === row.packId && item.documentId === id), "Packed items are not separate Buy listings.");
+    }
     const loaded = await loadAllowedItem(row.packId, row.documentId);
     assert(loaded.status === "ok", "Explorer's Pack must come from an enabled compendium.");
     const source = loaded.item;

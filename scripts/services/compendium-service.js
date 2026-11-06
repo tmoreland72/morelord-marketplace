@@ -98,15 +98,19 @@ export class CompendiumService {
       })));
 
       for (const { pack, index } of indexedPacks) {
+        const parentById = new Map();
+        const packRows = [];
         for (const entry of index) {
+          const parentId = this.containerIdOf(entry);
+          if (parentId) parentById.set(entry._id, parentId);
           const row = this.indexEntryToMarketplaceRow(
             pack,
             entry,
             currentShop
           );
-
-          if (row) rows.push(row);
+          if (row) packRows.push(row);
         }
+        rows.push(...this.withoutPurchasableContainerContents(packRows, parentById));
       }
 
       return this.dedupeRows(rows)
@@ -1040,6 +1044,34 @@ export class CompendiumService {
       console.error(`[${MODULE_ID}] Buy-cart rollback was incomplete`, rollbackErrors);
       throw new Error("The purchase failed and could not be fully rolled back. A Game Master must review the character's inventory and currency.");
     }
+  }
+
+  static containerIdOf(entry) {
+    const raw = this.extractValue(entry?.system?.container);
+    if (raw && typeof raw === "object") return String(raw.id ?? raw._id ?? "").trim();
+    return String(raw ?? "").trim();
+  }
+
+  /**
+   * A container this catalog offers is one purchase. Items stored in it,
+   * including items in a nested container, stay out of the Buy list.
+   * Contents whose container is not offered remain individual listings.
+   */
+  static withoutPurchasableContainerContents(rows, parentById) {
+    const containers = new Set(
+      rows.filter(row => row.typeKey === "container").map(row => row.documentId)
+    );
+    const storedInOfferedContainer = documentId => {
+      const seen = new Set();
+      let parentId = parentById.get(documentId);
+      while (parentId && !seen.has(parentId)) {
+        if (containers.has(parentId)) return true;
+        seen.add(parentId);
+        parentId = parentById.get(parentId);
+      }
+      return false;
+    };
+    return rows.filter(row => !storedInOfferedContainer(row.documentId));
   }
 
   static stackSizeOf(row) {
