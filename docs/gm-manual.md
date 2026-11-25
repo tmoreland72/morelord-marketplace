@@ -98,7 +98,7 @@ Open **Game Settings → Configure Settings → Module Settings → Morelord Mar
 
 GM-initiated global transactions do not wait for approval. Shop cart purchases are processed through the shop checkout workflow rather than the global approval settings.
 
-The settings page is GM-only. Number inputs accept steps of `0.05`; buying requires at least `1`, while selling accepts `0` through `1`. **Save** persists the world settings; closing without Save discards unsaved edits. Changes apply to subsequent global transactions, not individual shops' stored rates.
+The settings page is GM-only. Number inputs accept steps of `0.05`; buying requires at least `1`, while selling accepts `0` through `1`. **Save Changes** persists the world settings and closes the window only after the save succeeds. A failed save leaves the window open for retry. Closing without saving discards unsaved edits. Changes apply to subsequent global transactions, not individual shops' stored rates.
 
 Changing **Configure Sources** or the buy and sell rates refreshes open Marketplace windows in the background, so the window where the change was made stays in front. **Enable Locations** is covered in [Shared Locations](#shared-locations).
 
