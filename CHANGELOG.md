@@ -1,5 +1,11 @@
 # Morelord Marketplace Changelog
 
+## 0.12.3
+
+### Fixed
+
+- Use Save Changes and Core's shared form footer in Marketplace settings. Successful saves close the window; failed saves remain open for retry.
+
 ## 0.12.2
 
 ### Fixed
